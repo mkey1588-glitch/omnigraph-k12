@@ -1,0 +1,157 @@
+import type { DifficultyTier } from "@/types/taxonomy";
+
+export interface IrtItemRecord {
+  templateId: string;
+  topicId: string;
+  priorBeta: number; // Prior difficulty in [-3, +3]
+  calibratedBeta: number; // Empirical difficulty calibrated from student logs
+  discriminationAlpha: number; // 2PL slope in [0.5, 2.5]
+  attempts: number;
+  correct: number;
+}
+
+export function priorBetaForDifficulty(tier: DifficultyTier, baselineGrade = 7): number {
+  const gradeOffset = (baselineGrade - 7) * 0.08;
+  const base = tier === "basic" ? -0.85 : tier === "standard" ? 0.0 : 0.95;
+  return Math.round((base + gradeOffset) * 100) / 100;
+}
+
+/**
+ * Convert BKT mastery probability p in (0, 1) to latent trait ability theta in [-2.6, +2.6]
+ */
+export function masteryToTheta(pMastery: number): number {
+  const clamped = Math.max(0.05, Math.min(0.95, pMastery));
+  const logit = Math.log(clamped / (1 - clamped));
+  return Math.round(Math.max(-2.6, Math.min(2.6, logit * 0.85)) * 100) / 100;
+}
+
+/**
+ * 2-Parameter Logistic (2PL) IRT probability of a correct response:
+ * P(correct | theta, alpha, beta) = 1 / (1 + exp(-alpha * (theta - beta)))
+ */
+export function irt2PLProbability(
+  theta: number,
+  beta: number,
+  alpha = 1.1
+): number {
+  const z = Math.max(-12, Math.min(12, alpha * (theta - beta)));
+  return 1 / (1 + Math.exp(-z));
+}
+
+/**
+ * Online Elo-IRT calibration step (Data Flywheel):
+ * - When students fail an item that their theta predicted they'd pass (S < E),
+ *   calibratedBeta increases (item is empirically harder than prior).
+ * - When students pass an item predicted hard (S > E), calibratedBeta decreases.
+ * - Discrimination alpha updates gently along gradient (theta - beta) * (S - E).
+ */
+export function calibrateIrtAfterAttempt(
+  current: IrtItemRecord,
+  studentTheta: number,
+  isCorrect: boolean
+): IrtItemRecord {
+  const expected = irt2PLProbability(
+    studentTheta,
+    current.calibratedBeta,
+    current.discriminationAlpha
+  );
+  const score = isCorrect ? 1 : 0;
+
+  const kBeta = 0.34 / (1 + 0.05 * current.attempts);
+  const nextBetaRaw = current.calibratedBeta + kBeta * (expected - score);
+  const calibratedBeta =
+    Math.round(Math.max(-3.0, Math.min(3.0, nextBetaRaw)) * 1000) / 1000;
+
+  const kAlpha = 0.06 / (1 + 0.05 * current.attempts);
+  const alphaGrad = (studentTheta - current.calibratedBeta) * (score - expected);
+  const nextAlphaRaw = current.discriminationAlpha + kAlpha * alphaGrad;
+  const discriminationAlpha =
+    Math.round(Math.max(0.5, Math.min(2.5, nextAlphaRaw)) * 1000) / 1000;
+
+  return {
+    ...current,
+    calibratedBeta,
+    discriminationAlpha,
+    attempts: current.attempts + 1,
+    correct: current.correct + (isCorrect ? 1 : 0),
+  };
+}
+
+export interface SimpleDirectedEdge {
+  topicId: string; // dependent topic
+  prerequisiteId: string; // upstream prerequisite
+}
+
+export interface AcyclicCheckResult {
+  ok: boolean;
+  reasonZh?: string;
+  cyclePath?: string[];
+}
+
+/**
+ * Verifies that adding `candidate` (topicId depends on prerequisiteId)
+ * preserves strict Directed Acyclic Graph (DAG) topological validity.
+ */
+export function validateCustomEdgeAcyclic(
+  existingEdges: SimpleDirectedEdge[],
+  candidate: SimpleDirectedEdge
+): AcyclicCheckResult {
+  if (candidate.topicId === candidate.prerequisiteId) {
+    return {
+      ok: false,
+      reasonZh: "禁止自环依赖：同一微技能节点不能将自身设为先修前提。",
+      cyclePath: [candidate.topicId, candidate.prerequisiteId],
+    };
+  }
+
+  const dup = existingEdges.some(
+    (e) =>
+      e.topicId === candidate.topicId &&
+      e.prerequisiteId === candidate.prerequisiteId
+  );
+  if (dup) {
+    return {
+      ok: false,
+      reasonZh: "该先修依赖边已存在于标准图谱或校本图谱中，无需重复添加。",
+    };
+  }
+
+  // A cycle occurs iff `candidate.topicId` is already an upstream prerequisite
+  // (direct or transitive) of `candidate.prerequisiteId`!
+  // Let's search upstream from `candidate.prerequisiteId` following `x -> x.prerequisiteId`.
+  const prereqsOf = new Map<string, string[]>();
+  for (const e of existingEdges) {
+    const arr = prereqsOf.get(e.topicId) ?? [];
+    arr.push(e.prerequisiteId);
+    prereqsOf.set(e.topicId, arr);
+  }
+
+  const queue: Array<{ node: string; path: string[] }> = [
+    {
+      node: candidate.prerequisiteId,
+      path: [candidate.topicId, candidate.prerequisiteId],
+    },
+  ];
+  const visited = new Set<string>([candidate.prerequisiteId]);
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    const upstreams = prereqsOf.get(curr.node) ?? [];
+    for (const up of upstreams) {
+      if (up === candidate.topicId) {
+        const cyclePath = [...curr.path, up];
+        return {
+          ok: false,
+          reasonZh: `检测到有向环路（Cycle Detected）：${cyclePath.join(" → ")}，已自动拦截以保护自适应诊断收敛性！`,
+          cyclePath,
+        };
+      }
+      if (!visited.has(up)) {
+        visited.add(up);
+        queue.push({ node: up, path: [...curr.path, up] });
+      }
+    }
+  }
+
+  return { ok: true };
+}

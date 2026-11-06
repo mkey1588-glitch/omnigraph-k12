@@ -1,0 +1,43 @@
+name: OmniGraph K12 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate 9-Region Canonical DAG & Alignments
+        run: pnpm validate:graph
+
+      - name: Seed SQLite Demo Database
+        run: pnpm db:seed
+
+      - name: Run All 9 Core Engine Test Suites
+        run: pnpm test:engines
+
+      - name: TypeScript Strict Check
+        run: pnpm lint
+
+      - name: Next.js Production Build
+        run: pnpm build
