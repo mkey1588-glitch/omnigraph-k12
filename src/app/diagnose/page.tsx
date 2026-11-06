@@ -142,6 +142,7 @@ function DiagnoseStudioContent() {
           studentId: activeStudentId,
           subjectId,
           regionCode,
+          locale,
           mode,
           targetTopicIds: targets,
           confirmRequired: 2,
@@ -171,6 +172,7 @@ function DiagnoseStudioContent() {
         body: JSON.stringify({
           action: "answer",
           sessionId: session.sessionId,
+          locale,
           session,
           instance: currentPrompt.instance,
           userAnswer: ans,
