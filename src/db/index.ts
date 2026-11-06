@@ -4,13 +4,31 @@ import { createClient, type Client } from "@libsql/client";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+function resolveDatabaseUrl(): string {
+  const configured = process.env.DATABASE_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+  // On Vercel Serverless (/var/task is read-only), default zero-config demo DB to writable /tmp
+  if (process.env.VERCEL) {
+    return "file:/tmp/omnigraph.db";
+  }
+  const dataDir = path.join(process.cwd(), "data");
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  return `file:${path.join(dataDir, "omnigraph.db")}`;
 }
 
-const DEFAULT_DB_URL = `file:${path.join(DATA_DIR, "omnigraph.db")}`;
-const dbUrl = process.env.DATABASE_URL || DEFAULT_DB_URL;
+const dbUrl = resolveDatabaseUrl();
+// If a relative file:./data/... URL is explicitly set locally, ensure parent dir exists when writable
+if (dbUrl.startsWith("file:") && !process.env.VERCEL) {
+  const filePath = dbUrl.slice("file:".length);
+  const parentDir = path.dirname(path.resolve(process.cwd(), filePath));
+  if (!fs.existsSync(parentDir)) {
+    fs.mkdirSync(parentDir, { recursive: true });
+  }
+}
 
 const globalForDb = globalThis as unknown as {
   libsqlClient?: Client;
@@ -22,6 +40,7 @@ export const libsqlClient =
   globalForDb.libsqlClient ??
   createClient({
     url: dbUrl,
+    authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
   });
 
 export const db = globalForDb.drizzleDb ?? drizzle(libsqlClient, { schema });
