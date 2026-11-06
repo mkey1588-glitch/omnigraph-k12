@@ -10,6 +10,12 @@ import { MATH_TOPICS, type TopicSeedDefinition } from "./canonical-topics-math";
 import { STEM_AND_ALL_SUBJECT_TOPICS } from "./canonical-topics-stem";
 import { SCIENCE_AND_CS_EXPANSION_TOPICS } from "./canonical-topics-science-cs";
 import { HUMANITIES_AND_LANG_EXPANSION_TOPICS } from "./canonical-topics-humanities-lang";
+import { applyEdgeReasonOverlay, applyTopicContentOverlay } from "./i18n/overlay";
+import { TOPIC_CONTENT_I18N_MATH } from "./i18n/topic-content-math";
+import { TOPIC_CONTENT_I18N_STEM } from "./i18n/topic-content-stem";
+import { TOPIC_CONTENT_I18N_SCIENCE_CS } from "./i18n/topic-content-science-cs";
+import { TOPIC_CONTENT_I18N_HUMANITIES_LANG } from "./i18n/topic-content-humanities-lang";
+import { EDGE_REASON_I18N } from "./i18n/edge-reasons";
 
 /**
  * 50 Global Canonical Micro-Topics across all 9 K12 Subjects:
@@ -22,13 +28,23 @@ import { HUMANITIES_AND_LANG_EXPANSION_TOPICS } from "./canonical-topics-humanit
  *   - Geography & Earth Science (3: G7 -> G10)
  *   - History & Social Inquiry (3: G7 -> G10)
  *   - Mother-Tongue & Critical Reading Literacy (4: G5 -> G11)
+ *
+ * Native ja / ko / ms teaching content is merged in from ./i18n/topic-content-*.ts overlays.
  */
-export const ALL_CANONICAL_TOPICS: TopicSeedDefinition[] = [
-  ...MATH_TOPICS,
-  ...STEM_AND_ALL_SUBJECT_TOPICS,
-  ...SCIENCE_AND_CS_EXPANSION_TOPICS,
-  ...HUMANITIES_AND_LANG_EXPANSION_TOPICS,
-];
+export const ALL_CANONICAL_TOPICS: TopicSeedDefinition[] = applyTopicContentOverlay(
+  [
+    ...MATH_TOPICS,
+    ...STEM_AND_ALL_SUBJECT_TOPICS,
+    ...SCIENCE_AND_CS_EXPANSION_TOPICS,
+    ...HUMANITIES_AND_LANG_EXPANSION_TOPICS,
+  ],
+  {
+    ...TOPIC_CONTENT_I18N_MATH,
+    ...TOPIC_CONTENT_I18N_STEM,
+    ...TOPIC_CONTENT_I18N_SCIENCE_CS,
+    ...TOPIC_CONTENT_I18N_HUMANITIES_LANG,
+  }
+);
 
 export interface EdgeSeedDefinition {
   topicId: string; // Downstream target topic
@@ -41,7 +57,7 @@ export interface EdgeSeedDefinition {
  * Directed Acyclic Graph (DAG) Edges (81 Prerequisite & Cross-Subject Edges)
  * Convention: `topicId` depends on `prerequisiteId`
  */
-export const CANONICAL_EDGES: EdgeSeedDefinition[] = [
+const CANONICAL_EDGE_SEEDS: EdgeSeedDefinition[] = [
   // ==================== 1. MATHEMATICS WITHIN-SUBJECT DAG (28 edges) ====================
   {
     topicId: "mt_math_frac_concept_equiv",
@@ -762,6 +778,12 @@ export const CANONICAL_EDGES: EdgeSeedDefinition[] = [
     },
   },
 ];
+
+/** Canonical edges with native ja / ko / ms reasons merged in from ./i18n/edge-reasons.ts */
+export const CANONICAL_EDGES: EdgeSeedDefinition[] = applyEdgeReasonOverlay(
+  CANONICAL_EDGE_SEEDS,
+  EDGE_REASON_I18N
+);
 
 /**
  * Expand all 9-region curriculum alignments (50 topics × 9 regions = 450 records)

@@ -363,7 +363,7 @@ export const HUMANITIES_AND_LANG_EXPANSION_TOPICS: TopicSeedDefinition[] = [
         {
           title: { "zh-CN": "先看表头单位是“万两白银（绝对量）”还是“占比（%）”", en: "Check Units: Absolute Silver vs. % Share" },
           body: { "zh-CN": "某港口出口丝茶 420 万两、进口呢绒 290 万两 → 出超（顺差）= 420 - 290 = 130 万两。", en: "Exports 420 minus Imports 290 yields a trade surplus of +130 units." },
-          checkQuestion: { "zh-CN": "史料载某年甲国对乙国出口额为 380 万银元，进口额为 230 万银元，该年甲国贸易顺差（出超）为多少万银元？", en: "Exports = 380 million, Imports = 230 million. Find the trade surplus:" },
+          checkQuestion: { "zh-CN": "史料载某年甲国对乙国出口额为 380 万银元，进口额为 230 万银元，该年甲国贸易顺差（出超）为多少万银元？", en: "Exports = 380 ten-thousand silver dollars (3.8 million), Imports = 230 ten-thousand (2.3 million). Find the trade surplus in ten-thousand silver dollars:" },
           checkAnswer: "150",
         },
       ],

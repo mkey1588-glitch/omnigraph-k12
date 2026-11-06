@@ -20,6 +20,12 @@ export type LocalizedText = {
   ms?: string;
 };
 
+/**
+ * Native-language variants for item-bank strings beyond zh/en.
+ * Missing keys fall back to the English field (never to Chinese).
+ */
+export type TriLocaleText = Partial<Record<"ja" | "ko" | "ms", string>>;
+
 export type SubjectId =
   | "math"
   | "physics"
@@ -115,16 +121,20 @@ export interface GeneratedChoice {
   key: "A" | "B" | "C" | "D";
   text: string;
   textEn?: string;
+  textI18n?: TriLocaleText;
   misconceptionTag?: string; // If wrong choice selected, pinpoints cognitive misconception!
 }
 
 export interface ScaffoldStep {
   promptZh: string;
   promptEn: string;
+  promptI18n?: TriLocaleText;
   hintZh: string;
   hintEn: string;
+  hintI18n?: TriLocaleText;
   expectedAnswer: string;
   expectedAnswerEn?: string;
+  expectedAnswerI18n?: TriLocaleText;
 }
 
 export interface InteractiveWidgetConfig {
@@ -136,6 +146,7 @@ export interface InteractiveWidgetConfig {
   unitLabel?: string;
   captionZh: string;
   captionEn: string;
+  captionI18n?: TriLocaleText;
   bindToAnswer?: boolean; // If true, dragging updates the answer box live!
   fixedParamA?: number;
   fixedParamB?: number;
@@ -151,6 +162,7 @@ export interface GeneratedQuestionInstance {
   promptZh: string;
   promptZhTw?: string;
   promptEn: string;
+  promptI18n?: TriLocaleText;
   latexFormula?: string; // Optional highlighted KaTeX formula card
   svgDiagram?: string; // Clean inline SVG using currentColor
   interactiveWidget?: InteractiveWidgetConfig; // Perseus-grade interactive math/science manipulative
@@ -161,6 +173,7 @@ export interface GeneratedQuestionInstance {
   unit?: string;
   explanationZh: string;
   explanationEn: string;
+  explanationI18n?: TriLocaleText;
   scaffolds: ScaffoldStep[];
   misconceptionsByValue?: Record<string, string>; // Maps specific wrong numeric/algebraic answers to misconception tag
 }

@@ -9,6 +9,7 @@ import type {
   RegionCode,
   RegionMetadata,
   ScaffoldStep,
+  TriLocaleText,
 } from "@/types/taxonomy";
 import { toTraditionalChinese, findSimplifiedOnlyChars } from "./s2tw";
 import {
@@ -253,6 +254,21 @@ export function localizePrompt(
   if (locale === "zh-TW") {
     return bilingual && en && en !== zh ? `${zh}\n\n${en}` : zh;
   }
+  return triPick(locale, inst.promptI18n, en);
+}
+
+/**
+ * Picks the native ja / ko / ms variant of an item-bank string, falling back to English.
+ */
+export function triPick(
+  locale: LocaleCode,
+  i18n: TriLocaleText | undefined,
+  en: string
+): string {
+  if (locale === "ja" || locale === "ko" || locale === "ms") {
+    const native = i18n?.[locale];
+    if (native && native.trim() !== "") return native;
+  }
   return en;
 }
 
@@ -275,7 +291,7 @@ export function localizeExplanation(
   if (HAS_CJK_RE.test(inst.explanationEn)) {
     return SEED_CUSTOM_QUESTION_EXPL_EN[inst.templateId] ?? "Apply the canonical formula step by step to derive the result.";
   }
-  return inst.explanationEn || inst.explanationZh;
+  return triPick(locale, inst.explanationI18n, inst.explanationEn || inst.explanationZh);
 }
 
 export function localizeChoice(
@@ -292,7 +308,7 @@ export function localizeChoice(
     const tw = toTraditionalChinese(ch.text);
     return bilingual && ch.textEn && ch.textEn !== tw ? `${tw} · ${ch.textEn}` : tw;
   }
-  return ch.textEn || ch.text;
+  return triPick(locale, ch.textI18n, ch.textEn || ch.text);
 }
 
 export function localizeScaffold(
@@ -314,9 +330,9 @@ export function localizeScaffold(
     };
   }
   return {
-    prompt: sc.promptEn || sc.promptZh,
-    hint: sc.hintEn || sc.hintZh,
-    expected: sc.expectedAnswerEn || sc.expectedAnswer,
+    prompt: triPick(locale, sc.promptI18n, sc.promptEn || sc.promptZh),
+    hint: triPick(locale, sc.hintI18n, sc.hintEn || sc.hintZh),
+    expected: triPick(locale, sc.expectedAnswerI18n, sc.expectedAnswerEn || sc.expectedAnswer),
   };
 }
 
@@ -324,14 +340,14 @@ export function localizeWidgetCaption(
   cfg: InteractiveWidgetConfig,
   locale: LocaleCode
 ): string {
-  return biPick(locale, cfg.captionZh, cfg.captionEn);
+  return triPick(locale, cfg.captionI18n, biPick(locale, cfg.captionZh, cfg.captionEn));
 }
 
 export function localizeWhyAsked(
-  entry: { whyAskedZh: string; whyAskedEn: string },
+  entry: { whyAskedZh: string; whyAskedEn: string; whyAskedI18n?: TriLocaleText },
   locale: LocaleCode
 ): string {
-  return biPick(locale, entry.whyAskedZh, entry.whyAskedEn);
+  return triPick(locale, entry.whyAskedI18n, biPick(locale, entry.whyAskedZh, entry.whyAskedEn));
 }
 
 /**

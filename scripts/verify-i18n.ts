@@ -66,6 +66,8 @@ import {
   TEACHER_COPY,
   localizeCreatorName,
 } from "../src/lib/i18n/copy-educator-parent";
+import { collectItemI18nGaps } from "./item-i18n-coverage";
+import { collectTopicI18nGaps } from "./topic-i18n-coverage";
 
 const CJK_RE = /[\u3400-\u9FFF]/;
 const KANA_RE = /[\u3040-\u30FF]/;
@@ -295,8 +297,8 @@ async function main(): Promise<void> {
       variantIndex: 1,
     });
     for (const locale of allLocales) {
-      // Note: question stems/choices in ja/ko/ms resolve to clean English STEM text (zero Chinese leakage)
-      const checkLoc: LocaleCode = locale === "ja" || locale === "ko" ? "en" : locale;
+      // ja / ko / ms are checked against their own script rules (native item-bank translations)
+      const checkLoc: LocaleCode = locale;
       assertCleanForLocale(localizePrompt(inst, locale, false), checkLoc, `prompt(${tpl.id})`);
       assertCleanForLocale(localizeExplanation(inst, locale, false), checkLoc, `expl(${tpl.id})`);
       const svg = localizeSvgDiagram(inst.svgDiagram, locale);
@@ -453,6 +455,33 @@ async function main(): Promise<void> {
   console.log(
     `  ✔ UI Copy Dictionaries: ${uiEntriesChecked} 6-locale UI copy entries & presets verified clean across 15 modules`
   );
+
+  // 7. Native ja / ko / ms coverage gates (item bank + knowledge-graph teaching content)
+  const itemCov = collectItemI18nGaps();
+  if (itemCov.gaps.length > 0) {
+    for (const g of itemCov.gaps.slice(0, 15)) {
+      console.error(`  ❌ [${g.templateId}] ${g.field} (${g.locale}) ${g.problem} :: ${g.sample}`);
+    }
+  }
+  assert.equal(
+    itemCov.gaps.length,
+    0,
+    `Item bank has ${itemCov.gaps.length} ja/ko/ms gap(s). Run: pnpm exec tsx scripts/item-i18n-coverage.ts`
+  );
+  console.log(`  ✔ Item Bank Native Coverage: ${itemCov.instances} instances fully translated into ja / ko / ms`);
+
+  const topicCov = collectTopicI18nGaps();
+  if (topicCov.gaps.length > 0) {
+    for (const g of topicCov.gaps.slice(0, 15)) {
+      console.error(`  ❌ [${g.id}] ${g.field} (${g.locale}) ${g.problem} :: ${g.sample}`);
+    }
+  }
+  assert.equal(
+    topicCov.gaps.length,
+    0,
+    `Knowledge-graph content has ${topicCov.gaps.length} ja/ko/ms gap(s). Run: pnpm exec tsx scripts/topic-i18n-coverage.ts`
+  );
+  console.log(`  ✔ Knowledge-Graph Native Coverage: ${topicCov.checked} topics & edges fully translated into ja / ko / ms`);
 
   console.log("🎉 ALL I18N ZERO-LEAK AUDIT CHECKS PASSED!");
 }
