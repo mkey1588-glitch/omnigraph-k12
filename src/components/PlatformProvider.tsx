@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import type {
   GeneratedQuestionInstance,
+  LocaleCode,
   LocalizedText,
   MasteryStatus,
   RegionalAlignmentRecord,
@@ -21,6 +22,20 @@ import type {
 import type { SubjectSeed } from "@/data/regions-and-subjects";
 import type { TopicSeedDefinition } from "@/data/canonical-topics-math";
 import type { EdgeSeedDefinition } from "@/data/canonical-graph";
+import {
+  LOCALE_OPTIONS,
+  getLocalizedGradeLabel,
+  getLocalizedRegionProfile,
+  getRegionDisplayName,
+  localizeAlignment,
+  localizeText,
+  localizeUserName,
+  localizeUserTrack,
+  toTraditionalChinese,
+  uiPick,
+  type LocalizedRegionProfile,
+  type UiCopy,
+} from "@/lib/i18n";
 
 export interface UserRecord {
   id: string;
@@ -188,6 +203,8 @@ export interface BootstrapPayload {
 interface PlatformContextValue {
   data: BootstrapPayload | null;
   loading: boolean;
+  locale: LocaleCode;
+  setLocale: (loc: LocaleCode) => void;
   regionCode: RegionCode;
   setRegionCode: (code: RegionCode) => void;
   bilingual: boolean;
@@ -202,7 +219,19 @@ interface PlatformContextValue {
   activeStudent: UserRecord | undefined;
   refreshData: () => Promise<void>;
   resetDemoData: () => Promise<void>;
+  pick: (copy: UiCopy) => string;
   localize: (text: LocalizedText | undefined) => string;
+  localizePlain: (text: LocalizedText | undefined) => string;
+  userName: (u: { id: string; displayName: string }) => string;
+  userTrack: (u: {
+    id: string;
+    schoolTrack: string | null;
+    regionCode: RegionCode;
+    currentGrade: number | null;
+  }) => string;
+  regionName: (code: RegionCode) => string;
+  regionProfile: (reg: RegionMetadata) => LocalizedRegionProfile;
+  gradeLabel: (grade: number | null | undefined, overrideRegion?: RegionCode) => string;
   getAlignment: (
     topicId: string,
     overrideRegion?: RegionCode
@@ -215,14 +244,46 @@ interface PlatformContextValue {
 
 const PlatformContext = createContext<PlatformContextValue | null>(null);
 
+const VALID_LOCALES = new Set<LocaleCode>(["zh-CN", "zh-TW", "en", "ja", "ko", "ms"]);
+
 export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [locale, setLocaleState] = useState<LocaleCode>("zh-CN");
   const [regionCode, setRegionCodeState] = useState<RegionCode>("CN");
-  const [bilingual, setBilingual] = useState<boolean>(true);
+  const [bilingual, setBilingual] = useState<boolean>(false);
   const [activeRole, setActiveRole] = useState<UserRole>("student");
   const [activeStudentId, setActiveStudentIdState] = useState<string>("stu_leo");
   const [loggedInUserId, setLoggedInUserId] = useState<string>("stu_leo");
+
+  // Restore saved UI locale preference on client mount
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("omnigraph_locale") as LocaleCode | null;
+      if (saved && VALID_LOCALES.has(saved)) {
+        setLocaleState(saved);
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+  }, []);
+
+  // Sync <html lang="..."> dynamically whenever locale changes
+  useEffect(() => {
+    const opt = LOCALE_OPTIONS.find((o) => o.code === locale);
+    if (typeof document !== "undefined" && opt) {
+      document.documentElement.lang = opt.htmlLang;
+    }
+  }, [locale]);
+
+  const setLocale = useCallback((loc: LocaleCode) => {
+    setLocaleState(loc);
+    try {
+      window.localStorage.setItem("omnigraph_locale", loc);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
   const refreshData = useCallback(async () => {
     try {
@@ -246,11 +307,11 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     (code: RegionCode) => {
       setRegionCodeState(code);
       const reg = data?.regions.find((r) => r.code === code);
-      if (reg?.notation.defaultBilingual) {
-        setBilingual(true);
+      if (reg) {
+        setLocale(reg.primaryLocale);
       }
     },
-    [data]
+    [data, setLocale]
   );
 
   const setActiveStudentId = useCallback(
@@ -259,9 +320,13 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       const stu = data?.users.find((u) => u.id === id);
       if (stu) {
         setRegionCodeState(stu.regionCode);
+        const reg = data?.regions.find((r) => r.code === stu.regionCode);
+        if (reg) {
+          setLocale(reg.primaryLocale);
+        }
       }
     },
-    [data]
+    [data, setLocale]
   );
 
   const resetDemoData = useCallback(async () => {
@@ -284,23 +349,73 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     [data, activeStudentId]
   );
 
+  const pick = useCallback(
+    (copy: UiCopy): string => uiPick(locale, copy),
+    [locale]
+  );
+
   const localize = useCallback(
     (text: LocalizedText | undefined): string => {
-      if (!text) return "";
-      const primaryLocale = activeRegion?.primaryLocale ?? "zh-CN";
-      let primary = text["zh-CN"];
-      if (primaryLocale === "zh-TW" && text["zh-TW"]) primary = text["zh-TW"];
-      else if (primaryLocale === "ja" && text.ja) primary = `${text.ja}（${text["zh-CN"]}）`;
-      else if (primaryLocale === "ko" && text.ko) primary = `${text.ko}（${text["zh-CN"]}）`;
-      else if (primaryLocale === "ms" && text.ms) primary = `${text.ms} (${text["zh-CN"]})`;
-      else if (primaryLocale === "en") primary = `${text.en} · ${text["zh-CN"]}`;
-
-      if (bilingual && primaryLocale !== "en" && text.en && !primary.includes(text.en)) {
-        return `${primary} · ${text.en}`;
-      }
-      return primary;
+      return localizeText(text, locale, bilingual, regionCode);
     },
-    [activeRegion, bilingual]
+    [locale, bilingual, regionCode]
+  );
+
+  const localizePlain = useCallback(
+    (text: LocalizedText | undefined): string => {
+      return localizeText(text, locale, false, regionCode);
+    },
+    [locale, regionCode]
+  );
+
+  const userName = useCallback(
+    (u: { id: string; displayName: string }) => localizeUserName(u, locale),
+    [locale]
+  );
+
+  const userTrack = useCallback(
+    (u: {
+      id: string;
+      schoolTrack: string | null;
+      regionCode: RegionCode;
+      currentGrade: number | null;
+    }) => localizeUserTrack(u, locale),
+    [locale]
+  );
+
+  const regionName = useCallback(
+    (code: RegionCode) => getRegionDisplayName(code, locale),
+    [locale]
+  );
+
+  const regionProfile = useCallback(
+    (reg: RegionMetadata) =>
+      getLocalizedRegionProfile(reg, locale, toTraditionalChinese),
+    [locale]
+  );
+
+  const regionMap = useMemo(() => {
+    const m = new Map<RegionCode, RegionMetadata>();
+    for (const r of data?.regions ?? []) {
+      m.set(r.code, r);
+    }
+    return m;
+  }, [data]);
+
+  const topicMap = useMemo(() => {
+    const m = new Map<string, TopicSeedDefinition>();
+    for (const t of data?.topics ?? []) {
+      m.set(t.id, t);
+    }
+    return m;
+  }, [data]);
+
+  const gradeLabel = useCallback(
+    (grade: number | null | undefined, overrideRegion?: RegionCode) => {
+      const reg = regionMap.get(overrideRegion ?? regionCode);
+      return getLocalizedGradeLabel(reg, grade, locale, toTraditionalChinese);
+    },
+    [regionMap, regionCode, locale]
   );
 
   const alignmentMap = useMemo(() => {
@@ -313,9 +428,17 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
 
   const getAlignment = useCallback(
     (topicId: string, overrideRegion?: RegionCode) => {
-      return alignmentMap.get(`${topicId}::${overrideRegion ?? regionCode}`);
+      const targetRegion = overrideRegion ?? regionCode;
+      const raw = alignmentMap.get(`${topicId}::${targetRegion}`);
+      if (!raw) return undefined;
+      return localizeAlignment(
+        raw,
+        topicMap.get(topicId),
+        regionMap.get(targetRegion),
+        locale
+      );
     },
-    [alignmentMap, regionCode]
+    [alignmentMap, regionCode, topicMap, regionMap, locale]
   );
 
   const stateMap = useMemo(() => {
@@ -336,6 +459,8 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const value: PlatformContextValue = {
     data,
     loading,
+    locale,
+    setLocale,
     regionCode,
     setRegionCode,
     bilingual,
@@ -350,7 +475,14 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     activeStudent,
     refreshData,
     resetDemoData,
+    pick,
     localize,
+    localizePlain,
+    userName,
+    userTrack,
+    regionName,
+    regionProfile,
+    gradeLabel,
     getAlignment,
     getStudentTopicState,
   };

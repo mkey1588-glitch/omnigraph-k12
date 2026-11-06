@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Users,
   Languages,
+  Globe,
   RotateCcw,
   Camera,
   FileSpreadsheet,
@@ -18,13 +19,17 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { usePlatform } from "./PlatformProvider";
-import type { RegionCode, UserRole } from "@/types/taxonomy";
+import type { LocaleCode, RegionCode, UserRole } from "@/types/taxonomy";
+import { LOCALE_OPTIONS } from "@/lib/i18n";
+import { NAV_COPY } from "@/lib/i18n/ui-common";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const {
     data,
+    locale,
+    setLocale,
     regionCode,
     setRegionCode,
     bilingual,
@@ -34,6 +39,9 @@ export function Navbar() {
     activeStudentId,
     setActiveStudentId,
     resetDemoData,
+    pick,
+    userName,
+    regionName,
   } = usePlatform();
 
   const students = (data?.users ?? []).filter((u) => u.role === "student");
@@ -42,22 +50,62 @@ export function Navbar() {
   ).length;
 
   const navItems = [
-    { href: "/", label: "个人总览", icon: Compass, roles: ["student"] },
-    { href: "/explore", label: "知识图谱星海", icon: Network, roles: ["student", "teacher", "parent"] },
-    { href: "/diagnose", label: "靶向回溯诊断", icon: Crosshair, roles: ["student", "teacher"] },
-    { href: "/capture", label: "AI智能录错题", icon: Camera, roles: ["student", "parent"] },
+    { href: "/", label: pick(NAV_COPY.tabs.overview), icon: Compass, roles: ["student"] },
+    {
+      href: "/explore",
+      label: pick(NAV_COPY.tabs.explore),
+      icon: Network,
+      roles: ["student", "teacher", "parent"],
+    },
+    {
+      href: "/diagnose",
+      label: pick(NAV_COPY.tabs.diagnose),
+      icon: Crosshair,
+      roles: ["student", "teacher"],
+    },
+    {
+      href: "/capture",
+      label: pick(NAV_COPY.tabs.capture),
+      icon: Camera,
+      roles: ["student", "parent"],
+    },
     {
       href: "/wrong-book",
-      label: "FSRS 错题清零",
+      label: pick(NAV_COPY.tabs.wrongBook),
       icon: BookOpenCheck,
       badge: dueWrongCount > 0 ? dueWrongCount : undefined,
       roles: ["student", "parent"],
     },
-    { href: "/teacher", label: "教师教研台", icon: GraduationCap, roles: ["teacher"] },
-    { href: "/paper-builder", label: "9地组AB卷", icon: FileSpreadsheet, roles: ["teacher"] },
-    { href: "/studio", label: "校本工坊/IRT", icon: FlaskConical, roles: ["teacher"] },
-    { href: "/parent", label: "家长伴学空间", icon: Users, roles: ["parent"] },
-    { href: "/auth", label: "账号/PIN/隐私盾", icon: ShieldCheck, roles: ["student", "teacher", "parent"] },
+    {
+      href: "/teacher",
+      label: pick(NAV_COPY.tabs.teacher),
+      icon: GraduationCap,
+      roles: ["teacher"],
+    },
+    {
+      href: "/paper-builder",
+      label: pick(NAV_COPY.tabs.paperBuilder),
+      icon: FileSpreadsheet,
+      roles: ["teacher"],
+    },
+    {
+      href: "/studio",
+      label: pick(NAV_COPY.tabs.studio),
+      icon: FlaskConical,
+      roles: ["teacher"],
+    },
+    {
+      href: "/parent",
+      label: pick(NAV_COPY.tabs.parent),
+      icon: Users,
+      roles: ["parent"],
+    },
+    {
+      href: "/auth",
+      label: pick(NAV_COPY.tabs.auth),
+      icon: ShieldCheck,
+      roles: ["student", "teacher", "parent"],
+    },
   ];
 
   const handleRoleSwitch = (role: UserRole) => {
@@ -74,7 +122,7 @@ export function Navbar() {
   return (
     <header className="no-print sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Top Row: Brand + 3-Role Switcher + 9-Region Switcher + Bilingual + Student Selector */}
+        {/* Top Row: Brand + 3-Role Switcher + Student + 9-Region + 6-Locale UI Language + Bilingual */}
         <div className="flex flex-wrap items-center justify-between gap-3 py-2.5">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20">
@@ -86,11 +134,11 @@ export function Navbar() {
                   OmniGraph K12
                 </span>
                 <span className="rounded-md bg-indigo-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-300 border border-indigo-500/30">
-                  万象学阶 · 9地全科
+                  {pick(NAV_COPY.brandBadge)}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Global Canonical Knowledge Graph & Adaptive Tutor
+                {pick(NAV_COPY.brandSubtitle)}
               </p>
             </div>
           </Link>
@@ -98,59 +146,70 @@ export function Navbar() {
           <div className="flex flex-wrap items-center gap-2">
             {/* 3-Role Switcher */}
             <div className="flex items-center rounded-lg border border-slate-800 bg-slate-900/90 p-0.5 text-xs">
-              {(
-                [
-                  { key: "student", label: "🎒 学生端" },
-                  { key: "teacher", label: "👩‍🏫 教师端" },
-                  { key: "parent", label: "👨‍👧 家长端" },
-                ] as const
-              ).map((r) => (
+              {(["student", "teacher", "parent"] as const).map((roleKey) => (
                 <button
-                  key={r.key}
-                  onClick={() => handleRoleSwitch(r.key)}
+                  key={roleKey}
+                  onClick={() => handleRoleSwitch(roleKey)}
                   className={`rounded-md px-2.5 py-1 font-medium transition ${
-                    activeRole === r.key
+                    activeRole === roleKey
                       ? "bg-indigo-600 text-white shadow"
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  {r.label}
+                  {pick(NAV_COPY.roles[roleKey])}
                 </button>
               ))}
             </div>
 
             {/* Active Student Persona Selector */}
             <select
-              aria-label="切换当前学生档案"
+              aria-label={pick(NAV_COPY.studentAria)}
               value={activeStudentId}
               onChange={(e) => setActiveStudentId(e.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-200 focus:border-indigo-500 focus:outline-none"
             >
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.avatarEmoji} {s.displayName} ({s.regionCode} G{s.currentGrade})
+                  {s.avatarEmoji} {userName(s)} ({s.regionCode} G{s.currentGrade})
                 </option>
               ))}
             </select>
 
             {/* 9-Region Curriculum & Notation Switcher */}
             <select
-              aria-label="切换 9 地课标与学制"
+              aria-label={pick(NAV_COPY.regionAria)}
               value={regionCode}
               onChange={(e) => setRegionCode(e.target.value as RegionCode)}
               className="rounded-lg border border-indigo-500/40 bg-indigo-950/40 px-2.5 py-1.5 text-xs font-semibold text-indigo-200 focus:border-indigo-400 focus:outline-none"
             >
               {(data?.regions ?? []).map((reg) => (
                 <option key={reg.code} value={reg.code} className="bg-slate-900 text-slate-100">
-                  {reg.flag} {reg.code} · {reg.nameZh}
+                  {reg.flag} {reg.code} · {regionName(reg.code)}
                 </option>
               ))}
             </select>
 
+            {/* Explicit 6-Locale UI Language Switcher */}
+            <div className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-950/30 px-2 py-1 text-xs text-cyan-200">
+              <Globe className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+              <select
+                aria-label={pick(NAV_COPY.localeAria)}
+                value={locale}
+                onChange={(e) => setLocale(e.target.value as LocaleCode)}
+                className="bg-transparent font-semibold text-cyan-100 focus:outline-none cursor-pointer"
+              >
+                {LOCALE_OPTIONS.map((opt) => (
+                  <option key={opt.code} value={opt.code} className="bg-slate-900 text-slate-100">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Bilingual Toggle */}
             <button
               onClick={() => setBilingual(!bilingual)}
-              title="切换中英双语对照（适配香港 EMI / 新加坡 / 马来西亚 DLP / 国际课程衔接）"
+              title={pick(NAV_COPY.bilingualTitle)}
               className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
                 bilingual
                   ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
@@ -158,13 +217,15 @@ export function Navbar() {
               }`}
             >
               <Languages className="h-3.5 w-3.5" />
-              <span>双语 {bilingual ? "ON" : "OFF"}</span>
+              <span>
+                {pick(NAV_COPY.bilingualBtn)} {bilingual ? "ON" : "OFF"}
+              </span>
             </button>
 
             {/* Reset Demo DB */}
             <button
               onClick={() => void resetDemoData()}
-              title="重置演示数据库至初始状态"
+              title={pick(NAV_COPY.resetDemoTitle)}
               className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-400 hover:border-slate-700 hover:text-slate-200"
             >
               <RotateCcw className="h-3.5 w-3.5" />

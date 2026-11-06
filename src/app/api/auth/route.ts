@@ -11,9 +11,11 @@ import {
   userAuthProfiles,
   users,
 } from "@/db/schema";
-import type { RegionCode, UserRole } from "@/types/taxonomy";
+import type { LocaleCode, RegionCode, UserRole } from "@/types/taxonomy";
+import { c, uiPick } from "@/lib/i18n";
 import {
   computeAnonToken,
+  getLocalizedPrivacyRegime,
   PRIVACY_REGIMES,
   sanitizeForExternalAi,
 } from "@/lib/engines/privacy-shield";
@@ -23,6 +25,7 @@ export async function POST(req: Request) {
     await ensureSeeded(false);
     const body = await req.json();
     const action = String(body.action ?? "");
+    const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
 
     // 1. Standard Handle + Secret Code Login
     if (action === "login_credentials") {
@@ -37,7 +40,19 @@ export async function POST(req: Request) {
 
       if (!matched) {
         return NextResponse.json(
-          { ok: false, error: "账号或口令不匹配，请核对演示账号或重新注册。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "账号或口令不匹配，请核对演示账号或重新注册。",
+                "Invalid login handle or passcode. Please check the demo credentials or register.",
+                "アカウントまたはパスコードが一致しません。デモ資格情報を確認してください。",
+                "계정 또는 비밀번호가 일치하지 않습니다. 데모 계정을 확인하거나 가입해 주세요.",
+                "Akaun atau kod laluan tidak sepadan. Sila semak akaun demo atau daftar."
+              )
+            ),
+          },
           { status: 401 }
         );
       }
@@ -69,7 +84,19 @@ export async function POST(req: Request) {
 
       if (!matchedRows[0]) {
         return NextResponse.json(
-          { ok: false, error: "未找到该 6 位家庭儿童 PIN 码（演示可用：880901 或 550502）。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "未找到该 6 位家庭儿童 PIN 码（演示可用：880901 或 550502）。",
+                "6-digit Family Kid PIN not found (demo PINs: 880901 or 550502).",
+                "6桁のファミリーPINが見つかりません（デモPIN：880901 または 550502）。",
+                "해당 6자리 가족 아동 PIN을 찾을 수 없습니다 (데모 PIN: 880901 또는 550502).",
+                "PIN Kanak-kanak 6 digit tidak ditemui (PIN demo: 880901 atau 550502)."
+              )
+            ),
+          },
           { status: 401 }
         );
       }
@@ -104,7 +131,19 @@ export async function POST(req: Request) {
 
       if (!displayName || !loginHandle || secretCode.length < 4) {
         return NextResponse.json(
-          { ok: false, error: "请填写完整昵称、登录账号及至少 4 位口令。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "请填写完整昵称、登录账号及至少 4 位口令。",
+                "Please enter display name, login handle, and a passcode of at least 4 characters.",
+                "表示名・ログインID・4文字以上のパスコードを入力してください。",
+                "표시 이름, 로그인 ID 및 4자 이상의 비밀번호를 입력해 주세요.",
+                "Sila lengkapkan nama paparan, ID log masuk dan kod laluan sekurang-kurangnya 4 aksara."
+              )
+            ),
+          },
           { status: 400 }
         );
       }
@@ -112,7 +151,19 @@ export async function POST(req: Request) {
       const existing = await db.select().from(userAuthProfiles);
       if (existing.some((e) => e.loginHandle.toLowerCase() === loginHandle)) {
         return NextResponse.json(
-          { ok: false, error: "该登录账号已存在，请直接登录或更换账号标识。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "该登录账号已存在，请直接登录或更换账号标识。",
+                "This login handle already exists. Please sign in or choose another handle.",
+                "このログインIDは既に登録されています。ログインするか別のIDを指定してください。",
+                "이미 존재하는 로그인 ID입니다. 로그인하거나 다른 ID를 사용해 주세요.",
+                "ID log masuk ini sudah wujud. Sila log masuk atau pilih ID lain."
+              )
+            ),
+          },
           { status: 409 }
         );
       }
@@ -129,7 +180,16 @@ export async function POST(req: Request) {
         avatarEmoji: emoji,
         regionCode,
         currentGrade: role === "parent" ? null : currentGrade,
-        schoolTrack: `${regionCode} 自定义注册学习路径`,
+        schoolTrack: uiPick(
+          locale,
+          c(
+            `${regionCode} 自定义注册学习路径`,
+            `${regionCode} Custom Learning Track`,
+            `${regionCode} カスタム学習トラック`,
+            `${regionCode} 맞춤형 학습 트랙`,
+            `Laluan Pembelajaran Tersuai ${regionCode}`
+          )
+        ),
         targetTransitionRegion: regionCode === "CN" ? "HK" : "UK",
         createdAt: nowIso,
       });
@@ -169,21 +229,52 @@ export async function POST(req: Request) {
       const grade = Math.max(1, Math.min(12, Number(body.grade ?? 6)));
       const relationshipLabel =
         String(body.relationshipLabel ?? "").trim() ||
-        `子账号 · G${grade}（${regionCode} 监护人授权）`;
+        uiPick(
+          locale,
+          c(
+            `子账号 · G${grade}（${regionCode} 监护人授权）`,
+            `Child Sub-Account · G${grade} (${regionCode} Guardian Verified)`,
+            `子アカウント・G${grade}（${regionCode} 保護者承認済）`,
+            `자녀 계정 · G${grade} (${regionCode} 보호자 동의)`,
+            `Sub-Akaun Anak · G${grade} (Disahkan Penjaga ${regionCode})`
+          )
+        );
       const customPin = String(body.kidPin ?? "").trim();
       const dailyLimitMinutes = Math.max(15, Math.min(180, Number(body.dailyLimitMinutes ?? 40)));
 
       if (!childName) {
         return NextResponse.json(
-          { ok: false, error: "请输入孩子昵称。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "请输入孩子昵称。",
+                "Please enter the child's display name.",
+                "お子様のニックネームを入力してください。",
+                "자녀의 이름을 입력해 주세요.",
+                "Sila masukkan nama panggilan anak."
+              )
+            ),
+          },
           { status: 400 }
         );
       }
       if (!body.consentConfirmed) {
+        const regSpec = getLocalizedPrivacyRegime(regionCode, locale);
         return NextResponse.json(
           {
             ok: false,
-            error: `根据 ${PRIVACY_REGIMES[regionCode].regulationName}，创建未成年子账号必须勾选监护人知情同意。`,
+            error: uiPick(
+              locale,
+              c(
+                `根据 ${regSpec.regulationName}，创建未成年子账号必须勾选监护人知情同意。`,
+                `Under ${regSpec.regulationName}, guardian consent must be checked to create a minor sub-account.`,
+                `${regSpec.regulationName} に基づき、未成年アカウントの作成には保護者同意のチェックが必須です。`,
+                `${regSpec.regulationName}에 따라 미성년 자녀 계정 생성 시 보호자 동의 체크가 필수입니다.`,
+                `Di bawah ${regSpec.regulationName}, kebenaran penjaga mesti ditandakan untuk akaun bawah umur.`
+              )
+            ),
           },
           { status: 400 }
         );
@@ -204,7 +295,16 @@ export async function POST(req: Request) {
         avatarEmoji: "🌱",
         regionCode,
         currentGrade: grade,
-        schoolTrack: `${regionCode} G${grade}（家长监护子账号）`,
+        schoolTrack: uiPick(
+          locale,
+          c(
+            `${regionCode} G${grade}（家长监护子账号）`,
+            `${regionCode} G${grade} (Parent-Managed Sub-Account)`,
+            `${regionCode} G${grade}（保護者管理アカウント）`,
+            `${regionCode} G${grade} (학부모 관리 자녀 계정)`,
+            `${regionCode} G${grade} (Sub-Akaun Kawalan Ibu Bapa)`
+          )
+        ),
         targetTransitionRegion: "SG",
         createdAt: nowIso,
       });
@@ -237,7 +337,16 @@ export async function POST(req: Request) {
         todayUsedMinutes: 0,
         weeklyTargetNodes: 3,
         completedNodesThisWeek: 0,
-        rewardTitle: "完成本周微技能目标解锁科学探索勋章",
+        rewardTitle: uiPick(
+          locale,
+          c(
+            "完成本周微技能目标解锁科学探索勋章",
+            "Complete weekly micro-topic goals to unlock the Science Explorer Badge",
+            "週間目標達成でサイエンス探検バッジをアンロック",
+            "주간 목표 달성 시 과학 탐험 배지 잠금 해제",
+            "Lengkapkan sasaran mingguan untuk membuka Lencana Peneroka Sains"
+          )
+        ),
         badgeUnlocked: false,
         updatedAt: nowIso,
       });
@@ -262,7 +371,19 @@ export async function POST(req: Request) {
 
       if (!targetClass) {
         return NextResponse.json(
-          { ok: false, error: `邀请码「${inviteCode}」无效（演示班级邀请码：OMNI-9A）。` },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                `邀请码「${inviteCode}」无效（演示班级邀请码：OMNI-9A）。`,
+                `Invalid invite code "${inviteCode}" (demo class code: OMNI-9A).`,
+                `招待コード「${inviteCode}」は無効です（デモ招待コード：OMNI-9A）。`,
+                `초대 코드 「${inviteCode}」가 유효하지 않습니다 (데모 반 코드: OMNI-9A).`,
+                `Kod jemputan "${inviteCode}" tidak sah (kod kelas demo: OMNI-9A).`
+              )
+            ),
+          },
           { status: 404 }
         );
       }
@@ -287,7 +408,19 @@ export async function POST(req: Request) {
       const parentId = String(body.parentId || "par_lin");
       const dailyLimitMinutes = Math.max(15, Math.min(180, Number(body.dailyLimitMinutes ?? 45)));
       const weeklyTargetNodes = Math.max(1, Math.min(20, Number(body.weeklyTargetNodes ?? 4)));
-      const rewardTitle = String(body.rewardTitle ?? "周末亲子博物馆探索时光").trim();
+      const rewardTitle = String(
+        body.rewardTitle ??
+          uiPick(
+            locale,
+            c(
+              "周末亲子博物馆探索时光",
+              "Weekend Family Science Museum Outing",
+              "週末の科学館ファミリー探検",
+              "주말 가족 과학관 탐방 시간",
+              "Lawatan Muzium Sains Keluarga Hujung Minggu"
+            )
+          )
+      ).trim();
       const badgeUnlocked = Boolean(body.badgeUnlocked);
       const nowIso = new Date().toISOString();
 

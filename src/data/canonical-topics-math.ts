@@ -911,7 +911,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "勾股定理不是随便三条边平方相加，而是“两条直角边上的正方形面积之和，恰好铺满斜边上的大正方形”。",
         en: "Squares built on the two perpendicular legs have areas summing exactly to the square built on the hypotenuse.",
       },
-      coreFormula: "a² + b² = c²   (c 为 90° 对面的斜边)",
+      coreFormula: "a² + b² = c²   (∠C = 90°)",
       visualType: "right_triangle",
       steps: [
         {

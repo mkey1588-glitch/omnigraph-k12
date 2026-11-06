@@ -10,9 +10,11 @@ import {
 } from "@/db/schema";
 import type {
   GeneratedQuestionInstance,
+  LocaleCode,
   RegionCode,
   SubjectId,
 } from "@/types/taxonomy";
+import { c, uiPick } from "@/lib/i18n";
 import { sanitizeForExternalAi } from "@/lib/engines/privacy-shield";
 import { analyzeCapturedWrongQuestion } from "@/lib/engines/smart-capture-and-paper";
 import { createInitialWrongCard } from "@/lib/engines/fsrs-engine";
@@ -29,11 +31,25 @@ export async function POST(req: Request) {
       const studentWrongAnswer = String(body.studentWrongAnswer ?? "").trim();
       const studentId = String(body.studentId || "stu_leo");
       const regionCode = ((body.regionCode as RegionCode) || "CN") as RegionCode;
+      const locale = (body.locale as LocaleCode | undefined) ?? undefined;
       const preferredSubjectId = (body.preferredSubjectId as SubjectId | "all") || "all";
 
       if (rawQuestionText.trim().length < 3) {
+        const errLocale: LocaleCode = locale ?? "zh-CN";
         return NextResponse.json(
-          { ok: false, error: "请输入或上传至少 3 个字符的错题题干描述。" },
+          {
+            ok: false,
+            error: uiPick(
+              errLocale,
+              c(
+                "请输入或上传至少 3 个字符的错题题干描述。",
+                "Please enter or upload a problem description of at least 3 characters.",
+                "問題文を3文字以上入力またはアップロードしてください。",
+                "문제 지문을 최소 3자 이상 입력하거나 업로드해 주세요.",
+                "Sila masukkan sekurang-kurangnya 3 aksara pernyataan masalah."
+              )
+            ),
+          },
           { status: 400 }
         );
       }
@@ -68,6 +84,7 @@ export async function POST(req: Request) {
         sanitizedQuestionText: shield.sanitizedText,
         studentWrongAnswer: studentWrongAnswer || undefined,
         regionCode,
+        locale,
         preferredSubjectId,
       });
 
@@ -81,12 +98,26 @@ export async function POST(req: Request) {
     if (action === "save_to_wrong_book") {
       const studentId = String(body.studentId || "stu_leo");
       const regionCode = ((body.regionCode as RegionCode) || "CN") as RegionCode;
+      const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
       const topicId = String(body.topicId ?? "");
       const snapshot = body.canonicalSnapshot as GeneratedQuestionInstance;
-      const wrongUserAnswer = String(body.wrongUserAnswer || "待订正作答");
+      const wrongUserAnswer = String(
+        body.wrongUserAnswer ||
+          uiPick(locale, c("待订正", "Pending review", "要復習", "복습 대기", "Belum disemak"))
+      );
       const misconceptionTag = String(body.misconceptionTag || "misc_captured");
       const misconceptionLabel = String(
-        body.misconceptionLabel || "智能录题识别概念易错点"
+        body.misconceptionLabel ||
+          uiPick(
+            locale,
+            c(
+              "智能录题识别概念易错点",
+              "Smart Capture identified misconception",
+              "AIキャプチャ検出つまずき点",
+              "AI 오답 캡처 감지 오개념",
+              "Salah tanggapan dikesan oleh Smart Capture"
+            )
+          )
       );
 
       const now = new Date();

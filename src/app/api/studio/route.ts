@@ -3,7 +3,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/db/seed";
 import { customSchoolEdges, customSchoolQuestions } from "@/db/schema";
+import type { LocaleCode } from "@/types/taxonomy";
 import { CANONICAL_EDGES } from "@/data/canonical-graph";
+import { c, uiPick } from "@/lib/i18n";
 import { validateCustomEdgeAcyclic } from "@/lib/engines/irt-engine";
 
 export async function POST(req: Request) {
@@ -11,6 +13,7 @@ export async function POST(req: Request) {
     await ensureSeeded(false);
     const body = await req.json();
     const action = String(body.action ?? "");
+    const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
 
     // 1. Add Custom School Prerequisite Edge (Protected by Live DAG Cycle Guard!)
     if (action === "add_edge") {
@@ -19,11 +22,23 @@ export async function POST(req: Request) {
       const relationType = String(body.relationType || "hard");
       const reasonZh = String(body.reasonZh ?? "").trim() || "校本教研自定义先修依赖";
       const reasonEn = String(body.reasonEn ?? "").trim() || "Custom school prerequisite";
-      const createdBy = String(body.createdBy || "王知行老师 Ms. Evelyn Wang");
+      const createdBy = String(body.createdBy || "Ms. Evelyn Wang");
 
       if (!topicId || !prerequisiteId) {
         return NextResponse.json(
-          { ok: false, error: "请选择目标节点与上游先修节点。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "请选择目标节点与上游先修节点。",
+                "Please select both the target topic and its upstream prerequisite.",
+                "対象ノードと前提ノードの両方を選択してください。",
+                "대상 노드와 상위 선수 노드를 모두 선택해 주세요.",
+                "Sila pilih kedua-dua topik sasaran dan prasyarat huluan."
+              )
+            ),
+          },
           { status: 400 }
         );
       }
@@ -40,16 +55,20 @@ export async function POST(req: Request) {
         })),
       ];
 
-      const check = validateCustomEdgeAcyclic(combinedEdges, {
-        topicId,
-        prerequisiteId,
-      });
+      const check = validateCustomEdgeAcyclic(
+        combinedEdges,
+        {
+          topicId,
+          prerequisiteId,
+        },
+        locale
+      );
 
       if (!check.ok) {
         return NextResponse.json(
           {
             ok: false,
-            error: check.reasonZh,
+            error: check.reason ?? check.reasonZh,
             cyclePath: check.cyclePath,
           },
           { status: 422 }
@@ -93,12 +112,25 @@ export async function POST(req: Request) {
         : [];
       const answer = String(body.answer ?? "A").trim();
       const explanationZh =
-        String(body.explanationZh ?? "").trim() || "请参考对应微技能核心公式逐步推导。";
-      const createdBy = String(body.createdBy || "王知行老师 Ms. Evelyn Wang");
+        String(body.explanationZh ?? "").trim() ||
+        "Apply the canonical formula step by step.";
+      const createdBy = String(body.createdBy || "Ms. Evelyn Wang");
 
-      if (!topicId || !promptZh) {
+      if (!topicId || (!promptZh && !promptEn)) {
         return NextResponse.json(
-          { ok: false, error: "请填写题目挂靠的微技能节点与题干内容。" },
+          {
+            ok: false,
+            error: uiPick(
+              locale,
+              c(
+                "请填写题目挂靠的微技能节点与题干内容。",
+                "Please select a micro-topic and enter the question stem.",
+                "対象単元と問題文を入力してください。",
+                "대상 마이크로 스킬 노드와 문제 지문을 입력해 주세요.",
+                "Sila pilih topik mikro dan masukkan pernyataan soalan."
+              )
+            ),
+          },
           { status: 400 }
         );
       }

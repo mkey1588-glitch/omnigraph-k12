@@ -124,6 +124,7 @@ export interface ScaffoldStep {
   hintZh: string;
   hintEn: string;
   expectedAnswer: string;
+  expectedAnswerEn?: string;
 }
 
 export interface InteractiveWidgetConfig {

@@ -481,8 +481,11 @@ export function generatePhase2Core(
           ansZh: "街道上方架设白炽电灯与卡尔·本茨内燃机汽车",
           ansEn: "Incandescent electric streetlamps and Benz gasoline automobiles",
           d1: "用煤炭驱动的瓦特改良蒸汽机抽水装置",
+          d1En: "Coal-fired Watt steam pumping engines",
           d2: "斯蒂芬森设计的蒸汽机车在铁轨上试运行",
+          d2En: "Stephenson's steam locomotive operating on iron rails",
           d3: "采用水力与蒸汽动力的棉纺织机械化工厂",
+          d3En: "Mechanized cotton textile mills powered by water and steam",
         },
         {
           qZh: "关于两次工业革命技术演进特征的比较，下列史学论断最严密的是：",
@@ -490,8 +493,11 @@ export function generatePhase2Core(
           ansZh: "第二次工业革命体现自然科学理论突破（如电磁学）与工业技术发明紧密结合",
           ansEn: "The Second IR tightly coupled scientific theory (e.g., electromagnetism) with industrial R&D",
           d1: "第一次工业革命已普及电力照明与石油化工合成材料",
+          d1En: "The First IR already popularized electric lighting and petrochemical synthetics",
           d2: "两次工业革命均完全依赖工匠个人经验而无需科学实验室参与",
+          d2En: "Both revolutions relied solely on artisan trial-and-error without scientific laboratories",
           d3: "蒸汽机在第二次工业革命后期才首次被引入纺织业",
+          d3En: "Steam engines were only introduced into textile mills late in the Second IR",
         },
       ] as const;
       const p = rng.pick(prompts);
@@ -503,12 +509,12 @@ export function generatePhase2Core(
         explanationZh: `第一次工业革命（18世纪60年代—19世纪中期）以蒸汽与煤为标志；发电机、白炽电灯与内燃机汽车属于19世纪70年代后的第二次工业革命成果。`,
         explanationEn: `Electricity and internal combustion belong to the Second Industrial Revolution (post-1870), not 1825.`,
         scaffolds: [
-          { promptZh: `回想 1825 年处于蒸汽时代还是电气/内燃机时代？`, promptEn: `Was 1825 the Steam Age or the Electrical/Oil Age?`, hintZh: `蒸汽时代`, hintEn: `Steam Age`, expectedAnswer: p.ansZh },
+          { promptZh: `回想 1825 年处于蒸汽时代还是电气/内燃机时代？`, promptEn: `Was 1825 the Steam Age or the Electrical/Oil Age?`, hintZh: `蒸汽时代`, hintEn: `Steam Age`, expectedAnswer: p.ansZh, expectedAnswerEn: p.ansEn },
         ],
         distractors: [
-          { text: p.d1, misconceptionTag: "misc_his_ir_anachronism" },
-          { text: p.d2 },
-          { text: p.d3 },
+          { text: p.d1, textEn: p.d1En, misconceptionTag: "misc_his_ir_anachronism" },
+          { text: p.d2, textEn: p.d2En },
+          { text: p.d3, textEn: p.d3En },
         ],
       };
     }
@@ -523,12 +529,12 @@ export function generatePhase2Core(
         explanationZh: `首句立靶子，“然而”引出全文中心论点；“例如……”中的实验班与 24% 数据只是支撑中心论点的论据案例，不能“以例代主”。`,
         explanationEn: `The sentence right after 'However' states the overarching thesis; Class A's 24% gain is a supporting example.`,
         scaffolds: [
-          { promptZh: `定位转折词“然而”之后、“例如”之前的核心判断句！`, promptEn: `Locate the claim right after 'However' and before 'For instance'.`, hintZh: `排除局部实验班例子`, hintEn: `Exclude narrow example`, expectedAnswer: "精准溯源修复先修薄弱点比单纯堆砌刷题量更能有效提升学业表现" },
+          { promptZh: `定位转折词“然而”之后、“例如”之前的核心判断句！`, promptEn: `Locate the claim right after 'However' and before 'For instance'.`, hintZh: `排除局部实验班例子`, hintEn: `Exclude narrow example`, expectedAnswer: "精准溯源修复先修薄弱点比单纯堆砌刷题量更能有效提升学业表现", expectedAnswerEn: "Targeted prerequisite remediation is far more effective than sheer drill volume" },
         ],
         distractors: [
-          { text: "某校实验班通过将作业减半使期末达标率提升了 24%", misconceptionTag: "misc_lit_example_as_thesis" },
-          { text: "刷题数量越多，学生的数学成绩一定越差" },
-          { text: "所有学科都不需要任何练习题" },
+          { text: "某校实验班通过将作业减半使期末达标率提升了 24%", textEn: "Class A raised its final mastery rate by 24% by halving daily homework", misconceptionTag: "misc_lit_example_as_thesis" },
+          { text: "刷题数量越多，学生的数学成绩一定越差", textEn: "Practicing more problems always lowers a student's math score" },
+          { text: "所有学科都不需要任何练习题", textEn: "Academic subjects require zero practice exercises altogether" },
         ],
       };
     }
@@ -543,12 +549,12 @@ export function generatePhase2Core(
         explanationZh: `原文使用“平均约”“有助于”“部分”，严谨克制；干扰项中“彻底消除”“唯一途径”“所有时段均降温”均犯了或然变必然、范围绝对化的推断错误。`,
         explanationEn: `Valid inferences preserve the passage's hedged scope ('helps', 'on average') rather than inflating to 'eliminates completely' or 'only way'.`,
         scaffolds: [
-          { promptZh: `排查四个选项中的绝对化词语（“唯一”“彻底消除”），选出分寸与原文“有助于”一致的一项。`, promptEn: `Reject options with extreme words like 'completely' or 'sole'.`, hintZh: `可行手段之一`, hintEn: `One viable measure`, expectedAnswer: "科学规划并增加城市街道绿化树冠覆盖，是改善局部街区夏季热环境的可行手段之一" },
+          { promptZh: `排查四个选项中的绝对化词语（“唯一”“彻底消除”），选出分寸与原文“有助于”一致的一项。`, promptEn: `Reject options with extreme words like 'completely' or 'sole'.`, hintZh: `可行手段之一`, hintEn: `One viable measure`, expectedAnswer: "科学规划并增加城市街道绿化树冠覆盖，是改善局部街区夏季热环境的可行手段之一", expectedAnswerEn: "Expanding street tree canopy is a viable measure to help mitigate local urban heat" },
         ],
         distractors: [
-          { text: "只要种树就一定能彻底消除全球所有城市的夏季高温热浪", misconceptionTag: "misc_lit_absolutist_leap" },
-          { text: "增加树冠覆盖率是降低城市温度的唯一决定性途径", misconceptionTag: "misc_lit_absolutist_leap" },
-          { text: "冬季午夜气温也会随树冠覆盖率增加而下降 0.8°C" },
+          { text: "只要种树就一定能彻底消除全球所有城市的夏季高温热浪", textEn: "Planting trees is guaranteed to eliminate summer heatwaves across all cities worldwide", misconceptionTag: "misc_lit_absolutist_leap" },
+          { text: "增加树冠覆盖率是降低城市温度的唯一决定性途径", textEn: "Increasing tree canopy cover is the sole decisive way to lower urban temperatures", misconceptionTag: "misc_lit_absolutist_leap" },
+          { text: "冬季午夜气温也会随树冠覆盖率增加而下降 0.8°C", textEn: "Winter midnight temperatures also drop by exactly 0.8°C per 10% canopy increase" },
         ],
       };
     }
@@ -563,12 +569,12 @@ export function generatePhase2Core(
         explanationZh: `“吸烟”这一第三变量（Confounding Variable）既导致常带打火机，又导致肺癌率升高；原论证犯了典型的“强加因果 / 忽略混杂因素”谬误。`,
         explanationEn: `Smoking is a confounding factor driving both lighter carrying and lung cancer; correlation alone does not prove causation.`,
         scaffolds: [
-          { promptZh: `想一想：常带打火机的人通常有什么共同生活习惯，而这个习惯恰恰伤肺？`, promptEn: `What hidden third factor explains both carrying a lighter and lung risk?`, hintZh: `混杂变量：吸烟`, hintEn: `Confounding variable: smoking`, expectedAnswer: "忽略了共同混杂变量“吸烟习惯”，将相关性伴随现象强加为直接因果关系" },
+          { promptZh: `想一想：常带打火机的人通常有什么共同生活习惯，而这个习惯恰恰伤肺？`, promptEn: `What hidden third factor explains both carrying a lighter and lung risk?`, hintZh: `混杂变量：吸烟`, hintEn: `Confounding variable: smoking`, expectedAnswer: "忽略了共同混杂变量“吸烟习惯”，将相关性伴随现象强加为直接因果关系", expectedAnswerEn: "Confusing correlation with causation while ignoring the confounding variable (smoking)" },
         ],
         distractors: [
-          { text: "样本统计人数还不够多，只要扩大样本就能证明打火机致癌", misconceptionTag: "misc_lit_spurious_cause" },
-          { text: "没有说明打火机品牌价格差异" },
-          { text: "论点完全正确，无任何逻辑瑕疵", misconceptionTag: "misc_lit_spurious_cause" },
+          { text: "样本统计人数还不够多，只要扩大样本就能证明打火机致癌", textEn: "The sample size is merely too small; a larger sample would prove lighters cause cancer", misconceptionTag: "misc_lit_spurious_cause" },
+          { text: "没有说明打火机品牌价格差异", textEn: "The report fails to compare different brands and prices of lighters" },
+          { text: "论点完全正确，无任何逻辑瑕疵", textEn: "The argument is completely sound and free of any logical flaw", misconceptionTag: "misc_lit_spurious_cause" },
         ],
       };
     }
@@ -584,12 +590,12 @@ export function generatePhase2Core(
         explanationZh: `逐条交叉核验双重约束：甲馆绿电最高但能耗 $${limitEnergy + 6} > ${limitEnergy}$ 超标淘汰；丙馆能耗最低但绿电 $55\\% < 60\\%$ 不达标；唯有乙馆两项指标同时达标！`,
         explanationEn: `Lab A fails Condition 2 (${limitEnergy + 6} > ${limitEnergy}); Lab C fails Condition 1 (55% < 60%); only Lab B satisfies both.`,
         scaffolds: [
-          { promptZh: `甲馆绿电 78% 看似最高，但它的第二项指标 ${limitEnergy + 6} W 满足 ≤ ${limitEnergy} W 吗？`, promptEn: `Does Lab A satisfy ≤ ${limitEnergy} W? No — check Lab B on both rules.`, hintZh: `双重条件都打勾才行`, hintEn: `Both conditions must hold`, expectedAnswer: "仅乙馆符合资格" },
+          { promptZh: `甲馆绿电 78% 看似最高，但它的第二项指标 ${limitEnergy + 6} W 满足 ≤ ${limitEnergy} W 吗？`, promptEn: `Does Lab A satisfy ≤ ${limitEnergy} W? No — check Lab B on both rules.`, hintZh: `双重条件都打勾才行`, hintEn: `Both conditions must hold`, expectedAnswer: "仅乙馆符合资格", expectedAnswerEn: "Only Lab B qualifies" },
         ],
         distractors: [
-          { text: "甲馆（因其绿电占比 78% 位居第一）", misconceptionTag: "misc_lit_single_criterion" },
-          { text: "丙馆（因其单位能耗最低最节能）", misconceptionTag: "misc_lit_single_criterion" },
-          { text: "甲馆与乙馆均符合资格" },
+          { text: "甲馆（因其绿电占比 78% 位居第一）", textEn: "Lab A (because its 78% renewable share is the highest)", misconceptionTag: "misc_lit_single_criterion" },
+          { text: "丙馆（因其单位能耗最低最节能）", textEn: "Lab C (because its energy intensity per compute unit is the lowest)", misconceptionTag: "misc_lit_single_criterion" },
+          { text: "甲馆与乙馆均符合资格", textEn: "Both Lab A and Lab B qualify" },
         ],
       };
     }

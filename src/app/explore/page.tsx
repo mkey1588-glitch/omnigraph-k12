@@ -14,6 +14,16 @@ import {
 import { usePlatform } from "@/components/PlatformProvider";
 import { KnowledgeGraphCanvas } from "@/components/KnowledgeGraphCanvas";
 import { MathText } from "@/components/MathText";
+import {
+  getLoadingText,
+  getMasteryStatusLabel,
+  getRelationTypeLabel,
+  getSubjectShortBadge,
+} from "@/lib/i18n/ui-common";
+import {
+  EXPLORE_COPY,
+  getLocalizedRootReason,
+} from "@/lib/i18n/copy-student-core";
 import type { SubjectId } from "@/types/taxonomy";
 
 function ExploreContent() {
@@ -24,18 +34,26 @@ function ExploreContent() {
   const {
     data,
     loading,
+    locale,
     regionCode,
     setRegionCode,
+    pick,
     localize,
+    localizePlain,
+    regionName,
     getAlignment,
     getStudentTopicState,
   } = usePlatform();
 
   const [subjectFilter, setSubjectFilter] = useState<string>(initialSubject);
   const [selectedTopicId, setSelectedTopicId] = useState<string>(initialTopic);
-  const [inspectorTab, setInspectorTab] = useState<"lesson" | "crosswalk">("lesson");
+  const [inspectorTab, setInspectorTab] = useState<"lesson" | "crosswalk">(
+    "lesson"
+  );
   const [checkInput, setCheckInput] = useState<string>("");
-  const [checkFeedback, setCheckFeedback] = useState<"idle" | "right" | "wrong">("idle");
+  const [checkFeedback, setCheckFeedback] = useState<
+    "idle" | "right" | "wrong"
+  >("idle");
 
   useEffect(() => {
     const qSub = searchParams.get("subject");
@@ -55,16 +73,22 @@ function ExploreContent() {
         (t) => t.subjectId === "math" || t.subjectId === "physics"
       );
     }
-    return data.topics.filter((t) => t.subjectId === (subjectFilter as SubjectId));
+    return data.topics.filter(
+      (t) => t.subjectId === (subjectFilter as SubjectId)
+    );
   }, [data, subjectFilter]);
 
   if (loading || !data) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center text-slate-400">
-        正在渲染全球概念核 DAG 星图...
+        {pick(EXPLORE_COPY.loading)}
       </div>
     );
   }
+
+  const stemCoreCount = data.topics.filter(
+    (t) => t.subjectId === "math" || t.subjectId === "physics"
+  ).length;
 
   const selectedTopic =
     data.topics.find((t) => t.id === selectedTopicId) ??
@@ -105,10 +129,10 @@ function ExploreContent() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            知识图谱星海（Global Canonical DAG Explorer）
+            {pick(EXPLORE_COPY.title)}
           </h1>
           <p className="text-xs text-slate-400">
-            点击任意微技能节点，高亮追踪其「上游先修地基」与「下游跨科解锁链路」，实时对比中/日/韩/港/台/新/马/英/美 9 地课标。
+            {pick(EXPLORE_COPY.subtitle)}
           </p>
         </div>
 
@@ -121,7 +145,7 @@ function ExploreContent() {
                 : "bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700"
             }`}
           >
-            📐+⚡ 数理跨科主干 (24)
+            {EXPLORE_COPY.stemCoreFilter(stemCoreCount, locale)}
           </button>
           <button
             onClick={() => setSubjectFilter("all")}
@@ -131,14 +155,16 @@ function ExploreContent() {
                 : "bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700"
             }`}
           >
-            🌌 全科总览 ({data.topics.length})
+            {EXPLORE_COPY.allSubjectsFilter(data.topics.length, locale)}
           </button>
           {data.subjects.map((s) => (
             <button
               key={s.id}
               onClick={() => {
                 setSubjectFilter(s.id);
-                const firstInSub = data.topics.find((t) => t.subjectId === s.id);
+                const firstInSub = data.topics.find(
+                  (t) => t.subjectId === s.id
+                );
                 if (firstInSub) setSelectedTopicId(firstInSub.id);
               }}
               className={`rounded-lg px-2.5 py-1.5 font-medium transition ${
@@ -147,7 +173,7 @@ function ExploreContent() {
                   : "bg-slate-900/60 text-slate-400 hover:text-slate-200"
               }`}
             >
-              {s.icon} {s.name["zh-CN"]}
+              {s.icon} {localizePlain(s.name)}
             </button>
           ))}
         </div>
@@ -173,11 +199,16 @@ function ExploreContent() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
               <div className="text-xs font-bold text-amber-300">
-                ⬆ 直接先修依赖（Upstream Prerequisites）
+                {pick(EXPLORE_COPY.upstreamTitle)}
               </div>
               {directPrereqs.length === 0 ? (
                 <p className="mt-1.5 text-xs text-slate-400">
-                  🌱 学科起点根节点：{selectedTopic.rootReason}
+                  🌱 {pick(EXPLORE_COPY.rootNodePrefix)}
+                  {getLocalizedRootReason(
+                    selectedTopic.id,
+                    selectedTopic.rootReason,
+                    locale
+                  )}
                 </p>
               ) : (
                 <div className="mt-2 space-y-1.5">
@@ -187,22 +218,22 @@ function ExploreContent() {
                       onClick={() => setSelectedTopicId(topic.id)}
                       className="w-full text-left rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-xs hover:border-amber-500/40 transition"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="font-semibold text-slate-100">
-                          {topic.title["zh-CN"]}
+                          {localize(topic.title)}
                         </span>
                         <span
-                          className={`rounded px-1.5 py-0.2 text-[10px] ${
+                          className={`shrink-0 rounded px-1.5 py-0.2 text-[10px] ${
                             edge.relationType === "cross_subject"
                               ? "bg-purple-500/20 text-purple-300"
                               : "bg-amber-500/15 text-amber-300"
                           }`}
                         >
-                          {edge.relationType}
+                          {getRelationTypeLabel(edge.relationType, locale)}
                         </span>
                       </div>
                       <p className="mt-0.5 text-[11px] text-slate-400">
-                        {edge.reason["zh-CN"]}
+                        {localize(edge.reason)}
                       </p>
                     </button>
                   ))}
@@ -212,11 +243,11 @@ function ExploreContent() {
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5">
               <div className="text-xs font-bold text-sky-300">
-                ⬇ 直接解锁后继（Downstream Unlocked）
+                {pick(EXPLORE_COPY.downstreamTitle)}
               </div>
               {directDownstream.length === 0 ? (
                 <p className="mt-1.5 text-xs text-slate-400">
-                  🏁 当前子图高阶终点技能节点
+                  {pick(EXPLORE_COPY.terminalNodeMsg)}
                 </p>
               ) : (
                 <div className="mt-2 space-y-1.5">
@@ -226,18 +257,21 @@ function ExploreContent() {
                       onClick={() => setSelectedTopicId(topic.id)}
                       className="w-full text-left rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-xs hover:border-sky-500/40 transition"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="font-semibold text-slate-100">
-                          {topic.title["zh-CN"]}
+                          {localize(topic.title)}
                         </span>
-                        <span className="rounded bg-sky-500/15 px-1.5 py-0.2 text-[10px] text-sky-300">
+                        <span className="shrink-0 rounded bg-sky-500/15 px-1.5 py-0.2 text-[10px] text-sky-300">
                           {edge.relationType === "cross_subject"
-                            ? `跨科赋能 ${topic.subjectId}`
-                            : "后继进阶"}
+                            ? EXPLORE_COPY.crossEmpowerBadge(
+                                getSubjectShortBadge(topic.subjectId, locale),
+                                locale
+                              )
+                            : pick(EXPLORE_COPY.downstreamStepBadge)}
                         </span>
                       </div>
                       <p className="mt-0.5 text-[11px] text-slate-400">
-                        {edge.reason["zh-CN"]}
+                        {localize(edge.reason)}
                       </p>
                     </button>
                   ))}
@@ -257,11 +291,16 @@ function ExploreContent() {
                   {activeAln?.standardCode} · {activeAln?.localStageLabel}
                 </span>
                 <span className="text-slate-400">
-                  当前状态：{" "}
-                  <strong className="text-white uppercase">
-                    {activeState?.status ?? "untested"}
+                  {pick(EXPLORE_COPY.currentStatusLabel)}{" "}
+                  <strong className="text-white">
+                    {getMasteryStatusLabel(
+                      activeState?.status ?? "untested",
+                      locale
+                    )}
                   </strong>{" "}
-                  {activeState ? `(${Math.round(activeState.pMastery * 100)}%)` : ""}
+                  {activeState
+                    ? `(${Math.round(activeState.pMastery * 100)}%)`
+                    : ""}
                 </span>
               </div>
 
@@ -269,10 +308,15 @@ function ExploreContent() {
                 {localize(selectedTopic.title)}
               </h2>
               <p className="text-xs text-slate-300">
-                {selectedTopic.description["zh-CN"]}
+                {localize(selectedTopic.description)}
               </p>
               <p className="text-[11px] text-indigo-300/90">
-                📖 本土教材定位：{activeAln?.textbookEdition} — 《{activeAln?.localChapterTitle}》
+                📖{" "}
+                {EXPLORE_COPY.textbookPosition(
+                  activeAln?.textbookEdition ?? "",
+                  activeAln?.localChapterTitle ?? "",
+                  locale
+                )}
               </p>
 
               <div className="pt-1 flex flex-wrap gap-2">
@@ -281,7 +325,7 @@ function ExploreContent() {
                   className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition"
                 >
                   <Crosshair className="h-3.5 w-3.5" />
-                  <span>从该节点启动自适应回溯诊断</span>
+                  <span>{pick(EXPLORE_COPY.launchDiagnoseFromNode)}</span>
                 </Link>
               </div>
             </div>
@@ -297,7 +341,7 @@ function ExploreContent() {
                 }`}
               >
                 <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
-                <span>交互微课件与迷思纠偏</span>
+                <span>{pick(EXPLORE_COPY.tabLesson)}</span>
               </button>
               <button
                 onClick={() => setInspectorTab("crosswalk")}
@@ -308,7 +352,7 @@ function ExploreContent() {
                 }`}
               >
                 <Globe2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span>9 地官方课标横评</span>
+                <span>{pick(EXPLORE_COPY.tabCrosswalk)}</span>
               </button>
             </div>
 
@@ -317,10 +361,10 @@ function ExploreContent() {
                 {/* Core Intuition & Formula */}
                 <div className="rounded-xl border border-indigo-500/25 bg-indigo-950/25 p-3.5 space-y-2">
                   <div className="text-xs font-bold text-indigo-300">
-                    💡 核心本质直觉（Core Intuition）
+                    {pick(EXPLORE_COPY.coreIntuitionTitle)}
                   </div>
                   <p className="text-xs leading-relaxed text-slate-200">
-                    {selectedTopic.microLesson.intuition["zh-CN"]}
+                    {localize(selectedTopic.microLesson.intuition)}
                   </p>
                   {selectedTopic.microLesson.coreFormula && (
                     <div className="rounded-lg bg-slate-950/90 px-3 py-2 font-mono text-xs font-semibold text-emerald-300">
@@ -332,7 +376,7 @@ function ExploreContent() {
                 {/* Mastery Criteria */}
                 <div className="space-y-1.5">
                   <div className="text-xs font-bold text-slate-300">
-                    ✅ 掌握通关标准（Mastery Criteria）
+                    {pick(EXPLORE_COPY.masteryCriteriaTitle)}
                   </div>
                   {selectedTopic.masteryCriteria.map((mc, i) => (
                     <div
@@ -352,12 +396,13 @@ function ExploreContent() {
                       🧩 {localize(firstStep.title)}
                     </div>
                     <p className="text-xs text-slate-300">
-                      {firstStep.body["zh-CN"]}
+                      {localize(firstStep.body)}
                     </p>
                     {firstStep.checkQuestion && (
                       <div className="space-y-2 pt-1">
                         <div className="text-xs font-semibold text-indigo-300">
-                          ⚡ 即学即测：{firstStep.checkQuestion["zh-CN"]}
+                          ⚡ {pick(EXPLORE_COPY.quickCheckPrefix)}
+                          {localize(firstStep.checkQuestion)}
                         </div>
                         <div className="flex gap-2">
                           <input
@@ -367,24 +412,26 @@ function ExploreContent() {
                               setCheckInput(e.target.value);
                               setCheckFeedback("idle");
                             }}
-                            placeholder="输入口算结果验证..."
+                            placeholder={pick(
+                              EXPLORE_COPY.quickCheckPlaceholder
+                            )}
                             className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-none"
                           />
                           <button
                             onClick={handleCheckAnswer}
                             className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500"
                           >
-                            核对
+                            {pick(EXPLORE_COPY.quickCheckBtn)}
                           </button>
                         </div>
                         {checkFeedback === "right" && (
                           <p className="text-xs text-emerald-400 font-semibold">
-                            🎉 完全正确！你已抓住核心直觉，可直接启动靶向诊断！
+                            {pick(EXPLORE_COPY.quickCheckRight)}
                           </p>
                         )}
                         {checkFeedback === "wrong" && (
                           <p className="text-xs text-amber-300">
-                            再想一想！参考答案提示：{" "}
+                            {pick(EXPLORE_COPY.quickCheckWrongPrefix)}{" "}
                             <code className="font-mono font-bold">
                               {firstStep.checkAnswer}
                             </code>
@@ -402,16 +449,19 @@ function ExploreContent() {
                     className="rounded-xl border border-amber-500/30 bg-amber-950/15 p-3.5 space-y-1.5"
                   >
                     <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-                      <AlertOctagon className="h-4 w-4 text-amber-400" />
-                      <span>高频认知迷思预警：{m.label["zh-CN"]}</span>
+                      <AlertOctagon className="h-4 w-4 shrink-0 text-amber-400" />
+                      <span>
+                        {pick(EXPLORE_COPY.misconceptionAlertPrefix)}
+                        {localize(m.label)}
+                      </span>
                     </div>
                     <p className="text-xs text-slate-300">
-                      <strong>典型错法：</strong>
-                      {m.wrongPattern["zh-CN"]}
+                      <strong>{pick(EXPLORE_COPY.wrongPatternLabel)}</strong>
+                      {localize(m.wrongPattern)}
                     </p>
                     <p className="text-xs text-emerald-300/90">
-                      <strong>纠偏锦囊：</strong>
-                      {m.remediationTip["zh-CN"]}
+                      <strong>{pick(EXPLORE_COPY.remediationTipLabel)}</strong>
+                      {localize(m.remediationTip)}
                     </p>
                   </div>
                 ))}
@@ -432,24 +482,29 @@ function ExploreContent() {
                           : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-white">
-                          {reg.flag} {reg.nameZh} ({reg.code}) · {aln?.localStageLabel}
+                          {reg.flag} {regionName(reg.code)} ({reg.code}) ·{" "}
+                          {aln?.localStageLabel}
                         </span>
-                        <span className="inline-flex items-center gap-0.5 font-mono text-[11px] text-indigo-300">
+                        <span className="inline-flex shrink-0 items-center gap-0.5 font-mono text-[11px] text-indigo-300">
                           {aln?.standardCode}
                           <ArrowUpRight className="h-3 w-3" />
                         </span>
                       </div>
                       <div className="mt-1 text-slate-300">
-                        《{aln?.localChapterTitle}》{" "}
+                        {EXPLORE_COPY.wrapChapterTitle(
+                          aln?.localChapterTitle ?? "",
+                          locale
+                        )}{" "}
                         <span className="text-slate-500">
                           ({aln?.textbookEdition})
                         </span>
                       </div>
                       {aln?.regionalNote && (
                         <div className="mt-1 text-[11px] text-emerald-300">
-                          ★ 区域特色：{aln.regionalNote}
+                          ★ {pick(EXPLORE_COPY.regionalNotePrefix)}
+                          {aln.regionalNote}
                         </div>
                       )}
                     </div>
@@ -465,10 +520,13 @@ function ExploreContent() {
 }
 
 export default function ExplorePage() {
+  const { locale } = usePlatform();
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-slate-400">加载知识图谱中...</div>
+        <div className="p-12 text-center text-slate-400">
+          {getLoadingText(locale)}
+        </div>
       }
     >
       <ExploreContent />

@@ -109,15 +109,15 @@ export const REGIONS_DATA: RegionMetadata[] = [
     nameLocal: "Malaysia (KSSR / KSSM / UEC)",
     nameEn: "Malaysia",
     primaryLocale: "ms",
-    secondaryLocale: "zh-CN",
-    schoolSystem: "SK/SJKC Tahun 1–6 + SMK Tingkatan 1–5 (DLP) / 华文独中初一至高三",
-    curriculumName: "KPM DSKP KSSR & KSSM (Dual Language Programme) + 独中统考课纲",
-    flagshipExams: ["UASA", "SPM (Sijil Pelajaran Malaysia)", "STPM / UEC（独中统考）"],
+    secondaryLocale: "en",
+    schoolSystem: "SK/SJKC Tahun 1–6 + SMK Tingkatan 1–5 (DLP) + Form 6 / UEC",
+    curriculumName: "KPM DSKP KSSR & KSSM (Dual Language Programme) + UEC Syllabus",
+    flagshipExams: ["UASA", "SPM (Sijil Pelajaran Malaysia)", "STPM / UEC"],
     privacyRegulation: "Malaysia PDPA 2010 (2024 Amendment)",
     gradeLabels: {
-      1: "Tahun 1 / 小一", 2: "Tahun 2 / 小二", 3: "Tahun 3 / 小三", 4: "Tahun 4 / 小四", 5: "Tahun 5 / 小五", 6: "Tahun 6 / 小六",
+      1: "Tahun 1 (P1)", 2: "Tahun 2 (P2)", 3: "Tahun 3 (P3)", 4: "Tahun 4 (P4)", 5: "Tahun 5 (P5)", 6: "Tahun 6 (P6)",
       7: "Form 1 (Tingkatan 1)", 8: "Form 2 (Tingkatan 2)", 9: "Form 3 (Tingkatan 3)",
-      10: "Form 4 (SPM/高一)", 11: "Form 5 (SPM/高二)", 12: "Form 6 (STPM/独中高三)",
+      10: "Form 4 (SPM)", 11: "Form 5 (SPM)", 12: "Form 6 (STPM / UEC)",
     },
     notation: {
       currencySymbol: "RM",
@@ -252,7 +252,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "从小一数感与新加坡条形建模，贯穿初中代数几何，直抵高中函数与微积分先修网",
+      "zh-TW": "從小一數感與新加坡條形建模，貫穿國中代數幾何，直抵高中函數與微積分先修網",
       en: "Connected prerequisite graph from primary number sense & bar modeling through algebra, geometry, and calculus",
+      ja: "小学校の数感覚・バーモデルから中学の代数・幾何、高校の関数・微積分までを結ぶ前提知識グラフ",
+      ko: "초등 수 감각·막대모델부터 중등 대수·기하, 고등 함수·미적분까지 연결된 선수 지식 그래프",
+      ms: "Graf prasyarat bersepadu daripada deria nombor & model bar rendah hingga algebra, geometri dan kalkulus",
     },
   },
   {
@@ -270,7 +274,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "涵盖测量、运动力学、能量、电学欧姆定律，并显式桥接所需前置数学工具节点",
+      "zh-TW": "涵蓋測量、運動力學、能量、電學歐姆定律，並顯式橋接所需前置數學工具節點",
       en: "Measurement, mechanics, energy, and circuits with explicit cross-subject links to mathematical prerequisites",
+      ja: "測定・力学・エネルギー・電気回路を網羅し、必要な数学の前提単元と教科横断で接続",
+      ko: "측정·역학·에너지·전기회로를 다루며 필수 수학 선수 개념과 교과 간 브리지로 연결",
+      ms: "Pengukuran, mekanik, tenaga dan litar elektrik dengan jambatan eksplisit ke prasyarat matematik",
     },
   },
   {
@@ -288,7 +296,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "微粒结构、化学计量比、守恒定律与溶液反应体系",
+      "zh-TW": "微粒結構、化學計量比、守恆定律與溶液反應體系",
       en: "Atomic structure, stoichiometry, conservation of mass, and chemical reactions",
+      ja: "原子構造・化学量論（モル計算）・質量保存の法則・溶液と化学反応",
+      ko: "원자 구조, 화학량론(몰비), 질량 보존 법칙 및 용액 반응 체계",
+      ms: "Struktur atom, stoikiometri, hukum keabadian jisim dan tindak balas kimia",
     },
   },
   {
@@ -306,7 +318,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "细胞结构、能量代谢、生态系统与孟德尔遗传概率",
+      "zh-TW": "細胞結構、能量代謝、生態系統與孟德爾遺傳機率",
       en: "Cell biology, metabolism, ecosystems, and Mendelian genetics probability",
+      ja: "細胞構造・代謝・生態系およびメンデル遺伝の確率モデル",
+      ko: "세포 구조, 물질대사, 생태계 및 멘델 유전 확률 모델",
+      ms: "Biologi sel, metabolisme, ekosistem dan kebarangkalian genetik Mendel",
     },
   },
   {
@@ -324,7 +340,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "句法结构、时态逻辑体系、从句构建与学术阅读推理",
+      "zh-TW": "句法結構、時態邏輯體系、子句構建與學術閱讀推理",
       en: "Clause architecture, tense logic, academic vocabulary, and reading inference",
+      ja: "文構造・時制ロジック・関係詞節の構築とアカデミック読解推論",
+      ko: "구문 구조, 시제 논리, 관계절 구성 및 학술 독해 추론",
+      ms: "Struktur klausa, logik kala, pembinaan ayat kompleks dan inferens bacaan akademik",
     },
   },
   {
@@ -342,7 +362,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "二进制表示、布尔逻辑、算法复杂度与数据结构基础",
+      "zh-TW": "二進位表示、布林邏輯、演算法複雜度與資料結構基礎",
       en: "Binary representation, Boolean logic, algorithmic complexity, and data structures",
+      ja: "二進数表現・ブール論理・アルゴリズム計算量とデータ構造の基礎",
+      ko: "이진 표현, 불 논리, 알고리즘 복잡도 및 자료구조 기초",
+      ms: "Perwakilan perduaan, logik Boolean, kompleksiti algoritma dan struktur data",
     },
   },
   {
@@ -360,7 +384,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "经纬网比例尺、等高线地形判读、大气环流与区域可持续发展",
+      "zh-TW": "經緯網比例尺、等高線地形判讀、大氣環流與區域永續發展",
       en: "Coordinates & map scale, contour lines, climate systems, and human geography",
+      ja: "緯度経度・縮尺計算・等高線読図・気候システムと持続可能な地域開発",
+      ko: "경위도·축척 계산, 등고선 지형 판독, 대기 순환 및 지속가능한 지역 발전",
+      ms: "Koordinat & skala peta, garisan kontur, sistem iklim dan geografi manusia",
     },
   },
   {
@@ -378,7 +406,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "史料证据链辨析、历史纪年换算与全球工业化现代化脉络",
+      "zh-TW": "史料證據鏈辨析、歷史紀年換算與全球工業化現代化脈絡",
       en: "Primary/secondary source evaluation, chronology, and global modernization",
+      ja: "一次・二次史料の批判的検証、年代換算、産業革命と近代化の潮流",
+      ko: "사료 증거 검증, 연대 계산 및 세계 산업화·근대화 흐름",
+      ms: "Penilaian sumber primer/sekunder, kronologi dan pemodenan global",
     },
   },
   {
@@ -396,7 +428,11 @@ export const SUBJECTS_DATA: SubjectSeed[] = [
     },
     description: {
       "zh-CN": "论证结构拆解、隐含前提推断、逻辑谬误识别与多文本非连续阅读",
+      "zh-TW": "論證結構拆解、隱含前提推斷、邏輯謬誤識別與多文本非連續閱讀",
       en: "Argument structure, inference, logical fallacy detection, and comparative reading",
+      ja: "論証構造の分析・前提推論・論理的誤謬の検出・複数資料の統合読解（PISA型）",
+      ko: "논증 구조 분석, 전제 추론, 논리적 오류 식별 및 다중 자료 통합 독해(PISA형)",
+      ms: "Struktur hujah, inferens, pengesanan falasi logik dan bacaan perbandingan pelbagai teks",
     },
   },
 ];

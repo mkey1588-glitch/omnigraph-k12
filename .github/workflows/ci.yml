@@ -36,6 +36,9 @@ jobs:
       - name: Run All 9 Core Engine Test Suites
         run: pnpm test:engines
 
+      - name: Verify 6-Locale Zero-Leak i18n
+        run: pnpm verify:i18n
+
       - name: TypeScript Strict Check
         run: pnpm lint
 

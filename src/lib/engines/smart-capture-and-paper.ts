@@ -1,6 +1,7 @@
 import type {
   DifficultyTier,
   GeneratedQuestionInstance,
+  LocaleCode,
   RegionCode,
   SubjectId,
 } from "@/types/taxonomy";
@@ -9,6 +10,15 @@ import {
   ALL_REGIONAL_ALIGNMENTS,
   CANONICAL_EDGES,
 } from "@/data/canonical-graph";
+import { REGIONS_DATA } from "@/data/regions-and-subjects";
+import {
+  c,
+  localizeAlignment,
+  localizeCustomQuestionExplanation,
+  localizeText,
+  toTraditionalChinese,
+  uiPick,
+} from "@/lib/i18n";
 import { generateQuestion } from "./item-generator";
 import { priorBetaForDifficulty } from "./irt-engine";
 
@@ -72,6 +82,7 @@ const TOPIC_SIGNAL_LEXICON: Record<string, string[]> = {
 export interface SmartCaptureMatchCandidate {
   topicId: string;
   subjectId: SubjectId;
+  title: string;
   titleZh: string;
   titleEn: string;
   confidence: number;
@@ -83,10 +94,14 @@ export interface SmartCaptureMatchCandidate {
 export interface RootCausePrereqBrief {
   topicId: string;
   subjectId: SubjectId;
+  title: string;
   titleZh: string;
+  titleEn: string;
   relationType: "hard" | "soft" | "cross_subject";
   standardCode: string;
+  reason: string;
   reasonZh: string;
+  reasonEn: string;
 }
 
 export interface SmartCaptureAnalysisResult {
@@ -95,11 +110,16 @@ export interface SmartCaptureAnalysisResult {
   upstreamRootCauses: RootCausePrereqBrief[];
   detectedMisconception: {
     tag: string;
+    label: string;
     labelZh: string;
+    labelEn: string;
+    remediationTip: string;
     remediationTipZh: string;
+    remediationTipEn: string;
   };
   canonicalSnapshot: GeneratedQuestionInstance;
   twinVariant: GeneratedQuestionInstance;
+  analysisSummary: string;
   analysisSummaryZh: string;
 }
 
@@ -107,9 +127,12 @@ export function analyzeCapturedWrongQuestion(params: {
   sanitizedQuestionText: string;
   studentWrongAnswer?: string;
   regionCode: RegionCode;
+  locale?: LocaleCode;
   preferredSubjectId?: SubjectId | "all";
   seed?: string;
 }): SmartCaptureAnalysisResult {
+  const regMeta = REGIONS_DATA.find((r) => r.code === params.regionCode);
+  const locale: LocaleCode = params.locale ?? regMeta?.primaryLocale ?? "zh-CN";
   const qLower = params.sanitizedQuestionText.toLowerCase();
 
   const scored = ALL_CANONICAL_TOPICS.map((topic) => {
@@ -122,8 +145,9 @@ export function analyzeCapturedWrongQuestion(params: {
       score += 4;
     }
 
-    if (qLower.includes(topic.title["zh-CN"].toLowerCase())) score += 14;
-    if (qLower.includes(topic.title.en.toLowerCase())) score += 12;
+    for (const val of Object.values(topic.title)) {
+      if (val && qLower.includes(val.toLowerCase())) score += 12;
+    }
 
     const keywords = TOPIC_SIGNAL_LEXICON[topic.id] ?? [];
     for (const kw of keywords) {
@@ -140,6 +164,10 @@ export function analyzeCapturedWrongQuestion(params: {
         score += 0.6;
       }
     }
+    const descEnWords = topic.description.en.toLowerCase().split(/\W+/).filter((w) => w.length >= 5);
+    for (const w of descEnWords) {
+      if (qLower.includes(w)) score += 1.2;
+    }
 
     const align = ALL_REGIONAL_ALIGNMENTS.find(
       (a) => a.topicId === topic.id && a.regionCode === params.regionCode
@@ -153,15 +181,18 @@ export function analyzeCapturedWrongQuestion(params: {
 
   const top3 = scored.slice(0, 3).map((entry, idx) => {
     const rawConf = Math.min(0.98, Math.max(0.56, 0.72 + entry.score * 0.012 - idx * 0.11));
+    const locAln = localizeAlignment(entry.align, entry.topic, regMeta, locale);
+    const titleLoc = localizeText(entry.topic.title, locale, false);
     return {
       topicId: entry.topic.id,
       subjectId: entry.topic.subjectId,
+      title: titleLoc,
       titleZh: entry.topic.title["zh-CN"],
       titleEn: entry.topic.title.en,
       confidence: Math.round(rawConf * 100) / 100,
       standardCode: entry.align?.standardCode ?? "CORE-STD",
-      localChapterTitle: entry.align?.localChapterTitle ?? entry.topic.title["zh-CN"],
-      localStageLabel: entry.align?.localStageLabel ?? `G${entry.topic.baselineGrade}`,
+      localChapterTitle: locAln?.localChapterTitle ?? titleLoc,
+      localStageLabel: locAln?.localStageLabel ?? `G${entry.topic.baselineGrade}`,
     };
   });
 
@@ -178,10 +209,14 @@ export function analyzeCapturedWrongQuestion(params: {
     return {
       topicId: edge.prerequisiteId,
       subjectId: preTopic.subjectId,
+      title: localizeText(preTopic.title, locale, false),
       titleZh: preTopic.title["zh-CN"],
+      titleEn: preTopic.title.en,
       relationType: edge.relationType,
       standardCode: preAlign?.standardCode ?? "PRE-STD",
+      reason: localizeText(edge.reason, locale, false),
       reasonZh: edge.reason["zh-CN"],
+      reasonEn: edge.reason.en,
     };
   });
 
@@ -189,8 +224,14 @@ export function analyzeCapturedWrongQuestion(params: {
     tag: "misc_general_careless",
     label: { "zh-CN": "概念边界偏移", en: "Boundary slip" },
     wrongPattern: { "zh-CN": "关键概念边界或符号变形失误", en: "Conceptual boundary slip" },
-    remediationTip: { "zh-CN": "回溯上游先修微课并完成 3 道同构孪生变式清零。", en: "Review micro-lesson and solve 3 twin variants." },
+    remediationTip: {
+      "zh-CN": "回溯上游先修微课并完成 3 道同构孪生变式清零。",
+      en: "Review micro-lesson and solve 3 twin variants.",
+    },
   };
+
+  const miscLabelLoc = localizeText(firstMisc.wrongPattern, locale, false);
+  const miscTipLoc = localizeText(firstMisc.remediationTip, locale, false);
 
   const baseSeed = params.seed ?? `capture_${Date.now()}`;
   const canonicalSnapshot = generateQuestion({
@@ -201,13 +242,19 @@ export function analyzeCapturedWrongQuestion(params: {
     variantIndex: 0,
   });
 
-  // Override promptZh on snapshot if user supplied custom problem text (> 8 chars) so their exact captured stem is preserved alongside twin variants!
   const trimmedUserStem = params.sanitizedQuestionText.trim();
+  const hasCjkInUserStem = /[\u3400-\u9FFF]/.test(trimmedUserStem);
   const snapshotToSave: GeneratedQuestionInstance =
     trimmedUserStem.length >= 8
       ? {
           ...canonicalSnapshot,
           promptZh: `【录题原题归档】${trimmedUserStem}\n\n（系统同构标定母题参考：${canonicalSnapshot.promptZh}）`,
+          promptZhTw: toTraditionalChinese(
+            `【錄題原題歸檔】${trimmedUserStem}\n\n（系統同構標定母題參考：${canonicalSnapshot.promptZh}）`
+          ),
+          promptEn: hasCjkInUserStem
+            ? canonicalSnapshot.promptEn
+            : `[Captured Problem] ${trimmedUserStem}\n\n(Calibrated Twin Reference: ${canonicalSnapshot.promptEn})`,
         }
       : canonicalSnapshot;
 
@@ -219,19 +266,91 @@ export function analyzeCapturedWrongQuestion(params: {
     variantIndex: 1,
   });
 
-  const wrongNote = params.studentWrongAnswer
-    ? `结合你填写的错误作答「${params.studentWrongAnswer}」，`
-    : "";
+  const confPct = Math.round(primaryCandidate.confidence * 100);
+  const crossBridgeLabel = uiPick(
+    locale,
+    c("跨学科先修", "cross-subject bridge", "教科横断の前提", "교과 간 선수", "jambatan rentas subjek")
+  );
+  const directPrereqLabel = uiPick(
+    locale,
+    c("直接先修", "direct prerequisite", "直接の前提", "직접 선수", "prasyarat langsung")
+  );
 
-  const analysisSummaryZh = `已将该错题精准锚定至【${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}】《${primaryCandidate.titleZh}》（匹配置信度 ${Math.round(
-    primaryCandidate.confidence * 100
-  )}%）。${wrongNote}高发认知迷思为「${firstMisc.wrongPattern["zh-CN"]}」。${
-    upstreamRootCauses.length > 0
-      ? `图谱溯源显示需同步排查 ${upstreamRootCauses
-          .map((u) => `《${u.titleZh}》(${u.relationType === "cross_subject" ? "跨学科先修" : "直接先修"})`)
-          .join("、")}。`
-      : "该节点为本学段基础根节点，建议直接通过下方孪生变式题完成三连清零。"
-  }`;
+  const analysisSummary = uiPick(
+    locale,
+    c(
+      `已将该错题精准锚定至【${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}】《${primaryCandidate.title}》（匹配置信度 ${confPct}%）。${
+        params.studentWrongAnswer ? `结合你填写的错误作答「${params.studentWrongAnswer}」，` : ""
+      }高发认知迷思为「${miscLabelLoc}」。${
+        upstreamRootCauses.length > 0
+          ? `图谱溯源显示需同步排查 ${upstreamRootCauses
+              .map(
+                (u) =>
+                  `《${u.title}》(${
+                    u.relationType === "cross_subject" ? crossBridgeLabel : directPrereqLabel
+                  })`
+              )
+              .join("、")}。`
+          : "该节点为本学段基础根节点，建议直接通过下方孪生变式题完成三连清零。"
+      }`,
+      `Anchored to [${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}] "${primaryCandidate.title}" (${confPct}% confidence). ${
+        params.studentWrongAnswer ? `Based on your attempt "${params.studentWrongAnswer}", ` : ""
+      }likely misconception: "${miscLabelLoc}". ${
+        upstreamRootCauses.length > 0
+          ? `Graph root-cause tracing recommends checking ${upstreamRootCauses
+              .map(
+                (u) =>
+                  `"${u.title}" (${
+                    u.relationType === "cross_subject" ? crossBridgeLabel : directPrereqLabel
+                  })`
+              )
+              .join(", ")}.`
+          : "This is a foundational root node—complete 3 consecutive Twin Variants below to clear it."
+      }`,
+      `この誤答を【${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}】「${primaryCandidate.title}」（一致度 ${confPct}%）に特定しました。${
+        params.studentWrongAnswer ? `入力された解答「${params.studentWrongAnswer}」から、` : ""
+      }主なつまずきパターンは「${miscLabelLoc}」です。${
+        upstreamRootCauses.length > 0
+          ? `前提グラフより ${upstreamRootCauses
+              .map(
+                (u) =>
+                  `「${u.title}」（${
+                    u.relationType === "cross_subject" ? crossBridgeLabel : directPrereqLabel
+                  }）`
+              )
+              .join("・")} の確認を推奨します。`
+          : "この単元は基礎ルートノードです。下の双子類題で3連続正解を達成しましょう。"
+      }`,
+      `이 오답을 [${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}] 「${primaryCandidate.title}」(신뢰도 ${confPct}%)에 매핑했습니다. ${
+        params.studentWrongAnswer ? `입력한 오답 「${params.studentWrongAnswer}」 기준 ` : ""
+      }주요 오개념은 「${miscLabelLoc}」입니다. ${
+        upstreamRootCauses.length > 0
+          ? `지식그래프 역추적 결과 ${upstreamRootCauses
+              .map(
+                (u) =>
+                  `「${u.title}」(${
+                    u.relationType === "cross_subject" ? crossBridgeLabel : directPrereqLabel
+                  })`
+              )
+              .join(", ")} 점검을 권장합니다.`
+          : "기초 루트 노드이므로 아래 쌍둥이 변형문제로 3연속 클리어를 달성하세요."
+      }`,
+      `Dipetakan kepada [${params.regionCode} · ${primaryCandidate.localStageLabel} · ${primaryCandidate.standardCode}] "${primaryCandidate.title}" (keyakinan ${confPct}%). ${
+        params.studentWrongAnswer ? `Berdasarkan cubaan "${params.studentWrongAnswer}", ` : ""
+      }salah tanggapan utama: "${miscLabelLoc}". ${
+        upstreamRootCauses.length > 0
+          ? `Surihan graf mencadangkan semakan ${upstreamRootCauses
+              .map(
+                (u) =>
+                  `"${u.title}" (${
+                    u.relationType === "cross_subject" ? crossBridgeLabel : directPrereqLabel
+                  })`
+              )
+              .join(", ")}.`
+          : "Ini ialah nod asas—selesaikan 3 variasi kembar berturut-turut di bawah."
+      }`
+    )
+  );
 
   return {
     matchedPrimary: primaryCandidate,
@@ -239,12 +358,17 @@ export function analyzeCapturedWrongQuestion(params: {
     upstreamRootCauses,
     detectedMisconception: {
       tag: firstMisc.tag,
+      label: miscLabelLoc,
       labelZh: firstMisc.wrongPattern["zh-CN"],
+      labelEn: firstMisc.wrongPattern.en,
+      remediationTip: miscTipLoc,
       remediationTipZh: firstMisc.remediationTip["zh-CN"],
+      remediationTipEn: firstMisc.remediationTip.en,
     },
     canonicalSnapshot: snapshotToSave,
     twinVariant,
-    analysisSummaryZh,
+    analysisSummary,
+    analysisSummaryZh: analysisSummary,
   };
 }
 
@@ -265,7 +389,9 @@ export interface CustomQuestionInput {
 export interface BlueprintRow {
   itemNumber: number;
   topicId: string;
+  topicTitle: string;
   topicTitleZh: string;
+  topicTitleEn: string;
   standardCode: string;
   localChapterTitle: string;
   cognitiveType: string;
@@ -281,7 +407,10 @@ export interface ExamPaperItem {
   itemNumber: number;
   points: number;
   standardCode: string;
+  topicId: string;
+  topicTitle: string;
   topicTitleZh: string;
+  topicTitleEn: string;
   sourceType: "canonical_generator" | "school_custom";
   instance: GeneratedQuestionInstance;
 }
@@ -301,6 +430,7 @@ export interface SmartExamBundle {
 export function buildSmartExamPapers(params: {
   paperTitle?: string;
   regionCode: RegionCode;
+  locale?: LocaleCode;
   subjectId: SubjectId;
   topicIds: string[];
   totalItems: number;
@@ -309,6 +439,9 @@ export function buildSmartExamPapers(params: {
   irtBetaByTemplate?: Record<string, number>;
   customQuestions?: CustomQuestionInput[];
 }): SmartExamBundle {
+  const regMeta = REGIONS_DATA.find((r) => r.code === params.regionCode);
+  const locale: LocaleCode = params.locale ?? regMeta?.primaryLocale ?? "zh-CN";
+
   const validTopics = ALL_CANONICAL_TOPICS.filter((t) =>
     params.topicIds.includes(t.id)
   ).sort((a, b) => a.baselineGrade - b.baselineGrade);
@@ -336,7 +469,6 @@ export function buildSmartExamPapers(params: {
   while (tierSchedule.length < total) tierSchedule.push("standard");
   tierSchedule.length = total;
 
-  // Allocate points cleanly to sum to 100 (or proportional clean integers)
   const rawWeights = tierSchedule.map((d) =>
     d === "basic" ? 4 : d === "standard" ? 6 : 8
   );
@@ -356,11 +488,13 @@ export function buildSmartExamPapers(params: {
     const topic = fallbackTopics[i % fallbackTopics.length];
     const tier = tierSchedule[i];
     const pts = pointsList[i];
-    const align = ALL_REGIONAL_ALIGNMENTS.find(
+    const rawAlign = ALL_REGIONAL_ALIGNMENTS.find(
       (a) => a.topicId === topic.id && a.regionCode === params.regionCode
     );
-    const stdCode = align?.standardCode ?? "STD-CORE";
-    const chapter = align?.localChapterTitle ?? topic.title["zh-CN"];
+    const locAlign = localizeAlignment(rawAlign, topic, regMeta, locale);
+    const stdCode = rawAlign?.standardCode ?? "STD-CORE";
+    const topicTitleLoc = localizeText(topic.title, locale, false);
+    const chapter = locAlign?.localChapterTitle ?? topicTitleLoc;
 
     const matchingCustom = (params.customQuestions ?? []).find(
       (cq) =>
@@ -375,8 +509,8 @@ export function buildSmartExamPapers(params: {
       const choicesA = matchingCustom.choicesJson.slice(0, 4).map((txt, idx) => ({
         key: keys[idx],
         text: txt,
+        textEn: txt,
       }));
-      // Paper B permutes options (reversing order) while preserving exact correct choice letter!
       const rawOptions = matchingCustom.choicesJson.slice(0, 4);
       const ansIdxA = keys.indexOf(matchingCustom.answer as "A" | "B" | "C" | "D");
       const correctText = ansIdxA >= 0 ? rawOptions[ansIdxA] : matchingCustom.answer;
@@ -384,6 +518,8 @@ export function buildSmartExamPapers(params: {
       const ansIdxB = reversedOptions.indexOf(correctText);
       const answerB =
         choicesA.length === 4 && ansIdxB >= 0 ? keys[ansIdxB] : matchingCustom.answer;
+
+      const cleanExplEn = localizeCustomQuestionExplanation(matchingCustom, "en");
 
       const instA: GeneratedQuestionInstance = {
         instanceId: `custom_${matchingCustom.id}_A`,
@@ -398,7 +534,7 @@ export function buildSmartExamPapers(params: {
         choices: choicesA.length === 4 ? choicesA : undefined,
         answer: matchingCustom.answer,
         explanationZh: matchingCustom.explanationZh,
-        explanationEn: matchingCustom.explanationZh,
+        explanationEn: cleanExplEn,
         scaffolds: [],
       };
 
@@ -408,7 +544,11 @@ export function buildSmartExamPapers(params: {
         seed: `${params.paperSeed}::customB`,
         choices:
           choicesA.length === 4
-            ? reversedOptions.map((txt, idx) => ({ key: keys[idx], text: txt }))
+            ? reversedOptions.map((txt, idx) => ({
+                key: keys[idx],
+                text: txt,
+                textEn: txt,
+              }))
             : undefined,
         answer: answerB,
       };
@@ -418,7 +558,10 @@ export function buildSmartExamPapers(params: {
         itemNumber: i + 1,
         points: pts,
         standardCode: stdCode,
+        topicId: topic.id,
+        topicTitle: topicTitleLoc,
         topicTitleZh: topic.title["zh-CN"],
+        topicTitleEn: topic.title.en,
         sourceType: "school_custom",
         instance: instA,
       });
@@ -426,14 +569,19 @@ export function buildSmartExamPapers(params: {
         itemNumber: i + 1,
         points: pts,
         standardCode: stdCode,
+        topicId: topic.id,
+        topicTitle: topicTitleLoc,
         topicTitleZh: topic.title["zh-CN"],
+        topicTitleEn: topic.title.en,
         sourceType: "school_custom",
         instance: instB,
       });
       blueprint.push({
         itemNumber: i + 1,
         topicId: topic.id,
+        topicTitle: topicTitleLoc,
         topicTitleZh: topic.title["zh-CN"],
+        topicTitleEn: topic.title.en,
         standardCode: stdCode,
         localChapterTitle: chapter,
         cognitiveType: topic.cognitiveType,
@@ -471,7 +619,10 @@ export function buildSmartExamPapers(params: {
       itemNumber: i + 1,
       points: pts,
       standardCode: stdCode,
+      topicId: topic.id,
+      topicTitle: topicTitleLoc,
       topicTitleZh: topic.title["zh-CN"],
+      topicTitleEn: topic.title.en,
       sourceType: "canonical_generator",
       instance: instA,
     });
@@ -479,14 +630,19 @@ export function buildSmartExamPapers(params: {
       itemNumber: i + 1,
       points: pts,
       standardCode: stdCode,
+      topicId: topic.id,
+      topicTitle: topicTitleLoc,
       topicTitleZh: topic.title["zh-CN"],
+      topicTitleEn: topic.title.en,
       sourceType: "canonical_generator",
       instance: instB,
     });
     blueprint.push({
       itemNumber: i + 1,
       topicId: topic.id,
+      topicTitle: topicTitleLoc,
       topicTitleZh: topic.title["zh-CN"],
+      topicTitleEn: topic.title.en,
       standardCode: stdCode,
       localChapterTitle: chapter,
       cognitiveType: topic.cognitiveType,
@@ -507,10 +663,19 @@ export function buildSmartExamPapers(params: {
         100
     ) / 100;
 
-  return {
-    paperTitle:
-      params.paperTitle?.trim() ||
+  const defaultPaperTitle = uiPick(
+    locale,
+    c(
       `${params.regionCode} 课标对齐 · 阶段性诊断测评卷（A/B 平行防作弊卷）`,
+      `${params.regionCode} Standards-Aligned Diagnostic Assessment (Parallel Form A / B)`,
+      `${params.regionCode} 基準準拠・段階診断テスト（A/B 並行フォーム）`,
+      `${params.regionCode} 교육과정 정렬 · 단계별 진단평가 (A/B 평행형 시험지)`,
+      `Penilaian Diagnostik Jajaran Standard ${params.regionCode} (Kertas Selari A / B)`
+    )
+  );
+
+  return {
+    paperTitle: params.paperTitle?.trim() || defaultPaperTitle,
     regionCode: params.regionCode,
     subjectId: params.subjectId,
     totalPoints,

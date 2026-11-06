@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import type { InteractiveWidgetConfig } from "@/types/taxonomy";
+import { usePlatform } from "./PlatformProvider";
+import { localizeWidgetCaption } from "@/lib/i18n";
+import { WIDGET_COPY } from "@/lib/i18n/ui-common";
 
 interface InteractiveWidgetProps {
   config: InteractiveWidgetConfig;
@@ -12,7 +15,10 @@ export function InteractiveWidget({
   config,
   onSelectValue,
 }: InteractiveWidgetProps) {
+  const { locale, pick } = usePlatform();
   const [val, setVal] = useState<number>(config.initialValue);
+
+  const caption = localizeWidgetCaption(config, locale);
 
   const handleChange = (next: number) => {
     setVal(next);
@@ -27,12 +33,13 @@ export function InteractiveWidget({
     const zeroX = ((0 - config.min) / span) * 240 + 30;
     return (
       <div className="rounded-xl border border-indigo-500/30 bg-slate-950/80 p-4 space-y-3">
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between text-xs gap-2">
           <span className="font-semibold text-indigo-300">
-            🎛️ 交互数轴探针：{config.captionZh}
+            {pick(WIDGET_COPY.numberLineTitle)}
+            {caption}
           </span>
           <span className="font-mono text-emerald-300 font-bold">
-            当前位置 = {val} {config.unitLabel ?? ""}
+            {pick(WIDGET_COPY.currentPos)} {val} {config.unitLabel ?? ""}
           </span>
         </div>
         <svg viewBox="0 0 300 58" className="w-full max-w-md mx-auto h-auto">
@@ -64,12 +71,13 @@ export function InteractiveWidget({
     const rEq = Math.round(((rFixed * val) / (rFixed + val)) * 100) / 100;
     return (
       <div className="rounded-xl border border-amber-500/30 bg-slate-950/80 p-4 space-y-2.5 text-xs">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-semibold text-amber-300">
-            ⚡ 虚拟电学并联实验台：{config.captionZh}
+            {pick(WIDGET_COPY.ohmLabTitle)}
+            {caption}
           </span>
           <span className="font-mono text-emerald-300 font-bold">
-            固定 R₁={rFixed}Ω ∥ 滑动变阻 R₂={val}Ω → 等效总电阻 R_eq = {rEq}Ω
+            {WIDGET_COPY.ohmReadout(rFixed, val, rEq, locale)}
           </span>
         </div>
         <input
@@ -87,7 +95,7 @@ export function InteractiveWidget({
             onClick={() => onSelectValue(String(rEq))}
             className="rounded-lg bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30"
           >
-            将当前实验读数 {rEq} Ω 填入答案框
+            {WIDGET_COPY.ohmFillBtn(rEq, locale)}
           </button>
         )}
       </div>
@@ -100,12 +108,13 @@ export function InteractiveWidget({
   const yAtVal = (val - hFixed) * (val - hFixed) + kFixed;
   return (
     <div className="rounded-xl border border-violet-500/30 bg-slate-950/80 p-4 space-y-2.5 text-xs">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-semibold text-violet-300">
-          📈 函数动态探针：{config.captionZh}
+          {pick(WIDGET_COPY.funcProbeTitle)}
+          {caption}
         </span>
         <span className="font-mono text-emerald-300 font-bold">
-          当 x = {val} 时，y = {yAtVal}
+          {WIDGET_COPY.funcReadout(val, yAtVal, locale)}
         </span>
       </div>
       <input
@@ -123,7 +132,7 @@ export function InteractiveWidget({
           onClick={() => onSelectValue(String(val))}
           className="rounded-lg bg-violet-500/20 border border-violet-500/40 px-2.5 py-1 text-[11px] font-semibold text-violet-200 hover:bg-violet-500/30"
         >
-          锁定对称轴 x = {val} 填入答案框
+          {WIDGET_COPY.funcFillBtn(val, locale)}
         </button>
       )}
     </div>

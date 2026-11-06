@@ -87,10 +87,10 @@ function svgBarModel(partsTotal: number, shadedParts: number, totalValue: number
   }).join("");
   const shadedWidth = shadedParts * boxW;
   return `<svg viewBox="0 0 ${w} 96" class="w-full max-w-sm h-auto text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg">
-    <text x="30" y="22" font-size="11" fill="currentColor">总量 Total = ${currency}${totalValue}（平均分 ${partsTotal} 份）</text>
+    <text x="30" y="22" font-size="11" fill="currentColor">Total = ${currency}${totalValue} (${partsTotal} units)</text>
     ${rects}
     <path d="M 30 70 L ${30 + shadedWidth} 70" stroke="#6366f1" stroke-width="2"/>
-    <text x="${30 + shadedWidth / 2}" y="86" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="600">占 ${shadedParts}/${partsTotal} → 求这部分？</text>
+    <text x="${30 + shadedWidth / 2}" y="86" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="600">${shadedParts}/${partsTotal} = ?</text>
   </svg>`;
 }
 
@@ -110,16 +110,16 @@ function svgTrapezoidOrTriangle(mode: "triangle" | "trapezoid", b1: number, b2: 
     return `<svg viewBox="0 0 260 135" class="w-full max-w-xs h-auto text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg">
       <polygon points="35,110 225,110 115,25" fill="rgba(16,185,129,0.12)" stroke="currentColor" stroke-width="2"/>
       <line x1="115" y1="25" x2="115" y2="110" stroke="#10b981" stroke-width="1.6" stroke-dasharray="4 3"/>
-      <text x="130" y="128" text-anchor="middle" font-size="12" fill="currentColor">底 b = ${b1} cm</text>
-      <text x="142" y="74" font-size="12" fill="#10b981" font-weight="600">高 h = ${h} cm</text>
+      <text x="130" y="128" text-anchor="middle" font-size="12" fill="currentColor">b = ${b1} cm</text>
+      <text x="142" y="74" font-size="12" fill="#10b981" font-weight="600">h = ${h} cm</text>
     </svg>`;
   }
   return `<svg viewBox="0 0 260 135" class="w-full max-w-xs h-auto text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg">
     <polygon points="75,30 185,30 225,110 35,110" fill="rgba(16,185,129,0.12)" stroke="currentColor" stroke-width="2"/>
     <line x1="85" y1="30" x2="85" y2="110" stroke="#10b981" stroke-width="1.6" stroke-dasharray="4 3"/>
-    <text x="130" y="22" text-anchor="middle" font-size="11" fill="currentColor">上底 a = ${b1} cm</text>
-    <text x="130" y="128" text-anchor="middle" font-size="11" fill="currentColor">下底 b = ${b2} cm</text>
-    <text x="112" y="74" font-size="11" fill="#10b981" font-weight="600">高 h = ${h} cm</text>
+    <text x="130" y="22" text-anchor="middle" font-size="11" fill="currentColor">a = ${b1} cm</text>
+    <text x="130" y="128" text-anchor="middle" font-size="11" fill="currentColor">b = ${b2} cm</text>
+    <text x="112" y="74" font-size="11" fill="#10b981" font-weight="600">h = ${h} cm</text>
   </svg>`;
 }
 
@@ -174,7 +174,7 @@ function svgCircuit(mode: "series" | "parallel", r1Label: string, r2Label: strin
     <text x="145" y="11" text-anchor="middle" font-size="11" fill="#6366f1" font-weight="700">${r1Label}</text>
     <rect x="115" y="58" width="60" height="16" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
     <text x="145" y="88" text-anchor="middle" font-size="11" fill="#10b981" font-weight="700">${r2Label}</text>
-    <text x="145" y="132" text-anchor="middle" font-size="11" fill="#f59e0b" font-weight="700">电源电压 U = ${sourceLabel}</text>
+    <text x="145" y="132" text-anchor="middle" font-size="11" fill="#f59e0b" font-weight="700">U = ${sourceLabel}</text>
   </svg>`;
 }
 
@@ -221,8 +221,11 @@ function finalizeInstance(
     }
     let fallbackOffset = 1;
     while (uniqueDistractors.length < 3) {
-      const fb = `${core.answer} (变体+${fallbackOffset++})`;
-      uniqueDistractors.push({ text: fb, textEn: fb });
+      const off = fallbackOffset++;
+      uniqueDistractors.push({
+        text: `${core.answer} (变式+${off})`,
+        textEn: `${core.answerEn ?? core.answer} (alt +${off})`,
+      });
     }
 
     const pool = rng.shuffle([
@@ -816,7 +819,7 @@ export function generateQuestion(params: GenerateQuestionParams): GeneratedQuest
       core = {
         promptZh: `在直角三角形中，已知斜边 c = ${c}，一条直角边 a = ${a}，求另一条直角边 b 的长度：`,
         promptEn: `In a right triangle with hypotenuse c = ${c} and leg a = ${a}, find the other leg b:`,
-        svgDiagram: svgRightTriangle(`a = ${a}`, `b = ?`, `斜边 c = ${c}`),
+        svgDiagram: svgRightTriangle(`a = ${a}`, `b = ?`, `c = ${c}`),
         answer: `${b}`,
         explanationZh: `由 a² + b² = c²，求直角边需用减法：b = √(c² - a²) = √(${c * c} - ${a * a}) = √${b * b} = ${b}（切勿无脑套加法算 c² + a² = ${c * c + a * a}）。`,
         explanationEn: `Since c = ${c} is the hypotenuse, b = √(c² - a²) = √(${c * c} - ${a * a}) = ${b}.`,
@@ -924,7 +927,7 @@ export function generateQuestion(params: GenerateQuestionParams): GeneratedQuest
       core = {
         promptZh: `如图在 Rt△ABC 中，锐角 θ 的对边为 ${opp}、邻边为 ${adj}、斜边为 ${hyp}。求 sin θ 的值（最简分数 a/b）：`,
         promptEn: `In the right triangle shown, relative to angle θ, opposite = ${opp}, adjacent = ${adj}, hypotenuse = ${hyp}. Find sin θ:`,
-        svgDiagram: svgRightTriangle(`对边 ${opp}`, `邻边 ${adj}`, `斜边 ${hyp}`, `θ`),
+        svgDiagram: svgRightTriangle(`opp = ${opp}`, `adj = ${adj}`, `hyp = ${hyp}`, `θ`),
         answer: ans,
         explanationZh: `正弦 sin θ = 对边 / 斜边 = ${ans}（邻边/斜边 = ${cosTrap} 是 cos θ，对边/邻边 = ${tanTrap} 是 tan θ）。`,
         explanationEn: `sin θ = Opposite / Hypotenuse = ${ans} (whereas cos θ = ${cosTrap}).`,

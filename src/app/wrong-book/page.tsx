@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BookOpenCheck,
   AlertTriangle,
@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   XCircle,
   Sparkles,
+  Bot,
+  Send,
 } from "lucide-react";
 import {
   usePlatform,
@@ -16,26 +18,41 @@ import {
 import { MathText } from "@/components/MathText";
 import { InteractiveWidget } from "@/components/InteractiveWidget";
 import type { GeneratedQuestionInstance } from "@/types/taxonomy";
+import {
+  localizeChoice,
+  localizeExplanation,
+  localizeMisconceptionLabel,
+  localizePrompt,
+  localizeSvgDiagram,
+} from "@/lib/i18n";
+import { getSubjectShortBadge } from "@/lib/i18n/ui-common";
+import {
+  WRONG_BOOK_COPY,
+  localizeWrongUserAnswer,
+} from "@/lib/i18n/copy-capture-clearance-auth";
 
 export default function WrongBookPage() {
   const {
     data,
     loading,
+    locale,
     regionCode,
     bilingual,
     activeStudentId,
     activeStudent,
+    pick,
     localize,
+    userName,
     getAlignment,
     refreshData,
   } = usePlatform();
 
   const [tab, setTab] = useState<"pending" | "cleared">("pending");
-  const [activeWq, setActiveWq] = useState<EnrichedWrongQuestion | null>(null);
+  const [activeWqId, setActiveWqId] = useState<string | null>(null);
   const [twinInstance, setTwinInstance] =
     useState<GeneratedQuestionInstance | null>(null);
   const [twinAnswer, setTwinAnswer] = useState<string>("");
-  const [selfRating, setSelfRating] = useState<2 | 3 | 4>(3);
+  const [selfRating, setSelfRating] = useState<1 | 2 | 3 | 4>(3);
   const [twinResult, setTwinResult] = useState<{
     isCorrect: boolean;
     status: string;
@@ -45,10 +62,22 @@ export default function WrongBookPage() {
   } | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Socratic AI Coach state
+  const [tutorMessages, setTutorMessages] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([]);
+  const [tutorInput, setTutorInput] = useState<string>("");
+  const [tutorLoading, setTutorLoading] = useState<boolean>(false);
+
+  // Clear cached tutor conversation when UI language switches so no stale locale text remains
+  useEffect(() => {
+    setTutorMessages([]);
+  }, [locale]);
+
   if (loading || !data) {
     return (
       <div className="p-12 text-center text-slate-400">
-        正在加载 FSRS 间隔重复错题账本...
+        {pick(WRONG_BOOK_COPY.loading)}
       </div>
     );
   }
@@ -60,11 +89,22 @@ export default function WrongBookPage() {
   const clearedWqs = allStudentWqs.filter((w) => w.status === "cleared");
   const shownList = tab === "pending" ? pendingWqs : clearedWqs;
 
+  const activeWq =
+    allStudentWqs.find((w) => w.id === activeWqId) ?? null;
+
+  const studentDisplayName = activeStudent ? userName(activeStudent) : "";
+  const studentHeaderLabel = activeStudent
+    ? `${activeStudent.avatarEmoji} ${studentDisplayName}`
+    : studentDisplayName;
+
   const spawnTwin = async (wq: EnrichedWrongQuestion) => {
     setBusy(true);
-    setActiveWq(wq);
+    setActiveWqId(wq.id);
     setTwinResult(null);
     setTwinAnswer("");
+    setSelfRating(3);
+    setTutorMessages([]);
+    setTutorInput("");
     try {
       const res = await fetch("/api/wrong-book", {
         method: "POST",
@@ -73,6 +113,7 @@ export default function WrongBookPage() {
           action: "spawn_twin",
           wrongQuestionId: wq.id,
           regionCode,
+          locale,
         }),
       });
       const json = await res.json();
@@ -86,7 +127,9 @@ export default function WrongBookPage() {
 
   const submitTwinAttempt = async (overrideAns?: string) => {
     if (!activeWq || !twinInstance || busy) return;
-    const ans = (overrideAns ?? twinAnswer).trim();
+    const rawAns = overrideAns ?? twinAnswer;
+    const ans =
+      rawAns.trim() || (selfRating === 1 ? "__AGAIN__" : "");
     if (!ans) return;
 
     setBusy(true);
@@ -100,6 +143,8 @@ export default function WrongBookPage() {
           twinInstance,
           userAnswer: ans,
           selfRating,
+          regionCode,
+          locale,
         }),
       });
       const json = await res.json();
@@ -118,6 +163,53 @@ export default function WrongBookPage() {
     }
   };
 
+  const askSocraticCoach = async (customPrompt?: string) => {
+    if (!activeWq || !twinInstance || tutorLoading) return;
+    const content = (customPrompt ?? tutorInput).trim();
+    if (!content) return;
+
+    const nextMessages: Array<{ role: "user" | "assistant"; content: string }> = [
+      ...tutorMessages,
+      { role: "user", content },
+    ];
+    setTutorMessages(nextMessages);
+    if (!customPrompt) {
+      setTutorInput("");
+    }
+    setTutorLoading(true);
+
+    try {
+      const res = await fetch("/api/tutor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topicId: activeWq.topicId,
+          regionCode,
+          locale,
+          bilingual,
+          studentId: activeStudentId,
+          question: twinInstance,
+          studentWrongAnswer: activeWq.wrongUserAnswer,
+          detectedMisconceptionTag: activeWq.misconceptionTag ?? undefined,
+          messages: nextMessages,
+        }),
+      });
+      const json = await res.json();
+      if (json.ok && json.reply) {
+        setTutorMessages([
+          ...nextMessages,
+          { role: "assistant", content: String(json.reply) },
+        ]);
+      }
+    } finally {
+      setTutorLoading(false);
+    }
+  };
+
+  const localizedTwinSvg = twinInstance
+    ? localizeSvgDiagram(twinInstance.svgDiagram, locale)
+    : undefined;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
       {/* Header */}
@@ -126,17 +218,17 @@ export default function WrongBookPage() {
           <h1 className="text-xl font-bold text-white sm:text-2xl flex items-center gap-2">
             <BookOpenCheck className="h-6 w-6 text-violet-400" />
             <span>
-              FSRS 智能错题本 & 防刷穿孪生变式清零台（{activeStudent?.avatarEmoji}{" "}
-              {activeStudent?.displayName}）
+              {WRONG_BOOK_COPY.headerTitle(studentHeaderLabel, locale)}
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            基于 FSRS 动态遗忘曲线（难度 D · 稳定性 S · 记忆保留率 R）调度复习；每次重练实时生成全新参数孪生题，连续 3 次掌握自动归档清零。
+            {pick(WRONG_BOOK_COPY.subtitle)}
           </p>
         </div>
 
         <div className="flex rounded-xl border border-slate-800 bg-slate-900 p-1 text-xs">
           <button
+            type="button"
             onClick={() => setTab("pending")}
             className={`rounded-lg px-3.5 py-1.5 font-semibold transition ${
               tab === "pending"
@@ -144,9 +236,10 @@ export default function WrongBookPage() {
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            待孪生清零 ({pendingWqs.length})
+            {WRONG_BOOK_COPY.tabPending(pendingWqs.length, locale)}
           </button>
           <button
+            type="button"
             onClick={() => setTab("cleared")}
             className={`rounded-lg px-3.5 py-1.5 font-semibold transition ${
               tab === "cleared"
@@ -154,19 +247,19 @@ export default function WrongBookPage() {
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            已彻底清零 ({clearedWqs.length})
+            {WRONG_BOOK_COPY.tabCleared(clearedWqs.length, locale)}
           </button>
         </div>
       </div>
 
-      {/* Main Split: Wrong Question Ledger + Interactive Twin Variant Modal/Panel */}
+      {/* Main Split: Wrong Question Ledger + Interactive Twin Variant Arena */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-7 space-y-4">
           {shownList.length === 0 ? (
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
               {tab === "pending"
-                ? "🎉 当前学生所有错题均已清零！可前往「靶向回溯诊断」探索新章节。"
-                : "暂无已清零错题记录——在右侧连续答对第 3 次孪生变式即可清零晋级！"}
+                ? pick(WRONG_BOOK_COPY.emptyPending)
+                : pick(WRONG_BOOK_COPY.emptyCleared)}
             </div>
           ) : (
             shownList.map((wq) => {
@@ -174,6 +267,10 @@ export default function WrongBookPage() {
               const aln = getAlignment(wq.topicId);
               const retPct = Math.round(wq.retrievability * 100);
               const isSelected = activeWq?.id === wq.id;
+              const localizedSnapshotSvg = localizeSvgDiagram(
+                wq.questionSnapshotJson.svgDiagram,
+                locale
+              );
 
               return (
                 <div
@@ -186,43 +283,68 @@ export default function WrongBookPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <span className="text-[11px] font-mono text-indigo-300">
-                        {aln?.standardCode} · {aln?.localStageLabel}
-                      </span>
-                      <h3 className="text-sm font-bold text-white">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {topic && (
+                          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-slate-300">
+                            {getSubjectShortBadge(topic.subjectId, locale)}
+                          </span>
+                        )}
+                        <span className="text-[11px] font-mono text-indigo-300">
+                          {aln?.standardCode} · {aln?.localStageLabel}
+                        </span>
+                      </div>
+                      <h3 className="mt-0.5 text-sm font-bold text-white">
                         {topic ? localize(topic.title) : wq.topicId}
                       </h3>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs font-bold text-violet-300 border border-violet-500/30">
-                        清零进度 {wq.twinClearStreak}/3
+                        {WRONG_BOOK_COPY.streakBadge(wq.twinClearStreak, locale)}
                       </span>
                     </div>
                   </div>
 
                   {/* Original Wrong Snapshot */}
-                  <div className="rounded-xl bg-slate-950/80 p-3.5 text-xs space-y-1.5 border border-slate-800/80">
-                    <div className="text-slate-300">
-                      <strong>原错题快照：</strong>
-                      {wq.questionSnapshotJson.promptZh}
+                  <div className="rounded-xl bg-slate-950/80 p-3.5 text-xs space-y-2 border border-slate-800/80">
+                    <div className="text-slate-300 whitespace-pre-line leading-relaxed">
+                      <strong>{pick(WRONG_BOOK_COPY.snapshotLabel)}</strong>
+                      <MathText
+                        text={localizePrompt(
+                          wq.questionSnapshotJson,
+                          locale,
+                          bilingual
+                        )}
+                      />
                     </div>
+                    {localizedSnapshotSvg && (
+                      <div
+                        className="flex justify-center rounded-lg border border-slate-800/70 bg-slate-950 p-2"
+                        dangerouslySetInnerHTML={{
+                          __html: localizedSnapshotSvg,
+                        }}
+                      />
+                    )}
                     <div className="flex flex-wrap gap-4 text-[11px]">
                       <span className="text-rose-400">
-                        当时误答：<code>{wq.wrongUserAnswer}</code>
+                        {pick(WRONG_BOOK_COPY.wrongAnswerLabel)}
+                        <code>
+                          {localizeWrongUserAnswer(wq.wrongUserAnswer, locale)}
+                        </code>
                       </span>
                       <span className="text-emerald-400">
-                        原题正解：<code>{wq.questionSnapshotJson.answer}</code>
+                        {pick(WRONG_BOOK_COPY.correctAnswerLabel)}
+                        <code>{wq.questionSnapshotJson.answer}</code>
                       </span>
                     </div>
                   </div>
 
-                  {wq.misconceptionLabel && (
+                  {(wq.misconceptionLabel || wq.misconceptionTag) && (
                     <div className="flex items-start gap-2 rounded-xl border border-amber-500/25 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">
                       <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
                       <span>
-                        <strong>认知迷思归因：</strong>
-                        {wq.misconceptionLabel}
+                        <strong>{pick(WRONG_BOOK_COPY.misconceptionPrefix)}</strong>
+                        {localizeMisconceptionLabel(wq, topic, locale)}
                       </span>
                     </div>
                   )}
@@ -230,10 +352,20 @@ export default function WrongBookPage() {
                   {/* FSRS DSR Telemetry + Action Button */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
                     <div className="flex flex-wrap gap-3 text-slate-400 font-mono text-[11px]">
-                      <span>难度 D={wq.fsrsDifficulty}</span>
-                      <span>稳定性 S={wq.fsrsStability}d</span>
                       <span>
-                        保留率 R=
+                        {WRONG_BOOK_COPY.difficultyMetric(
+                          wq.fsrsDifficulty,
+                          locale
+                        )}
+                      </span>
+                      <span>
+                        {WRONG_BOOK_COPY.stabilityMetric(
+                          wq.fsrsStability,
+                          locale
+                        )}
+                      </span>
+                      <span>
+                        {pick(WRONG_BOOK_COPY.retrievabilityPrefix)}
                         <strong
                           className={
                             retPct < 85 ? "text-rose-400" : "text-emerald-400"
@@ -245,11 +377,12 @@ export default function WrongBookPage() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => void spawnTwin(wq)}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-violet-500 transition"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
-                      <span>生成防背题孪生变式重练</span>
+                      <span>{pick(WRONG_BOOK_COPY.spawnTwinBtn)}</span>
                     </button>
                   </div>
                 </div>
@@ -265,43 +398,47 @@ export default function WrongBookPage() {
               <Sparkles className="h-5 w-5 text-violet-400" />
               <div>
                 <h2 className="text-sm font-bold text-white">
-                  孪生变式防刷穿演练舱（Twin-Variant Arena）
+                  {pick(WRONG_BOOK_COPY.arenaTitle)}
                 </h2>
                 <p className="text-[11px] text-slate-400">
-                  同母题结构 · 全新随机参数 · 检验真实迁移能力
+                  {pick(WRONG_BOOK_COPY.arenaSubtitle)}
                 </p>
               </div>
             </div>
 
             {!activeWq || !twinInstance ? (
               <div className="py-10 text-center text-xs text-slate-400 space-y-2">
-                <p>👈 点击左侧任意错题的「生成防背题孪生变式重练」按钮</p>
-                <p className="text-indigo-300">
-                  💡 提示：林小宇的第 4 道错题当前连击为 <strong>2/3</strong>，再答对 1 次即可见证「彻底清零晋级」！
-                </p>
+                <p>{pick(WRONG_BOOK_COPY.arenaEmptyLead)}</p>
+                {pendingWqs.some((w) => w.twinClearStreak === 2) && (
+                  <p className="text-indigo-300">
+                    {WRONG_BOOK_COPY.arenaEmptyTip(studentDisplayName, locale)}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs">
                   <span className="rounded bg-violet-500/20 px-2 py-0.5 font-mono text-violet-300">
-                    全新种子 {twinInstance.seed.slice(-8)}
+                    {WRONG_BOOK_COPY.freshSeedBadge(
+                      twinInstance.seed.slice(-8),
+                      locale
+                    )}
                   </span>
                   <button
+                    type="button"
                     onClick={() => void spawnTwin(activeWq)}
                     className="text-indigo-300 hover:underline inline-flex items-center gap-1"
                   >
-                    <RefreshCw className="h-3 w-3" /> 换一组新数字
+                    <RefreshCw className="h-3 w-3" />{" "}
+                    {pick(WRONG_BOOK_COPY.rerollTwinBtn)}
                   </button>
                 </div>
 
                 <div className="text-sm font-semibold text-white leading-relaxed whitespace-pre-line">
-                  <MathText text={twinInstance.promptZh} />
+                  <MathText
+                    text={localizePrompt(twinInstance, locale, bilingual)}
+                  />
                 </div>
-                {bilingual && (
-                  <div className="text-xs text-slate-400 whitespace-pre-line">
-                    <MathText text={twinInstance.promptEn} />
-                  </div>
-                )}
 
                 {twinInstance.latexFormula && (
                   <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/25 px-3 py-2 text-center text-xs text-indigo-200">
@@ -309,11 +446,11 @@ export default function WrongBookPage() {
                   </div>
                 )}
 
-                {twinInstance.svgDiagram && (
+                {localizedTwinSvg && (
                   <div
                     className="flex justify-center rounded-xl border border-slate-800 bg-slate-950 p-3"
                     dangerouslySetInnerHTML={{
-                      __html: twinInstance.svgDiagram,
+                      __html: localizedTwinSvg,
                     }}
                   />
                 )}
@@ -325,30 +462,26 @@ export default function WrongBookPage() {
                   />
                 )}
 
-                {/* Self-perceived recall rating selector for FSRS */}
+                {/* 4-Button FSRS Recall Rating Selector (Again / Hard / Good / Easy) */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] text-slate-400">
-                    FSRS 提取顺畅度自评（影响下次间隔天数 S）：
+                    {pick(WRONG_BOOK_COPY.ratingLabel)}
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5 text-xs">
-                    {(
-                      [
-                        { r: 2, label: "😓 吃力 (Hard)" },
-                        { r: 3, label: "🙂 顺畅 (Good)" },
-                        { r: 4, label: "⚡ 秒杀 (Easy)" },
-                      ] as const
-                    ).map((opt) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                    {([1, 2, 3, 4] as const).map((r) => (
                       <button
-                        key={opt.r}
+                        key={r}
                         type="button"
-                        onClick={() => setSelfRating(opt.r)}
-                        className={`rounded-lg border py-1.5 font-medium ${
-                          selfRating === opt.r
-                            ? "border-violet-500 bg-violet-600/25 text-white"
-                            : "border-slate-800 bg-slate-950 text-slate-400"
+                        onClick={() => setSelfRating(r)}
+                        className={`rounded-lg border py-1.5 px-2 font-medium transition ${
+                          selfRating === r
+                            ? r === 1
+                              ? "border-rose-500 bg-rose-600/25 text-white"
+                              : "border-violet-500 bg-violet-600/25 text-white"
+                            : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >
-                        {opt.label}
+                        {pick(WRONG_BOOK_COPY.ratings[r])}
                       </button>
                     ))}
                   </div>
@@ -356,20 +489,39 @@ export default function WrongBookPage() {
 
                 {!twinResult ? (
                   twinInstance.itemType === "choice" && twinInstance.choices ? (
-                    <div className="grid grid-cols-1 gap-2">
-                      {twinInstance.choices.map((c) => (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-1 gap-2">
+                        {twinInstance.choices.map((ch) => (
+                          <button
+                            key={ch.key}
+                            type="button"
+                            onClick={() =>
+                              void submitTwinAttempt(
+                                selfRating === 1 ? "__AGAIN__" : ch.key
+                              )
+                            }
+                            disabled={busy}
+                            className="rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-left text-xs text-white hover:border-violet-400"
+                          >
+                            <strong className="text-violet-300 mr-2">
+                              {ch.key}.
+                            </strong>
+                            <MathText
+                              text={localizeChoice(ch, locale, bilingual)}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      {selfRating === 1 && (
                         <button
-                          key={c.key}
-                          onClick={() => void submitTwinAttempt(c.key)}
+                          type="button"
+                          onClick={() => void submitTwinAttempt("__AGAIN__")}
                           disabled={busy}
-                          className="rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-left text-xs text-white hover:border-violet-400"
+                          className="w-full rounded-xl border border-rose-500/40 bg-rose-950/30 py-2 text-xs font-bold text-rose-200 hover:bg-rose-950/50"
                         >
-                          <strong className="text-violet-300 mr-2">
-                            {c.key}.
-                          </strong>
-                          <MathText text={c.text} />
+                          {pick(WRONG_BOOK_COPY.requeueAgainBtn)}
                         </button>
-                      ))}
+                      )}
                     </div>
                   ) : (
                     <div className="flex gap-2">
@@ -380,15 +532,20 @@ export default function WrongBookPage() {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") void submitTwinAttempt();
                         }}
-                        placeholder="输入新变式题答案（多根逗号隔开）..."
+                        placeholder={pick(WRONG_BOOK_COPY.answerPlaceholder)}
                         className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white focus:border-violet-500 focus:outline-none"
                       />
                       <button
+                        type="button"
                         onClick={() => void submitTwinAttempt()}
-                        disabled={busy || !twinAnswer.trim()}
+                        disabled={
+                          busy || (!twinAnswer.trim() && selfRating !== 1)
+                        }
                         className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500 disabled:opacity-50"
                       >
-                        验证清零
+                        {selfRating === 1 && !twinAnswer.trim()
+                          ? pick(WRONG_BOOK_COPY.requeueAgainBtn)
+                          : pick(WRONG_BOOK_COPY.submitTwinBtn)}
                       </button>
                     </div>
                   )
@@ -403,35 +560,121 @@ export default function WrongBookPage() {
                     <div className="flex items-center gap-1.5 font-bold">
                       {twinResult.isCorrect ? (
                         <>
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
                           <span className="text-emerald-300">
                             {twinResult.status === "cleared"
-                              ? "🏆 达成 3 连击！该错题已彻底清零并同步升级图谱掌握度！"
-                              : `回答正确！清零连击升至 ${twinResult.streak}/3`}
+                              ? pick(WRONG_BOOK_COPY.resultClearedMsg)
+                              : WRONG_BOOK_COPY.resultStreakUpMsg(
+                                  twinResult.streak,
+                                  locale
+                                )}
                           </span>
                         </>
                       ) : (
                         <>
-                          <XCircle className="h-4 w-4 text-rose-400" />
+                          <XCircle className="h-4 w-4 shrink-0 text-rose-400" />
                           <span className="text-rose-300">
-                            仍未命中（正解：{twinInstance.answer}），连击归零，6 小时后再次调度！
+                            {WRONG_BOOK_COPY.resultMissMsg(
+                              twinInstance.answer,
+                              locale
+                            )}
                           </span>
                         </>
                       )}
                     </div>
-                    <p className="text-slate-300">{twinInstance.explanationZh}</p>
+                    <div className="text-slate-300 leading-relaxed whitespace-pre-line">
+                      <MathText
+                        text={localizeExplanation(
+                          twinInstance,
+                          locale,
+                          bilingual
+                        )}
+                      />
+                    </div>
                     <p className="font-mono text-[11px] text-indigo-300">
-                      FSRS 新稳定性 S = {twinResult.nextStability} 天 · 下次复习间隔{" "}
-                      {twinResult.scheduledDays} 天
+                      {WRONG_BOOK_COPY.resultFsrsSchedule(
+                        twinResult.nextStability,
+                        twinResult.scheduledDays,
+                        locale
+                      )}
                     </p>
                     <button
+                      type="button"
                       onClick={() => void spawnTwin(activeWq)}
                       className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700"
                     >
-                      再练一道新参数孪生题 →
+                      {pick(WRONG_BOOK_COPY.practiceAnotherTwinBtn)}
                     </button>
                   </div>
                 )}
+
+                {/* Socratic Step-by-Step Coach */}
+                <div className="rounded-xl border border-indigo-500/25 bg-slate-950/75 p-3.5 space-y-2.5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 font-bold text-indigo-300">
+                      <Bot className="h-4 w-4" />
+                      <span>{pick(WRONG_BOOK_COPY.coachTitle)}</span>
+                    </span>
+                    {tutorMessages.length === 0 && (
+                      <button
+                        type="button"
+                        disabled={tutorLoading}
+                        onClick={() =>
+                          void askSocraticCoach(
+                            pick(WRONG_BOOK_COPY.coachDefaultPrompt)
+                          )
+                        }
+                        className="rounded-lg bg-indigo-600/25 border border-indigo-500/40 px-2.5 py-1 text-[11px] font-semibold text-indigo-200 hover:bg-indigo-600/40 disabled:opacity-50"
+                      >
+                        {pick(WRONG_BOOK_COPY.coachHintBtn)}
+                      </button>
+                    )}
+                  </div>
+
+                  {tutorMessages.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                      {tutorMessages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`rounded-lg px-3 py-2 whitespace-pre-line leading-relaxed ${
+                            msg.role === "assistant"
+                              ? "bg-indigo-950/40 border border-indigo-500/30 text-slate-200"
+                              : "bg-slate-900 text-slate-300"
+                          }`}
+                        >
+                          <MathText text={msg.content} />
+                        </div>
+                      ))}
+                      {tutorLoading && (
+                        <div className="text-[11px] text-indigo-300 animate-pulse">
+                          {pick(WRONG_BOOK_COPY.coachThinking)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={tutorInput}
+                      onChange={(e) => setTutorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void askSocraticCoach();
+                      }}
+                      placeholder={pick(WRONG_BOOK_COPY.coachPlaceholder)}
+                      className="flex-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      disabled={tutorLoading || !tutorInput.trim()}
+                      onClick={() => void askSocraticCoach()}
+                      className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                    >
+                      <Send className="h-3 w-3" />
+                      <span>{pick(WRONG_BOOK_COPY.coachSendBtn)}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

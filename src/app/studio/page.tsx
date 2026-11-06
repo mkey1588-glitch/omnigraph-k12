@@ -13,11 +13,34 @@ import {
 } from "lucide-react";
 import { usePlatform } from "@/components/PlatformProvider";
 import { MathText } from "@/components/MathText";
+import {
+  biPick,
+  localizeCustomEdgeReason,
+  localizeCustomQuestionExplanation,
+  uiPick,
+} from "@/lib/i18n";
+import {
+  getDifficultyLabel,
+  getRelationTypeLabel,
+} from "@/lib/i18n/ui-common";
+import {
+  STUDIO_COPY,
+  localizeCreatorName,
+} from "@/lib/i18n/copy-educator-parent";
 import type { DifficultyTier } from "@/types/taxonomy";
 
 export default function SchoolStudioPage() {
-  const { data, loading, activeStudentId, activeStudent, refreshData } =
-    usePlatform();
+  const {
+    data,
+    loading,
+    locale,
+    pick,
+    localizePlain,
+    userName,
+    activeStudentId,
+    activeStudent,
+    refreshData,
+  } = usePlatform();
 
   const [tab, setTab] = useState<"edges" | "questions" | "irt">("edges");
 
@@ -29,43 +52,41 @@ export default function SchoolStudioPage() {
     "mt_math_quad_function_parabola"
   );
   const [edgeRelType, setEdgeRelType] = useState<string>("cross_subject");
-  const [edgeReasonZh, setEdgeReasonZh] = useState<string>(
-    "校本教研：动能随速度二次方增长曲线与二次函数开口特征对照"
-  );
+  const [edgeReasonInput, setEdgeReasonInput] = useState<string>("");
   const [edgeFeedback, setEdgeFeedback] = useState<{
     ok: boolean;
-    msg: string;
+    msg?: string;
     cyclePath?: string[];
   } | null>(null);
   const [edgeBusy, setEdgeBusy] = useState(false);
 
-  // --- Tab 2: Custom KaTeX Question Authoring State ---
+  // --- Tab 2: Custom KaTeX Question Authoring State (Locale-reactive when untouched) ---
   const [qTopicId, setQTopicId] = useState<string>("mt_math_quad_complete_sq");
   const [qTier, setQTier] = useState<DifficultyTier>("standard");
-  const [qPromptZh, setQPromptZh] = useState<string>(
-    "【校本自建期中真题】用配方法解一元二次方程 $x^2 - 8x + 7 = 0$，其两个实数根为："
-  );
+  const [qPrompt, setQPrompt] = useState<string | null>(null);
   const [qLatex, setQLatex] = useState<string>(
     "x^2 - 8x + 7 = (x - 4)^2 - 9 = 0"
   );
   const [optA, setOptA] = useState<string>("$x_1 = 7,\\; x_2 = 1$");
   const [optB, setOptB] = useState<string>("$x_1 = -7,\\; x_2 = -1$");
-  const [optC, setOptC] = useState<string>("仅 $x = 7$（漏负平方根）");
+  const [optC, setOptC] = useState<string | null>(null);
   const [optD, setOptD] = useState<string>("$x_1 = 4,\\; x_2 = 3$");
   const [qAnswer, setQAnswer] = useState<"A" | "B" | "C" | "D">("A");
-  const [qExplain, setQExplain] = useState<string>(
-    "配方得 $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$，解得 $x_1 = 7,\\; x_2 = 1$。"
-  );
-  const [qSavedMsg, setQSavedMsg] = useState<string | null>(null);
+  const [qExplain, setQExplain] = useState<string | null>(null);
+  const [qSavedId, setQSavedId] = useState<string | null>(null);
   const [qBusy, setQBusy] = useState(false);
 
   if (loading || !data) {
     return (
       <div className="p-12 text-center text-slate-400">
-        正在加载校本教研图谱工坊与 IRT 数据飞轮...
+        {pick(STUDIO_COPY.loading)}
       </div>
     );
   }
+
+  const displayPrompt = qPrompt ?? pick(STUDIO_COPY.sampleQPrompt);
+  const displayOptC = optC ?? pick(STUDIO_COPY.sampleOptC);
+  const displayExplain = qExplain ?? pick(STUDIO_COPY.sampleQExplain);
 
   const submitCustomEdge = async (
     overrideTopic?: string,
@@ -74,28 +95,31 @@ export default function SchoolStudioPage() {
     setEdgeBusy(true);
     setEdgeFeedback(null);
     try {
+      const trimmedReason = edgeReasonInput.trim();
       const res = await fetch("/api/studio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "add_edge",
+          locale,
           topicId: overrideTopic ?? edgeTopicId,
           prerequisiteId: overridePrereq ?? edgePrereqId,
           relationType: edgeRelType,
-          reasonZh: edgeReasonZh,
+          reasonZh:
+            trimmedReason || uiPick("zh-CN", STUDIO_COPY.defaultEdgeReason),
+          reasonEn:
+            trimmedReason || uiPick("en", STUDIO_COPY.defaultEdgeReason),
+          createdBy: "Ms. Evelyn Wang",
         }),
       });
       const json = await res.json();
       if (json.ok) {
-        setEdgeFeedback({
-          ok: true,
-          msg: "✅ 已通过 DAG 无环拓扑校验并写入校本先修图谱（已在图谱星海实时生效）！",
-        });
+        setEdgeFeedback({ ok: true });
         await refreshData();
       } else {
         setEdgeFeedback({
           ok: false,
-          msg: json.error || "添加失败",
+          msg: json.error || pick(STUDIO_COPY.edgeAddFailedFallback),
           cyclePath: json.cyclePath,
         });
       }
@@ -108,34 +132,41 @@ export default function SchoolStudioPage() {
     await fetch("/api/studio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete_edge", id }),
+      body: JSON.stringify({ action: "delete_edge", locale, id }),
     });
     await refreshData();
   };
 
   const submitCustomQuestion = async () => {
     setQBusy(true);
-    setQSavedMsg(null);
+    setQSavedId(null);
     try {
       const res = await fetch("/api/studio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "add_custom_question",
+          locale,
           topicId: qTopicId,
           difficulty: qTier,
-          promptZh: qPromptZh,
+          promptZh:
+            qPrompt !== null
+              ? qPrompt
+              : uiPick("zh-CN", STUDIO_COPY.sampleQPrompt),
+          promptEn:
+            qPrompt !== null
+              ? qPrompt
+              : uiPick("en", STUDIO_COPY.sampleQPrompt),
           latexFormula: qLatex,
-          choicesJson: [optA, optB, optC, optD],
+          choicesJson: [optA, optB, displayOptC, optD],
           answer: qAnswer,
-          explanationZh: qExplain,
+          explanationZh: displayExplain,
+          createdBy: "Ms. Evelyn Wang",
         }),
       });
       const json = await res.json();
       if (json.ok) {
-        setQSavedMsg(
-          `✅ 校本题目已入库（ID: ${json.id}），可在「9地组AB卷」中自动混编并生成防作弊平行卷！`
-        );
+        setQSavedId(String(json.id));
         await refreshData();
       }
     } finally {
@@ -147,7 +178,7 @@ export default function SchoolStudioPage() {
     await fetch("/api/studio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete_custom_question", id }),
+      body: JSON.stringify({ action: "delete_custom_question", locale, id }),
     });
     await refreshData();
   };
@@ -168,21 +199,19 @@ export default function SchoolStudioPage() {
         <div>
           <h1 className="text-xl font-bold text-white sm:text-2xl flex items-center gap-2">
             <FlaskConical className="h-6 w-6 text-indigo-400" />
-            <span>校本图谱教研工坊 & Elo-IRT 真实难度数据飞轮看板</span>
+            <span>{pick(STUDIO_COPY.headerTitle)}</span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            支持学校教研组扩展跨科先修边（内置实时有向无环图环路拦截）、编写{" "}
-            <code>KaTeX</code> 校本真题，并基于全站作答日志动态校准题目难度{" "}
-            <code>β</code> 与区分度 <code>α</code>。
+            {pick(STUDIO_COPY.headerSubtitle)}
           </p>
         </div>
 
         <div className="flex rounded-xl border border-slate-800 bg-slate-900 p-1 text-xs">
           {(
             [
-              { id: "edges", label: "🔗 校本先修边 & 环路守护" },
-              { id: "questions", label: "✍️ KaTeX 校本题库自建" },
-              { id: "irt", label: "📈 Elo-IRT 难度校准与成长曲线" },
+              { id: "edges", label: pick(STUDIO_COPY.tabEdges) },
+              { id: "questions", label: pick(STUDIO_COPY.tabQuestions) },
+              { id: "irt", label: pick(STUDIO_COPY.tabIrt) },
             ] as const
           ).map((t) => (
             <button
@@ -205,28 +234,31 @@ export default function SchoolStudioPage() {
       {tab === "edges" && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <GitFork className="h-4 w-4 text-indigo-400" />
-                <span>新增校本先修依赖边（自动执行 BFS 拓扑环路校验）</span>
+                <GitFork className="h-4 w-4 text-indigo-400 shrink-0" />
+                <span>{pick(STUDIO_COPY.addEdgeTitle)}</span>
               </h2>
               <button
                 type="button"
                 onClick={() => {
                   setEdgeTopicId("mt_math_linear_eq_one");
                   setEdgePrereqId("mt_phy_ohm_law");
-                  void submitCustomEdge("mt_math_linear_eq_one", "mt_phy_ohm_law");
+                  void submitCustomEdge(
+                    "mt_math_linear_eq_one",
+                    "mt_phy_ohm_law"
+                  );
                 }}
-                className="rounded-lg border border-rose-500/40 bg-rose-950/30 px-2.5 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-950/60"
+                className="rounded-lg border border-rose-500/40 bg-rose-950/30 px-2.5 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-950/60 shrink-0"
               >
-                🧪 演示环路自动拦截
+                {pick(STUDIO_COPY.demoCycleBtn)}
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block text-slate-400 mb-1">
-                  后继目标微技能（Topic）：
+                  {pick(STUDIO_COPY.targetTopicLabel)}
                 </label>
                 <select
                   value={edgeTopicId}
@@ -236,7 +268,7 @@ export default function SchoolStudioPage() {
                   {data.topics.map((t) => (
                     <option key={t.id} value={t.id}>
                       [{t.subjectId.toUpperCase()} · G{t.baselineGrade}]{" "}
-                      {t.title["zh-CN"]}
+                      {localizePlain(t.title)}
                     </option>
                   ))}
                 </select>
@@ -244,7 +276,7 @@ export default function SchoolStudioPage() {
 
               <div>
                 <label className="block text-slate-400 mb-1">
-                  需要前置掌握的上游先修微技能（Prerequisite）：
+                  {pick(STUDIO_COPY.prereqTopicLabel)}
                 </label>
                 <select
                   value={edgePrereqId}
@@ -254,7 +286,7 @@ export default function SchoolStudioPage() {
                   {data.topics.map((t) => (
                     <option key={t.id} value={t.id}>
                       [{t.subjectId.toUpperCase()} · G{t.baselineGrade}]{" "}
-                      {t.title["zh-CN"]}
+                      {localizePlain(t.title)}
                     </option>
                   ))}
                 </select>
@@ -262,23 +294,35 @@ export default function SchoolStudioPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">依赖强弱类型：</label>
+                  <label className="block text-slate-400 mb-1">
+                    {pick(STUDIO_COPY.relTypeLabel)}
+                  </label>
                   <select
                     value={edgeRelType}
                     onChange={(e) => setEdgeRelType(e.target.value)}
                     className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                   >
-                    <option value="hard">hard（强先修必测）</option>
-                    <option value="cross_subject">cross_subject（跨学科数理桥）</option>
-                    <option value="soft">soft（弱辅助迁移）</option>
+                    <option value="hard">
+                      hard ({getRelationTypeLabel("hard", locale)})
+                    </option>
+                    <option value="cross_subject">
+                      cross_subject (
+                      {getRelationTypeLabel("cross_subject", locale)})
+                    </option>
+                    <option value="soft">
+                      soft ({getRelationTypeLabel("soft", locale)})
+                    </option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">教研备注说明：</label>
+                  <label className="block text-slate-400 mb-1">
+                    {pick(STUDIO_COPY.reasonLabel)}
+                  </label>
                   <input
                     type="text"
-                    value={edgeReasonZh}
-                    onChange={(e) => setEdgeReasonZh(e.target.value)}
+                    value={edgeReasonInput}
+                    onChange={(e) => setEdgeReasonInput(e.target.value)}
+                    placeholder={pick(STUDIO_COPY.defaultEdgeReason)}
                     className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                   />
                 </div>
@@ -292,7 +336,7 @@ export default function SchoolStudioPage() {
               className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 disabled:opacity-50"
             >
               <PlusCircle className="h-4 w-4" />
-              <span>校验无环性并保存至校本知识图谱</span>
+              <span>{pick(STUDIO_COPY.saveEdgeBtn)}</span>
             </button>
 
             {edgeFeedback && (
@@ -305,15 +349,26 @@ export default function SchoolStudioPage() {
               >
                 <div className="font-bold flex items-center gap-1.5">
                   {edgeFeedback.ok ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                   ) : (
-                    <ShieldAlert className="h-4 w-4 text-rose-400" />
+                    <ShieldAlert className="h-4 w-4 text-rose-400 shrink-0" />
                   )}
-                  <span>{edgeFeedback.msg}</span>
+                  <span>
+                    {edgeFeedback.ok
+                      ? pick(STUDIO_COPY.edgeSavedBanner)
+                      : edgeFeedback.msg ||
+                        pick(STUDIO_COPY.edgeAddFailedFallback)}
+                  </span>
                 </div>
                 {edgeFeedback.cyclePath && (
                   <div className="font-mono text-[11px] bg-slate-950/80 rounded-lg p-2 text-rose-300">
-                    拦截环路轨迹：{edgeFeedback.cyclePath.join(" ➔ ")}
+                    {pick(STUDIO_COPY.cyclePathPrefix)}
+                    {edgeFeedback.cyclePath
+                      .map((tid) => {
+                        const found = data.topics.find((t) => t.id === tid);
+                        return found ? localizePlain(found.title) : tid;
+                      })
+                      .join(" ➔ ")}
                   </div>
                 )}
               </div>
@@ -322,14 +377,19 @@ export default function SchoolStudioPage() {
 
           <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-3">
             <h2 className="text-sm font-bold text-white">
-              当前生效的校本自定义先修边（{(data.customEdges ?? []).length} 条 · 已合并至全局{" "}
-              {data.edges.length} 条图谱边）
+              {STUDIO_COPY.activeEdgesTitle(
+                (data.customEdges ?? []).length,
+                data.edges.length,
+                locale
+              )}
             </h2>
 
             <div className="space-y-2.5">
               {(data.customEdges ?? []).map((ce) => {
                 const tObj = data.topics.find((t) => t.id === ce.topicId);
-                const pObj = data.topics.find((t) => t.id === ce.prerequisiteId);
+                const pObj = data.topics.find(
+                  (t) => t.id === ce.prerequisiteId
+                );
                 return (
                   <div
                     key={ce.id}
@@ -337,19 +397,25 @@ export default function SchoolStudioPage() {
                   >
                     <div className="space-y-1">
                       <div className="font-bold text-white">
-                        《{pObj?.title["zh-CN"] ?? ce.prerequisiteId}》 ➔ 《
-                        {tObj?.title["zh-CN"] ?? ce.topicId}》
+                        {pObj ? localizePlain(pObj.title) : ce.prerequisiteId}{" "}
+                        ➔ {tObj ? localizePlain(tObj.title) : ce.topicId}
                       </div>
-                      <div className="text-slate-400">{ce.reasonZh}</div>
+                      <div className="text-slate-400">
+                        {localizeCustomEdgeReason(ce, locale)}
+                      </div>
                       <div className="text-[11px] text-indigo-300 font-mono">
-                        类型：{ce.relationType} · 创建人：{ce.createdBy}
+                        {STUDIO_COPY.edgeMetaLine(
+                          getRelationTypeLabel(ce.relationType, locale),
+                          localizeCreatorName(ce.createdBy, locale),
+                          locale
+                        )}
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => void deleteCustomEdge(ce.id)}
                       className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:border-rose-500/40 hover:text-rose-300"
-                      title="移除该校本边"
+                      title={pick(STUDIO_COPY.deleteEdgeTitle)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -366,13 +432,15 @@ export default function SchoolStudioPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-3.5 text-xs">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <BookPlus className="h-4 w-4 text-indigo-400" />
-              <span>录入校本自建题（原生支持 $...$ 与 $$...$$ KaTeX 数学理化公式）</span>
+              <BookPlus className="h-4 w-4 text-indigo-400 shrink-0" />
+              <span>{pick(STUDIO_COPY.authorQuestionTitle)}</span>
             </h2>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
-                <label className="block text-slate-400 mb-1">挂靠微技能节点：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(STUDIO_COPY.linkedTopicLabel)}
+                </label>
                 <select
                   value={qTopicId}
                   onChange={(e) => setQTopicId(e.target.value)}
@@ -380,38 +448,48 @@ export default function SchoolStudioPage() {
                 >
                   {data.topics.map((t) => (
                     <option key={t.id} value={t.id}>
-                      [{t.subjectId.toUpperCase()}] {t.title["zh-CN"]}
+                      [{t.subjectId.toUpperCase()}] {localizePlain(t.title)}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">难度档位：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(STUDIO_COPY.difficultyTierLabel)}
+                </label>
                 <select
                   value={qTier}
                   onChange={(e) => setQTier(e.target.value as DifficultyTier)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                 >
-                  <option value="basic">basic 基础</option>
-                  <option value="standard">standard 巩固</option>
-                  <option value="challenge">challenge 拔高</option>
+                  <option value="basic">
+                    basic · {getDifficultyLabel("basic", locale)}
+                  </option>
+                  <option value="standard">
+                    standard · {getDifficultyLabel("standard", locale)}
+                  </option>
+                  <option value="challenge">
+                    challenge · {getDifficultyLabel("challenge", locale)}
+                  </option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-400 mb-1">题干内容（支持 LaTeX）：</label>
+              <label className="block text-slate-400 mb-1">
+                {pick(STUDIO_COPY.stemLabel)}
+              </label>
               <textarea
                 rows={3}
-                value={qPromptZh}
-                onChange={(e) => setQPromptZh(e.target.value)}
+                value={displayPrompt}
+                onChange={(e) => setQPrompt(e.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-white"
               />
             </div>
 
             <div>
               <label className="block text-slate-400 mb-1">
-                核心独立展示公式（可选纯 LaTeX，无需写 $$）：
+                {pick(STUDIO_COPY.latexLabel)}
               </label>
               <input
                 type="text"
@@ -425,32 +503,34 @@ export default function SchoolStudioPage() {
               <input
                 value={optA}
                 onChange={(e) => setOptA(e.target.value)}
-                placeholder="选项 A"
+                placeholder={STUDIO_COPY.optPlaceholder("A", locale)}
                 className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
               <input
                 value={optB}
                 onChange={(e) => setOptB(e.target.value)}
-                placeholder="选项 B"
+                placeholder={STUDIO_COPY.optPlaceholder("B", locale)}
                 className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
               <input
-                value={optC}
+                value={displayOptC}
                 onChange={(e) => setOptC(e.target.value)}
-                placeholder="选项 C"
+                placeholder={STUDIO_COPY.optPlaceholder("C", locale)}
                 className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
               <input
                 value={optD}
                 onChange={(e) => setOptD(e.target.value)}
-                placeholder="选项 D"
+                placeholder={STUDIO_COPY.optPlaceholder("D", locale)}
                 className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-400 mb-1">正确选项：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(STUDIO_COPY.correctOptionLabel)}
+                </label>
                 <select
                   value={qAnswer}
                   onChange={(e) =>
@@ -465,9 +545,11 @@ export default function SchoolStudioPage() {
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-slate-400 mb-1">标准解析：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(STUDIO_COPY.explanationLabel)}
+                </label>
                 <input
-                  value={qExplain}
+                  value={displayExplain}
                   onChange={(e) => setQExplain(e.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                 />
@@ -478,14 +560,14 @@ export default function SchoolStudioPage() {
               type="button"
               onClick={() => void submitCustomQuestion()}
               disabled={qBusy}
-              className="w-full rounded-xl bg-emerald-600 py-2.5 font-bold text-white hover:bg-emerald-500"
+              className="w-full rounded-xl bg-emerald-600 py-2.5 font-bold text-white hover:bg-emerald-500 disabled:opacity-50"
             >
-              保存至校本精品题库（同步赋能 AB 卷智能组卷）
+              {pick(STUDIO_COPY.saveQuestionBtn)}
             </button>
 
-            {qSavedMsg && (
+            {qSavedId && (
               <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-3 text-emerald-300 font-semibold">
-                {qSavedMsg}
+                {STUDIO_COPY.questionSavedBanner(qSavedId, locale)}
               </div>
             )}
           </div>
@@ -494,10 +576,10 @@ export default function SchoolStudioPage() {
           <div className="lg:col-span-6 space-y-4">
             <div className="rounded-2xl border border-indigo-500/30 bg-slate-900/80 p-5 space-y-3">
               <div className="text-xs font-bold text-indigo-300">
-                👁️ KaTeX 实时排版渲染预览（所见即所得）：
+                {pick(STUDIO_COPY.livePreviewHeader)}
               </div>
               <div className="text-sm font-semibold text-white">
-                <MathText text={qPromptZh} />
+                <MathText text={displayPrompt} />
               </div>
               {qLatex && (
                 <div className="rounded-xl bg-slate-950 p-3 text-center text-indigo-200">
@@ -508,7 +590,7 @@ export default function SchoolStudioPage() {
                 {[
                   { k: "A", v: optA },
                   { k: "B", v: optB },
-                  { k: "C", v: optC },
+                  { k: "C", v: displayOptC },
                   { k: "D", v: optD },
                 ].map((o) => (
                   <div
@@ -525,13 +607,17 @@ export default function SchoolStudioPage() {
                 ))}
               </div>
               <div className="text-xs text-slate-400 border-t border-slate-800 pt-2">
-                解析预览：<MathText text={qExplain} />
+                {pick(STUDIO_COPY.explanationPreviewPrefix)}
+                <MathText text={displayExplain} />
               </div>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-3">
               <h3 className="text-xs font-bold text-white">
-                已入库校本精品题（{(data.customQuestions ?? []).length} 题）：
+                {STUDIO_COPY.savedBankHeader(
+                  (data.customQuestions ?? []).length,
+                  locale
+                )}
               </h3>
               {(data.customQuestions ?? []).map((cq) => (
                 <div
@@ -540,16 +626,29 @@ export default function SchoolStudioPage() {
                 >
                   <div className="space-y-1">
                     <div className="font-semibold text-white">
-                      <MathText text={cq.promptZh} />
+                      <MathText
+                        text={biPick(locale, cq.promptZh, cq.promptEn)}
+                      />
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      <MathText
+                        text={localizeCustomQuestionExplanation(cq, locale)}
+                      />
                     </div>
                     <div className="text-[11px] text-emerald-300 font-mono">
-                      正解：{cq.answer} · 难度：{cq.difficulty} · 创建人：{cq.createdBy}
+                      {STUDIO_COPY.savedQuestionMeta(
+                        cq.answer,
+                        getDifficultyLabel(cq.difficulty, locale),
+                        localizeCreatorName(cq.createdBy, locale),
+                        locale
+                      )}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => void deleteCustomQuestion(cq.id)}
                     className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:text-rose-300"
+                    title={pick(STUDIO_COPY.deleteQuestionTitle)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -565,15 +664,13 @@ export default function SchoolStudioPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left 7 Cols: Prior Beta vs Calibrated Beta Scatter + Top Drift Table */}
           <div className="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-emerald-400" />
-                <span>
-                  全站 150 套母题 Elo-IRT 2PL 实测难度校准散点（先验 β₀ vs 实测 β̂）
-                </span>
+                <TrendingUp className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>{pick(STUDIO_COPY.scatterTitle)}</span>
               </h2>
               <span className="text-[11px] font-mono text-slate-400">
-                对角线上方 = 实测比预期更难（高频卡点）
+                {pick(STUDIO_COPY.scatterHint)}
               </span>
             </div>
 
@@ -592,10 +689,10 @@ export default function SchoolStudioPage() {
                 strokeWidth="1.2"
               />
               <text x="50" y="208" fontSize="10" fill="#94a3b8">
-                先验难度 Prior β₀ (-2.5 → +2.5)
+                {pick(STUDIO_COPY.svgPriorAxis)}
               </text>
               <text x="12" y="22" fontSize="10" fill="#94a3b8">
-                实测 β̂
+                {pick(STUDIO_COPY.svgCalibratedAxis)}
               </text>
               {irtList.slice(0, 75).map((item) => {
                 const cx = 220 + item.priorBeta * 62;
@@ -615,17 +712,19 @@ export default function SchoolStudioPage() {
             </svg>
 
             <div className="text-xs font-bold text-rose-300">
-              🔥 教研预警：实测难度显著高于课标预期（Δβ &gt; +0.30）的高频暗礁母题 Top 6：
+              {pick(STUDIO_COPY.driftAlertTitle)}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-800 text-slate-400">
-                    <th className="py-2">微技能节点</th>
-                    <th className="py-2">先验 β₀</th>
-                    <th className="py-2">实测 β̂</th>
-                    <th className="py-2">区分度 α</th>
-                    <th className="py-2">样本正确率</th>
+                    <th className="py-2">{pick(STUDIO_COPY.colTopic)}</th>
+                    <th className="py-2">{pick(STUDIO_COPY.colPriorBeta)}</th>
+                    <th className="py-2">
+                      {pick(STUDIO_COPY.colCalibratedBeta)}
+                    </th>
+                    <th className="py-2">{pick(STUDIO_COPY.colAlpha)}</th>
+                    <th className="py-2">{pick(STUDIO_COPY.colAccuracy)}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -637,7 +736,7 @@ export default function SchoolStudioPage() {
                     return (
                       <tr key={row.templateId} className="text-slate-200">
                         <td className="py-2 font-semibold">
-                          {tObj?.title["zh-CN"] ?? row.topicId}
+                          {tObj ? localizePlain(tObj.title) : row.topicId}
                         </td>
                         <td className="py-2 font-mono text-slate-400">
                           {row.priorBeta}
@@ -663,12 +762,14 @@ export default function SchoolStudioPage() {
           {/* Right 5 Cols: Student Longitudinal Ability Theta & Mastery Growth Curve */}
           <div className="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
             <h2 className="text-sm font-bold text-white">
-              📈 {activeStudent?.avatarEmoji} {activeStudent?.displayName}{" "}
-              纵向能力值 θ(t) 与掌握度轨迹
+              {STUDIO_COPY.trajectoryTitle(
+                activeStudent?.avatarEmoji ?? "",
+                activeStudent ? userName(activeStudent) : "",
+                locale
+              )}
             </h2>
             <p className="text-xs text-slate-400">
-              每次在「靶向诊断」或「错题孪生变式」作答后，系统以零 PII 匿名令牌实时记录并更新潜在能力估计{" "}
-              <code>θ</code>。
+              {pick(STUDIO_COPY.trajectoryDesc)}
             </p>
 
             {studentLogs.length > 0 ? (
@@ -731,7 +832,7 @@ export default function SchoolStudioPage() {
                         >
                           <div>
                             <div className="font-semibold text-white">
-                              {tObj?.title["zh-CN"] ?? l.topicId}
+                              {tObj ? localizePlain(tObj.title) : l.topicId}
                             </div>
                             <div className="font-mono text-[10px] text-slate-500">
                               Token: {l.studentAnonToken}
@@ -745,11 +846,16 @@ export default function SchoolStudioPage() {
                                   : "text-rose-400 font-bold"
                               }
                             >
-                              {l.isCorrect ? "✔ 命中" : "✘ 失误"} · θ=
-                              {l.thetaEstimate}
+                              {l.isCorrect
+                                ? pick(STUDIO_COPY.logHit)
+                                : pick(STUDIO_COPY.logMiss)}{" "}
+                              · θ={l.thetaEstimate}
                             </div>
                             <div className="text-[11px] text-slate-400">
-                              P(掌握)={Math.round(l.pMasteryAfter * 100)}%
+                              {STUDIO_COPY.logMasteryProb(
+                                Math.round(l.pMasteryAfter * 100),
+                                locale
+                              )}
                             </div>
                           </div>
                         </div>
@@ -759,7 +865,7 @@ export default function SchoolStudioPage() {
               </>
             ) : (
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-xs text-slate-400">
-                当前学生暂无历史轨迹，前往「靶向回溯诊断」作答 1 题即可实时点亮成长曲线！
+                {pick(STUDIO_COPY.emptyTrajectory)}
               </div>
             )}
           </div>

@@ -11,7 +11,13 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { usePlatform } from "@/components/PlatformProvider";
-import type { MasteryStatus } from "@/types/taxonomy";
+import { localizeAssignmentTitle, localizeClassroomName } from "@/lib/i18n";
+import {
+  getMasteryStatusLabel,
+  getSubjectShortBadge,
+} from "@/lib/i18n/ui-common";
+import { TEACHER_COPY } from "@/lib/i18n/copy-educator-parent";
+import type { MasteryStatus, SubjectId } from "@/types/taxonomy";
 
 const FOCUS_TOPIC_IDS = [
   "mt_math_alg_expressions",
@@ -44,7 +50,13 @@ export default function TeacherWorkbenchPage() {
   const {
     data,
     loading,
+    locale,
     regionCode,
+    pick,
+    localizePlain,
+    userName,
+    userTrack,
+    regionName,
     getAlignment,
     getStudentTopicState,
     setActiveStudentId,
@@ -52,10 +64,8 @@ export default function TeacherWorkbenchPage() {
   } = usePlatform();
 
   const [publishing, setPublishing] = useState(false);
-  const [publishBanner, setPublishBanner] = useState<string>("");
-  const [packTitlePrefix, setPackTitlePrefix] = useState<string>(
-    "第11周数理跨科靶向分层单"
-  );
+  const [publishedCount, setPublishedCount] = useState<number | null>(null);
+  const [packTitlePrefix, setPackTitlePrefix] = useState<string>("");
 
   const classroom = data?.classrooms[0];
 
@@ -76,16 +86,16 @@ export default function TeacherWorkbenchPage() {
     );
   }, [data]);
 
-  // Automated Class-Wide Prerequisite & Cross-Subject Root-Cause Detector!
+  // Automated Class-Wide Prerequisite & Cross-Subject Root-Cause Detector
   const rootCauseAlerts = useMemo(() => {
     if (!data || classStudents.length === 0) return [];
     const alerts: Array<{
       downstreamTopicTitle: string;
-      downstreamSubject: string;
+      downstreamSubject: SubjectId;
       weakCount: number;
       upstreamRootId: string;
       upstreamTitle: string;
-      upstreamSubject: string;
+      upstreamSubject: SubjectId;
       isCrossSubject: boolean;
       affectedStudents: string[];
     }> = [];
@@ -106,21 +116,21 @@ export default function TeacherWorkbenchPage() {
               (t) => t.id === edge.prerequisiteId
             )!;
             alerts.push({
-              downstreamTopicTitle: topic.title["zh-CN"],
+              downstreamTopicTitle: localizePlain(topic.title),
               downstreamSubject: topic.subjectId,
               weakCount: weakStudents.length,
               upstreamRootId: upTopic.id,
-              upstreamTitle: upTopic.title["zh-CN"],
+              upstreamTitle: localizePlain(upTopic.title),
               upstreamSubject: upTopic.subjectId,
               isCrossSubject: edge.relationType === "cross_subject",
-              affectedStudents: sharedWeak.map((s) => s.displayName),
+              affectedStudents: sharedWeak.map((s) => userName(s)),
             });
           }
         }
       }
     }
     return alerts;
-  }, [data, classStudents, heatmapTopics, getStudentTopicState]);
+  }, [data, classStudents, heatmapTopics, getStudentTopicState, localizePlain, userName]);
 
   // Group students automatically into 3 Differentiated Tiers
   const tierGroups = useMemo(() => {
@@ -150,12 +160,18 @@ export default function TeacherWorkbenchPage() {
 
   const handlePublishThreeTiers = async () => {
     setPublishing(true);
-    setPublishBanner("");
+    setPublishedCount(null);
     try {
+      const effectivePrefix =
+        packTitlePrefix.trim() || pick(TEACHER_COPY.defaultPackPrefix);
       const packs = [
         {
           classId: classroom?.id ?? "cls_global_g9",
-          title: `【补基层】${packTitlePrefix}：分式方程倒数变形与并联欧姆定律`,
+          title: TEACHER_COPY.buildPackTitle(
+            "foundational",
+            effectivePrefix,
+            locale
+          ),
           tier: "foundational" as const,
           targetTopicIds: [
             "mt_math_special_products_factor",
@@ -166,7 +182,11 @@ export default function TeacherWorkbenchPage() {
         },
         {
           classId: classroom?.id ?? "cls_global_g9",
-          title: `【巩固层】${packTitlePrefix}：二次函数抛物线顶点式与机械能`,
+          title: TEACHER_COPY.buildPackTitle(
+            "standard",
+            effectivePrefix,
+            locale
+          ),
           tier: "standard" as const,
           targetTopicIds: [
             "mt_math_quad_function_parabola",
@@ -176,7 +196,11 @@ export default function TeacherWorkbenchPage() {
         },
         {
           classId: classroom?.id ?? "cls_global_g9",
-          title: `【拔高层】${packTitlePrefix}：三角比综合与多项式导数切线探究`,
+          title: TEACHER_COPY.buildPackTitle(
+            "challenge",
+            effectivePrefix,
+            locale
+          ),
           tier: "challenge" as const,
           targetTopicIds: [
             "mt_math_trig_right_triangle",
@@ -194,9 +218,7 @@ export default function TeacherWorkbenchPage() {
       const json = await res.json();
       if (json.ok) {
         await refreshData();
-        setPublishBanner(
-          `✅ 已成功向全班精准派发 ${packs.length} 档分层作业包（已同步至各学生端首页）！`
-        );
+        setPublishedCount(packs.length);
       }
     } finally {
       setPublishing(false);
@@ -206,10 +228,14 @@ export default function TeacherWorkbenchPage() {
   if (loading || !data) {
     return (
       <div className="p-12 text-center text-slate-400">
-        正在加载班级学情热力图与跨科共性病灶引擎...
+        {pick(TEACHER_COPY.loading)}
       </div>
     );
   }
+
+  const localizedClassName = classroom
+    ? localizeClassroomName(classroom, locale)
+    : "";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
@@ -219,12 +245,17 @@ export default function TeacherWorkbenchPage() {
           <h1 className="text-xl font-bold text-white sm:text-2xl flex items-center gap-2">
             <GraduationCap className="h-6 w-6 text-indigo-400" />
             <span>
-              教师教研与分层指挥台 — {classroom?.name}（邀请码{" "}
-              <code className="text-indigo-300">{classroom?.inviteCode}</code>）
+              {TEACHER_COPY.headerTitle(localizedClassName, locale)} (
+              {pick(TEACHER_COPY.inviteCodeLabel)}{" "}
+              <code className="text-indigo-300">{classroom?.inviteCode}</code>)
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            支持多学制插班生统一归口到全球概念核（当前课标视图：{regionCode}），自动识别全班跨科前置根因并一键派发三档分层作业。
+            {TEACHER_COPY.headerSubtitle(
+              regionName(regionCode),
+              regionCode,
+              locale
+            )}
           </p>
         </div>
       </div>
@@ -234,9 +265,7 @@ export default function TeacherWorkbenchPage() {
         <section className="rounded-2xl border border-rose-500/40 bg-gradient-to-r from-rose-950/35 via-purple-950/25 to-slate-900 p-5 space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold text-rose-300">
             <AlertOctagon className="h-5 w-5 text-rose-400" />
-            <span>
-              全班共性前置病灶与跨学科预警（DAG Automated Root-Cause Radar）
-            </span>
+            <span>{pick(TEACHER_COPY.radarTitle)}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {rootCauseAlerts.map((al, i) => (
@@ -244,31 +273,40 @@ export default function TeacherWorkbenchPage() {
                 key={i}
                 className="rounded-xl border border-rose-500/25 bg-slate-950/80 p-4 text-xs space-y-2"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-white">
-                    下游受阻：[{al.downstreamSubject.toUpperCase()}]{" "}
+                    {pick(TEACHER_COPY.downstreamBlocked)}[
+                    {getSubjectShortBadge(al.downstreamSubject, locale)}]{" "}
                     {al.downstreamTopicTitle}
                   </span>
-                  <span className="rounded bg-rose-500/20 px-2 py-0.5 font-bold text-rose-300">
-                    {al.weakCount}/{classStudents.length} 人卡壳
+                  <span className="rounded bg-rose-500/20 px-2 py-0.5 font-bold text-rose-300 shrink-0">
+                    {TEACHER_COPY.blockedCountBadge(
+                      al.weakCount,
+                      classStudents.length,
+                      locale
+                    )}
                   </span>
                 </div>
                 <p className="text-slate-300">
                   🔍{" "}
                   <strong className="text-purple-300">
-                    {al.isCrossSubject ? "跨科数学根因溯源：" : "同科上游根因溯源："}
+                    {al.isCrossSubject
+                      ? pick(TEACHER_COPY.crossSubjectTraceLabel)
+                      : pick(TEACHER_COPY.sameSubjectTraceLabel)}
                   </strong>
-                  图谱检测到受阻学生共同在先修节点{" "}
+                  {pick(TEACHER_COPY.radarBodyBefore)}
                   <Link
                     href={`/explore?topic=${al.upstreamRootId}`}
                     className="underline font-semibold text-indigo-300 hover:text-indigo-200"
                   >
-                    [{al.upstreamSubject.toUpperCase()}] {al.upstreamTitle}
-                  </Link>{" "}
-                  存在薄弱断层！建议优先安排 15 分钟微专题补基后再讲评新课。
+                    [{getSubjectShortBadge(al.upstreamSubject, locale)}]{" "}
+                    {al.upstreamTitle}
+                  </Link>
+                  {pick(TEACHER_COPY.radarBodyAfter)}
                 </p>
                 <div className="text-[11px] text-slate-400">
-                  涉及学生：{al.affectedStudents.join("、")}
+                  {pick(TEACHER_COPY.affectedStudentsPrefix)}
+                  {al.affectedStudents.join(pick(TEACHER_COPY.listSeparator))}
                 </div>
               </div>
             ))}
@@ -276,16 +314,22 @@ export default function TeacherWorkbenchPage() {
         </section>
       )}
 
-      {/* Class × Topic Mastery Heatmap */}
+      {/* Class x Topic Mastery Heatmap */}
       <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-4 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-white">
-            班级学生 × 核心微技能掌握度热力矩阵（点击学生姓名可切换视角）
+            {pick(TEACHER_COPY.heatmapTitle)}
           </h2>
           <div className="flex gap-3 text-[11px]">
-            <span className="text-emerald-300">■ 已掌握 (≥85%)</span>
-            <span className="text-amber-300">■ 粗心滑档 Shaky</span>
-            <span className="text-rose-300">■ 薄弱卡点 Weak</span>
+            <span className="text-emerald-300">
+              {pick(TEACHER_COPY.legendMastered)}
+            </span>
+            <span className="text-amber-300">
+              {pick(TEACHER_COPY.legendShaky)}
+            </span>
+            <span className="text-rose-300">
+              {pick(TEACHER_COPY.legendWeak)}
+            </span>
           </div>
         </div>
 
@@ -293,24 +337,27 @@ export default function TeacherWorkbenchPage() {
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-left text-slate-400">
-                <th className="py-2.5 pr-3 font-semibold min-w-[175px]">
-                  学生档案（原生学制）
+                <th className="py-2.5 pr-3 font-semibold min-w-[195px]">
+                  {pick(TEACHER_COPY.colStudentProfile)}
                 </th>
                 {heatmapTopics.map((t) => {
                   const aln = getAlignment(t.id);
+                  const tTitle = localizePlain(t.title);
                   return (
                     <th
                       key={t.id}
-                      className="px-1.5 py-2 font-medium min-w-[92px] text-center"
+                      className="px-1.5 py-2 font-medium min-w-[96px] text-center"
                     >
                       <div className="text-[10px] font-mono text-indigo-300">
-                        {t.subjectId === "physics" ? "⚡PHY" : "📐MATH"}
+                        {getSubjectShortBadge(t.subjectId, locale)}
                       </div>
                       <div
-                        className="truncate max-w-[92px] text-slate-200"
-                        title={`${t.title["zh-CN"]} (${aln?.standardCode})`}
+                        className="truncate max-w-[96px] text-slate-200 mx-auto"
+                        title={`${tTitle}${
+                          aln?.standardCode ? ` (${aln.standardCode})` : ""
+                        }`}
                       >
-                        {t.title["zh-CN"].slice(0, 6)}
+                        {tTitle}
                       </div>
                     </th>
                   );
@@ -327,25 +374,35 @@ export default function TeacherWorkbenchPage() {
                       className="inline-flex items-center gap-1.5 font-semibold text-white hover:text-indigo-300"
                     >
                       <span>{stu.avatarEmoji}</span>
-                      <span>{stu.displayName}</span>
+                      <span>{userName(stu)}</span>
                       <span className="rounded bg-slate-800 px-1.5 py-0.2 text-[10px] text-slate-400">
                         {stu.regionCode}
                       </span>
                       <ArrowUpRight className="h-3 w-3 text-slate-500" />
                     </Link>
+                    <div
+                      className="text-[10px] text-slate-500 truncate max-w-[195px]"
+                      title={userTrack(stu)}
+                    >
+                      {userTrack(stu)}
+                    </div>
                   </td>
                   {heatmapTopics.map((t) => {
                     const st = getStudentTopicState(t.id, stu.id);
                     const pct = st ? `${Math.round(st.pMastery * 100)}%` : "—";
+                    const statusLabel = getMasteryStatusLabel(
+                      st?.status ?? "untested",
+                      locale
+                    );
                     return (
                       <td key={t.id} className="p-1 text-center">
                         <div
                           className={`rounded-lg border py-1.5 text-[11px] font-mono ${cellClass(
                             st?.status
                           )}`}
-                          title={`${stu.displayName} - ${t.title["zh-CN"]}: ${
-                            st?.status ?? "untested"
-                          }`}
+                          title={`${userName(stu)} - ${localizePlain(
+                            t.title
+                          )}: ${statusLabel}`}
                         >
                           {pct}
                           {st?.isRootCause ? "🎯" : ""}
@@ -367,10 +424,10 @@ export default function TeacherWorkbenchPage() {
             <Layers className="h-5 w-5 text-indigo-400" />
             <div>
               <h2 className="text-base font-bold text-white">
-                一键智能三档分层派题（Auto-Clustered Differentiated Assignments）
+                {pick(TEACHER_COPY.assignSectionTitle)}
               </h2>
               <p className="text-xs text-slate-400">
-                系统已根据全班 DAG 掌握向量自动聚类为「补基层 / 巩固层 / 拔高层」，每位学生收到各自最近发展区（ZPD）变式题。
+                {pick(TEACHER_COPY.assignSectionSubtitle)}
               </p>
             </div>
           </div>
@@ -380,7 +437,8 @@ export default function TeacherWorkbenchPage() {
               type="text"
               value={packTitlePrefix}
               onChange={(e) => setPackTitlePrefix(e.target.value)}
-              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+              placeholder={pick(TEACHER_COPY.defaultPackPrefix)}
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none min-w-[220px]"
             />
             <button
               onClick={() => void handlePublishThreeTiers()}
@@ -388,24 +446,31 @@ export default function TeacherWorkbenchPage() {
               className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-500 disabled:opacity-50"
             >
               <Send className="h-3.5 w-3.5" />
-              <span>一键派发三档分层任务包</span>
+              <span>
+                {publishing
+                  ? pick(TEACHER_COPY.publishingBtn)
+                  : pick(TEACHER_COPY.publishBtn)}
+              </span>
             </button>
           </div>
         </div>
 
-        {publishBanner && (
+        {publishedCount !== null && (
           <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-2.5 text-xs font-semibold text-emerald-300">
-            {publishBanner}
+            {TEACHER_COPY.publishSuccess(publishedCount, locale)}
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-xs">
           <div className="rounded-xl border border-amber-500/30 bg-slate-950/80 p-4 space-y-2">
             <div className="font-bold text-amber-300">
-              🛠️ 第一档：靶向补基层（Foundational · {tierGroups.foundational.length}人）
+              {TEACHER_COPY.tierFoundationalTitle(
+                tierGroups.foundational.length,
+                locale
+              )}
             </div>
             <p className="text-slate-400">
-              先补「完全平方因式分解」与「分式方程倒数变形」，再回攻「物理并联欧姆定律」。
+              {pick(TEACHER_COPY.tierFoundationalDesc)}
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {tierGroups.foundational.map((s) => (
@@ -413,7 +478,7 @@ export default function TeacherWorkbenchPage() {
                   key={s.id}
                   className="rounded bg-slate-800 px-2 py-0.5 text-slate-200"
                 >
-                  {s.avatarEmoji} {s.displayName}
+                  {s.avatarEmoji} {userName(s)}
                 </span>
               ))}
             </div>
@@ -421,10 +486,13 @@ export default function TeacherWorkbenchPage() {
 
           <div className="rounded-xl border border-sky-500/30 bg-slate-950/80 p-4 space-y-2">
             <div className="font-bold text-sky-300">
-              📈 第二档：稳固进阶层（Standard · {tierGroups.standard.length}人）
+              {TEACHER_COPY.tierStandardTitle(
+                tierGroups.standard.length,
+                locale
+              )}
             </div>
             <p className="text-slate-400">
-              聚焦「二次函数顶点式对称轴符号」与「动能定理速度平方项」易错滑档点强化。
+              {pick(TEACHER_COPY.tierStandardDesc)}
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {tierGroups.standard.map((s) => (
@@ -432,7 +500,7 @@ export default function TeacherWorkbenchPage() {
                   key={s.id}
                   className="rounded bg-slate-800 px-2 py-0.5 text-slate-200"
                 >
-                  {s.avatarEmoji} {s.displayName}
+                  {s.avatarEmoji} {userName(s)}
                 </span>
               ))}
             </div>
@@ -440,10 +508,13 @@ export default function TeacherWorkbenchPage() {
 
           <div className="rounded-xl border border-purple-500/30 bg-slate-950/80 p-4 space-y-2">
             <div className="font-bold text-purple-300">
-              🚀 第三档：竞赛/先修拔高层（Challenge · {tierGroups.challenge.length}人）
+              {TEACHER_COPY.tierChallengeTitle(
+                tierGroups.challenge.length,
+                locale
+              )}
             </div>
             <p className="text-slate-400">
-              已扎实掌握初三数理主干，开放「直角三角比综合」与高中/A-Math「导数切线斜率」先修挑战。
+              {pick(TEACHER_COPY.tierChallengeDesc)}
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {tierGroups.challenge.map((s) => (
@@ -451,7 +522,7 @@ export default function TeacherWorkbenchPage() {
                   key={s.id}
                   className="rounded bg-slate-800 px-2 py-0.5 text-slate-200"
                 >
-                  {s.avatarEmoji} {s.displayName}
+                  {s.avatarEmoji} {userName(s)}
                 </span>
               ))}
             </div>
@@ -461,23 +532,32 @@ export default function TeacherWorkbenchPage() {
         {/* Active Published Assignments List */}
         <div className="border-t border-slate-800 pt-4 space-y-2">
           <div className="text-xs font-semibold text-slate-400">
-            📋 已发布任务包实时完成率追踪（SQLite 持久化）：
+            {pick(TEACHER_COPY.publishedListHeader)}
           </div>
-          {data.assignments.slice().reverse().map((asg) => (
-            <div
-              key={asg.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-indigo-400" />
-                <span className="font-semibold text-slate-200">{asg.title}</span>
+          {data.assignments
+            .slice()
+            .reverse()
+            .map((asg) => (
+              <div
+                key={asg.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-indigo-400 shrink-0" />
+                  <span className="font-semibold text-slate-200">
+                    {localizeAssignmentTitle(asg, locale)}
+                  </span>
+                </div>
+                <div className="text-slate-400 font-mono">
+                  {TEACHER_COPY.assignmentProgress(
+                    asg.completedStudentIdsJson.length,
+                    asg.assignedStudentIdsJson.length,
+                    asg.dueDate,
+                    locale
+                  )}
+                </div>
               </div>
-              <div className="text-slate-400 font-mono">
-                完成进度 {asg.completedStudentIdsJson.length} /{" "}
-                {asg.assignedStudentIdsJson.length} 人 · 截止 {asg.dueDate}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
     </div>

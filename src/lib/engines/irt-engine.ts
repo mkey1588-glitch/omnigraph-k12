@@ -1,4 +1,5 @@
-import type { DifficultyTier } from "@/types/taxonomy";
+import type { DifficultyTier, LocaleCode } from "@/types/taxonomy";
+import { c, uiPick } from "@/lib/i18n";
 
 export interface IrtItemRecord {
   templateId: string;
@@ -84,7 +85,9 @@ export interface SimpleDirectedEdge {
 
 export interface AcyclicCheckResult {
   ok: boolean;
+  reason?: string;
   reasonZh?: string;
+  reasonEn?: string;
   cyclePath?: string[];
 }
 
@@ -94,12 +97,22 @@ export interface AcyclicCheckResult {
  */
 export function validateCustomEdgeAcyclic(
   existingEdges: SimpleDirectedEdge[],
-  candidate: SimpleDirectedEdge
+  candidate: SimpleDirectedEdge,
+  locale: LocaleCode = "zh-CN"
 ): AcyclicCheckResult {
   if (candidate.topicId === candidate.prerequisiteId) {
+    const copy = c(
+      "禁止自环依赖：同一微技能节点不能将自身设为先修前提。",
+      "Self-loop blocked: a micro-topic cannot depend on itself as a prerequisite.",
+      "自己ループ禁止：同一ノードを自身の前提単元に設定することはできません。",
+      "자기 루프 금지: 동일한 노드를 자기 자신의 선수 개념으로 설정할 수 없습니다.",
+      "Gelung kendiri disekat: topik tidak boleh menjadi prasyarat kepada dirinya sendiri."
+    );
     return {
       ok: false,
-      reasonZh: "禁止自环依赖：同一微技能节点不能将自身设为先修前提。",
+      reason: uiPick(locale, copy),
+      reasonZh: copy.zh,
+      reasonEn: copy.en,
       cyclePath: [candidate.topicId, candidate.prerequisiteId],
     };
   }
@@ -110,9 +123,18 @@ export function validateCustomEdgeAcyclic(
       e.prerequisiteId === candidate.prerequisiteId
   );
   if (dup) {
+    const copy = c(
+      "该先修依赖边已存在于标准图谱或校本图谱中，无需重复添加。",
+      "This prerequisite edge already exists in the canonical or school graph.",
+      "この前提エッジは既に標準グラフまたは校内グラフに存在します。",
+      "이 선수 의존 간선은 이미 표준 그래프 또는 학교 그래프에 존재합니다.",
+      "Sisi prasyarat ini sudah wujud dalam graf kanonik atau sekolah."
+    );
     return {
       ok: false,
-      reasonZh: "该先修依赖边已存在于标准图谱或校本图谱中，无需重复添加。",
+      reason: uiPick(locale, copy),
+      reasonZh: copy.zh,
+      reasonEn: copy.en,
     };
   }
 
@@ -140,9 +162,19 @@ export function validateCustomEdgeAcyclic(
     for (const up of upstreams) {
       if (up === candidate.topicId) {
         const cyclePath = [...curr.path, up];
+        const pathStr = cyclePath.join(" → ");
+        const copy = c(
+          `检测到有向环路（Cycle Detected）：${pathStr}，已自动拦截以保护自适应诊断收敛性！`,
+          `Directed cycle detected (${pathStr}) — automatically blocked to preserve DAG convergence!`,
+          `有向閉路を検出（${pathStr}）— 診断収束性を保護するため自動ブロックしました！`,
+          `방향 사이클 감지(${pathStr}) — 적응형 진단 수렴성을 보호하기 위해 자동 차단되었습니다!`,
+          `Kitaran terarah dikesan (${pathStr}) — disekat secara automatik untuk melindungi penumpuan DAG!`
+        );
         return {
           ok: false,
-          reasonZh: `检测到有向环路（Cycle Detected）：${cyclePath.join(" → ")}，已自动拦截以保护自适应诊断收敛性！`,
+          reason: uiPick(locale, copy),
+          reasonZh: copy.zh,
+          reasonEn: copy.en,
           cyclePath,
         };
       }

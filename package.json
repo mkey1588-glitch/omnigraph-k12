@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit",
     "db:seed": "tsx src/db/seed.ts",
     "validate:graph": "tsx scripts/validate-graph.ts",
+    "verify:i18n": "tsx scripts/verify-i18n.ts",
     "test:engines": "tsx tests/engines.test.ts"
   },
   "dependencies": {

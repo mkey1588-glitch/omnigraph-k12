@@ -11,9 +11,11 @@ import type {
   DiagnosticSessionState,
   DifficultyTier,
   GeneratedQuestionInstance,
+  LocaleCode,
   RegionCode,
   SubjectId,
 } from "@/types/taxonomy";
+import { c, localizeText, uiPick } from "@/lib/i18n";
 import {
   applyDiagnosticAnswer,
   createDiagnosticSession,
@@ -49,6 +51,7 @@ export async function POST(req: Request) {
       const studentId = (body.studentId as string) || "stu_leo";
       const subjectId = (body.subjectId as SubjectId) || "math";
       const regionCode = (body.regionCode as RegionCode) || "CN";
+      const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
       const mode = (body.mode as "target" | "chapter" | "grade_screen") || "target";
       const targetTopicIds = (body.targetTopicIds as string[]) || [
         "mt_math_quad_complete_sq",
@@ -76,7 +79,16 @@ export async function POST(req: Request) {
         regionCode,
         label:
           body.label ||
-          `靶向诊断 (${targetTopicIds.length} 节点 · ${regionCode})`,
+          uiPick(
+            locale,
+            c(
+              `靶向诊断 (${targetTopicIds.length} 节点 · ${regionCode})`,
+              `Targeted Diagnostic (${targetTopicIds.length} nodes · ${regionCode})`,
+              `ターゲット診断 (${targetTopicIds.length} 単元 · ${regionCode})`,
+              `타깃 진단 (${targetTopicIds.length} 노드 · ${regionCode})`,
+              `Diagnostik Sasaran (${targetTopicIds.length} topik · ${regionCode})`
+            )
+          ),
         stateJson: session,
         weakRootsJson: [],
         createdAt: nowIso,
@@ -93,6 +105,7 @@ export async function POST(req: Request) {
     // 3. Submit an answer in an active Adaptive Diagnostic Session
     if (action === "answer") {
       const sessionId = body.sessionId as string;
+      const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
       const instance = body.instance as GeneratedQuestionInstance;
       const userAnswer = String(body.userAnswer ?? "");
       const whyAskedZh = String(body.whyAskedZh ?? "");
@@ -239,6 +252,7 @@ export async function POST(req: Request) {
         const matchedMisc = topic?.microLesson.misconceptions.find(
           (m) => m.tag === outcome.detectedMisconception
         );
+        const fallbackMisc = matchedMisc ?? topic?.microLesson.misconceptions[0];
         const card = createInitialWrongCard(now);
         const wqId = `wq_${session.studentId}_${instance.topicId}`;
 
@@ -254,9 +268,13 @@ export async function POST(req: Request) {
               questionSnapshotJson: instance,
               wrongUserAnswer: userAnswer,
               misconceptionTag:
-                outcome.detectedMisconception ?? existingWq[0].misconceptionTag,
-              misconceptionLabel:
-                matchedMisc?.label["zh-CN"] ?? existingWq[0].misconceptionLabel,
+                outcome.detectedMisconception ??
+                existingWq[0].misconceptionTag ??
+                fallbackMisc?.tag ??
+                null,
+              misconceptionLabel: matchedMisc
+                ? localizeText(matchedMisc.label, locale, false)
+                : existingWq[0].misconceptionLabel,
               status: "active",
               lapses: existingWq[0].lapses + 1,
               twinClearStreak: 0,
@@ -272,11 +290,20 @@ export async function POST(req: Request) {
             templateId: instance.templateId,
             questionSnapshotJson: instance,
             wrongUserAnswer: userAnswer,
-            misconceptionTag: outcome.detectedMisconception ?? null,
-            misconceptionLabel:
-              matchedMisc?.label["zh-CN"] ??
-              topic?.microLesson.misconceptions[0]?.label["zh-CN"] ??
-              "概念细节待强化",
+            misconceptionTag:
+              outcome.detectedMisconception ?? fallbackMisc?.tag ?? null,
+            misconceptionLabel: fallbackMisc
+              ? localizeText(fallbackMisc.label, locale, false)
+              : uiPick(
+                  locale,
+                  c(
+                    "概念细节待强化",
+                    "Conceptual detail needs reinforcement",
+                    "概念の細部を強化",
+                    "개념 세부 사항 보강 필요",
+                    "Perincian konsep perlu diperkukuh"
+                  )
+                ),
             status: "active",
             fsrsDifficulty: card.difficulty,
             fsrsStability: card.stability,

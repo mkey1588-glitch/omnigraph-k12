@@ -1,5 +1,17 @@
-import type { GeneratedQuestionInstance, RegionCode } from "@/types/taxonomy";
+import type {
+  GeneratedQuestionInstance,
+  LocaleCode,
+  RegionCode,
+} from "@/types/taxonomy";
 import { ALL_REGIONAL_ALIGNMENTS } from "@/data/canonical-graph";
+import { REGIONS_DATA } from "@/data/regions-and-subjects";
+import {
+  c,
+  localizePrompt,
+  localizeScaffold,
+  localizeText,
+  uiPick,
+} from "@/lib/i18n";
 import { getDirectPrerequisites, getTopicById } from "./dag-engine";
 
 export interface TutorChatMessage {
@@ -10,6 +22,7 @@ export interface TutorChatMessage {
 export interface SocraticTutorRequest {
   topicId: string;
   regionCode: RegionCode;
+  locale?: LocaleCode;
   bilingual?: boolean;
   question?: GeneratedQuestionInstance;
   studentWrongAnswer?: string;
@@ -24,6 +37,15 @@ export interface SocraticTutorResponse {
   referencedPrerequisites: string[];
 }
 
+const LOCALE_LANGUAGE_NAME: Record<LocaleCode, string> = {
+  "zh-CN": "Simplified Chinese (简体中文)",
+  "zh-TW": "Traditional Chinese (繁體中文)",
+  en: "English",
+  ja: "Japanese (日本語)",
+  ko: "Korean (한국어)",
+  ms: "Bahasa Melayu",
+};
+
 /**
  * KG-Grounded Socratic AI Tutor:
  *   1. Injects Canonical Topic Mastery Criteria, Regional Standard Code, Upstream Prerequisites, Scaffolds, and Detected Misconception.
@@ -33,35 +55,54 @@ export interface SocraticTutorResponse {
 export async function generateSocraticTutorReply(
   req: SocraticTutorRequest
 ): Promise<SocraticTutorResponse> {
+  const regionMeta = REGIONS_DATA.find((r) => r.code === req.regionCode);
+  const locale: LocaleCode = req.locale ?? regionMeta?.primaryLocale ?? "zh-CN";
+
   const topic = getTopicById(req.topicId);
   const alignment = ALL_REGIONAL_ALIGNMENTS.find(
     (a) => a.topicId === req.topicId && a.regionCode === req.regionCode
   );
   const prereqEdges = getDirectPrerequisites(req.topicId, true);
   const prereqNames = prereqEdges
-    .map((e) => getTopicById(e.prerequisiteId)?.title["zh-CN"])
+    .map((e) => {
+      const pt = getTopicById(e.prerequisiteId);
+      return pt ? localizeText(pt.title, locale, false) : undefined;
+    })
     .filter((x): x is string => Boolean(x));
 
   const groundedStandardCode = alignment?.standardCode ?? `${req.regionCode}-CORE`;
 
-  const misconceptionObj = topic?.microLesson.misconceptions.find(
-    (m) => m.tag === req.detectedMisconceptionTag
-  ) ?? topic?.microLesson.misconceptions[0];
+  const misconceptionObj =
+    topic?.microLesson.misconceptions.find(
+      (m) => m.tag === req.detectedMisconceptionTag
+    ) ?? topic?.microLesson.misconceptions[0];
+
+  const topicTitleLoc = topic ? localizeText(topic.title, locale, false) : req.topicId;
+  const intuitionLoc = topic ? localizeText(topic.microLesson.intuition, locale, false) : "";
+  const miscLabelLoc = misconceptionObj
+    ? localizeText(misconceptionObj.label, locale, false)
+    : "";
+  const miscTipLoc = misconceptionObj
+    ? localizeText(misconceptionObj.remediationTip, locale, false)
+    : "";
 
   const systemInstruction = [
-    `你是 OmniGraph K12（万象学阶）苏格拉底启发式导师，严格锚定知识图谱节点讲题。`,
-    `当前地区与课标代码：${req.regionCode} (${groundedStandardCode} · ${alignment?.localStageLabel ?? ""})`,
-    `当前微技能节点：${topic?.title["zh-CN"] ?? req.topicId} (${topic?.title.en ?? ""})`,
-    `核心直觉与公式：${topic?.microLesson.intuition["zh-CN"] ?? ""} | ${topic?.microLesson.coreFormula ?? ""}`,
-    `上游先修依赖节点：${prereqNames.join("、") || "基础根节点"}`,
-    req.question ? `当前题目：${req.question.promptZh}（内部标准答案供你核对，严禁首轮直接透露：${req.question.answer}）` : "",
-    req.studentWrongAnswer ? `学生刚才提交的作答：${req.studentWrongAnswer}` : "",
-    misconceptionObj
-      ? `重点防范迷思概念 [${misconceptionObj.tag}]：${misconceptionObj.label["zh-CN"]} — 纠偏方向：${misconceptionObj.remediationTip["zh-CN"]}`
+    `You are the OmniGraph K12 Socratic Tutor strictly grounded in the Knowledge Graph.`,
+    `Active Region & Standard: ${req.regionCode} (${groundedStandardCode})`,
+    `Micro-Topic: ${topicTitleLoc} (${topic?.title.en ?? ""})`,
+    `Core Intuition & Formula: ${intuitionLoc} | ${topic?.microLesson.coreFormula ?? ""}`,
+    `Upstream Prerequisites: ${prereqNames.join(", ") || "Root Node"}`,
+    req.question
+      ? `Active Problem: ${localizePrompt(req.question, locale, false)} (Internal answer key — DO NOT reveal directly on Turn 1: ${req.question.answer})`
       : "",
-    `教学铁律：每次回复控制在 120 字以内，先肯定学生的思考切入点，指出卡点所在的先修原理，并用 1 个具体的小问题引导学生自己算出下一步，绝不直接替学生写出最终答案！${
-      req.bilingual ? "请采用中英双语对照（Bilingual Chinese + English）回复。" : ""
-    }`,
+    req.studentWrongAnswer ? `Student's recent attempt: ${req.studentWrongAnswer}` : "",
+    misconceptionObj
+      ? `Watch for misconception [${misconceptionObj.tag}]: ${miscLabelLoc} — Remediation: ${miscTipLoc}`
+      : "",
+    `Pedagogical Rule: Keep replies concise (<120 words). Acknowledge the student's effort, point to the relevant prerequisite principle, and ask ONE specific guiding step question without giving away the final answer!`,
+    `Language Rule: Respond strictly in ${LOCALE_LANGUAGE_NAME[locale]}${
+      req.bilingual && locale !== "en" ? " paired with concise English" : ""
+    }. Never output Simplified Chinese unless locale is zh-CN.`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -107,7 +148,10 @@ export async function generateSocraticTutorReply(
   // 2. Optional Live OpenAI-compatible API integration
   const openaiKey = process.env.OPENAI_API_KEY;
   if (openaiKey) {
-    const baseUrl = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
+    const baseUrl = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(
+      /\/$/,
+      ""
+    );
     try {
       const resp = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
@@ -144,50 +188,130 @@ export async function generateSocraticTutorReply(
     }
   }
 
-  // 3. Built-in Multi-Turn KG-Grounded Socratic Heuristic Coach (Zero-Config Out-of-the-Box!)
+  // 3. Built-in Multi-Turn KG-Grounded Socratic Heuristic Coach (6-Locale Native!)
   const userTurns = req.messages.filter((m) => m.role === "user");
   const lastUserMsg = (userTurns[userTurns.length - 1]?.content ?? "").trim();
   const scaffolds = req.question?.scaffolds ?? [];
   const turnIdx = Math.max(0, userTurns.length - 1);
 
-  let replyZh = "";
-  let replyEn = "";
-
-  // Check if the user actually typed the expected intermediate scaffold answer!
-  const prevScaffold = scaffolds[Math.min(Math.max(0, turnIdx - 1), Math.max(0, scaffolds.length - 1))];
+  const prevScaffoldRaw =
+    scaffolds[Math.min(Math.max(0, turnIdx - 1), Math.max(0, scaffolds.length - 1))];
   const matchedPrevScaffold =
-    prevScaffold &&
+    prevScaffoldRaw &&
     lastUserMsg !== "" &&
-    lastUserMsg.toLowerCase().includes(prevScaffold.expectedAnswer.toLowerCase());
+    (lastUserMsg.toLowerCase().includes(prevScaffoldRaw.expectedAnswer.toLowerCase()) ||
+      (prevScaffoldRaw.expectedAnswerEn &&
+        lastUserMsg
+          .toLowerCase()
+          .includes(prevScaffoldRaw.expectedAnswerEn.toLowerCase())));
+
+  let primaryReply = "";
+  let englishCompanion = "";
 
   if (turnIdx === 0 || (!matchedPrevScaffold && turnIdx === 1 && scaffolds.length > 0)) {
-    const s0 = scaffolds[0];
+    const s0 = scaffolds[0] ? localizeScaffold(scaffolds[0], locale) : null;
+    const s0En = scaffolds[0] ? localizeScaffold(scaffolds[0], "en") : null;
+    const fallbackStepLoc = topic?.microLesson.steps[0]?.checkQuestion
+      ? localizeText(topic.microLesson.steps[0].checkQuestion, locale, false)
+      : uiPick(
+          locale,
+          c(
+            "你能先写出本题用到的核心公式或第一步关系式吗？",
+            "What is the first intermediate quantity or formula we need here?",
+            "まずこの問題で使う基本公式や最初のステップを書き出せますか？",
+            "먼저 이 문제에 쓰이는 핵심 공식이나 첫 단계를 적어볼까요?",
+            "Apakah formula utama atau kuantiti perantaraan pertama yang diperlukan?"
+          )
+        );
+
     if (misconceptionObj && (req.detectedMisconceptionTag || req.studentWrongAnswer)) {
-      replyZh = `我注意到你容易掉进「**${misconceptionObj.label["zh-CN"]}**」这个常见陷阱！\n\n💡 **图谱锚点提示（${groundedStandardCode}）**：${misconceptionObj.remediationTip["zh-CN"]}\n\n我们先不急着写最终答案，试着回答第 1 小步：\n👉 **${s0 ? s0.promptZh : topic?.microLesson.steps[0]?.checkQuestion?.["zh-CN"] ?? "你能先写出本题用到的核心公式吗？"}**`;
-      replyEn = `Watch out for the common trap **"${misconceptionObj.label.en}"**! ${misconceptionObj.remediationTip.en}\n👉 **Step 1 Check**: ${s0 ? s0.promptEn : "What is the first intermediate quantity we need?"}`;
+      primaryReply = uiPick(
+        locale,
+        c(
+          `我注意到你容易掉进「**${miscLabelLoc}**」这个常见陷阱！\n\n💡 **图谱锚点提示（${groundedStandardCode}）**：${miscTipLoc}\n\n我们先不急着写最终答案，试着回答第 1 小步：\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `Watch out for the common misconception **"${miscLabelLoc}"**!\n\n💡 **KG Anchor (${groundedStandardCode})**: ${miscTipLoc}\n\nLet's pause before the final answer and check Step 1:\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `よくあるつまずき「**${miscLabelLoc}**」に注意しましょう！\n\n💡 **単元アンカー（${groundedStandardCode}）**：${miscTipLoc}\n\n最終解答の前に、まずステップ1を確認しましょう：\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `자주 발생하는 오개념 「**${miscLabelLoc}**」 함정에 주의하세요!\n\n💡 **지식그래프 앵커 (${groundedStandardCode})**: ${miscTipLoc}\n\n최종 답을 적기 전에 먼저 1단계를 확인해 볼까요?\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `Berhati-hati dengan salah tanggapan lazim **"${miscLabelLoc}"**!\n\n💡 **Sauh Graf (${groundedStandardCode})**: ${miscTipLoc}\n\nMari semak Langkah 1 terlebih dahulu:\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`
+        )
+      );
+      englishCompanion = `Watch out for **"${misconceptionObj.label.en}"**! ${misconceptionObj.remediationTip.en}\n👉 **Step 1**: ${s0En ? s0En.prompt : "What is the first intermediate quantity we need?"}`;
     } else {
-      replyZh = `很好的提问！在「**${topic?.title["zh-CN"] ?? ""}**」（课标 \`${groundedStandardCode}\`）中，核心直觉是：${topic?.microLesson.intuition["zh-CN"] ?? ""}\n\n${
-        prereqNames.length > 0 ? `🔗 本题调用了先修工具：**${prereqNames.join("、")}**。\n\n` : ""
-      }让我们拆解第 1 步：\n👉 **${s0 ? s0.promptZh : "观察已知条件，你觉得第一步应该先化简哪一部分？"}**`;
-      replyEn = `Core intuition (${groundedStandardCode}): ${topic?.microLesson.intuition.en ?? ""}\n👉 **Step 1**: ${s0 ? s0.promptEn : "Which expression should we simplify first?"}`;
+      const prereqLine =
+        prereqNames.length > 0
+          ? uiPick(
+              locale,
+              c(
+                `🔗 本题调用了先修工具：**${prereqNames.join("、")}**。\n\n`,
+                `🔗 Prerequisites invoked: **${prereqNames.join(", ")}**.\n\n`,
+                `🔗 関連する前提単元：**${prereqNames.join("・")}**。\n\n`,
+                `🔗 연계된 선수 개념: **${prereqNames.join(", ")}**.\n\n`,
+                `🔗 Prasyarat berkaitan: **${prereqNames.join(", ")}**.\n\n`
+              )
+            )
+          : "";
+      primaryReply = uiPick(
+        locale,
+        c(
+          `很好的提问！在「**${topicTitleLoc}**」（课标 \`${groundedStandardCode}\`）中，核心直觉是：${intuitionLoc}\n\n${prereqLine}让我们拆解第 1 步：\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `Great question! In **${topicTitleLoc}** (\`${groundedStandardCode}\`), the core intuition is: ${intuitionLoc}\n\n${prereqLine}Let's break down Step 1:\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `良い質問です！「**${topicTitleLoc}**」（基準 \`${groundedStandardCode}\`）の核心イメージは：${intuitionLoc}\n\n${prereqLine}ステップ1から一緒に解きましょう：\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `좋은 질문이에요! 「**${topicTitleLoc}**」(성취기준 \`${groundedStandardCode}\`)의 핵심 직관은 다음과 같습니다: ${intuitionLoc}\n\n${prereqLine}1단계부터 차근차근 풀어볼까요?\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`,
+          `Soalan yang baik! Dalam **${topicTitleLoc}** (\`${groundedStandardCode}\`), intuisi utamanya ialah: ${intuitionLoc}\n\n${prereqLine}Mari mulakan dengan Langkah 1:\n👉 **${s0 ? s0.prompt : fallbackStepLoc}**`
+        )
+      );
+      englishCompanion = `Core intuition (${groundedStandardCode}): ${topic?.microLesson.intuition.en ?? ""}\n👉 **Step 1**: ${s0En ? s0En.prompt : "Which expression should we simplify first?"}`;
     }
   } else if (matchedPrevScaffold && scaffolds.length > 1 && turnIdx <= scaffolds.length) {
-    const nextStep = scaffolds[Math.min(turnIdx, scaffolds.length - 1)];
-    replyZh = `✅ 太棒了，中间量 **${prevScaffold.expectedAnswer}** 算得完全准确！\n\n乘胜追击，来看最后一步推导：\n👉 **${nextStep.promptZh}**（提示：${nextStep.hintZh}）`;
-    replyEn = `✅ Spot on — **${prevScaffold.expectedAnswer}** is right! Now for the next step:\n👉 **${nextStep.promptEn}** (Hint: ${nextStep.hintEn})`;
+    const prevLoc = localizeScaffold(prevScaffoldRaw, locale);
+    const nextRaw = scaffolds[Math.min(turnIdx, scaffolds.length - 1)];
+    const nextLoc = localizeScaffold(nextRaw, locale);
+    const nextEn = localizeScaffold(nextRaw, "en");
+    primaryReply = uiPick(
+      locale,
+      c(
+        `✅ 太棒了，中间量 **${prevLoc.expected}** 算得完全准确！\n\n乘胜追击，来看下一步推导：\n👉 **${nextLoc.prompt}**（提示：${nextLoc.hint}）`,
+        `✅ Spot on — **${prevLoc.expected}** is completely right!\n\nNow let's take the next step:\n👉 **${nextLoc.prompt}** (Hint: ${nextLoc.hint})`,
+        `✅ 素晴らしい！中間値 **${prevLoc.expected}** は大正解です！\n\nこの調子で次のステップに進みましょう：\n👉 **${nextLoc.prompt}**（ヒント：${nextLoc.hint}）`,
+        `✅ 정확해요! 중간값 **${prevLoc.expected}** 계산이 완벽합니다!\n\n이어서 다음 단계를 유도해 볼까요?\n👉 **${nextLoc.prompt}** (힌트: ${nextLoc.hint})`,
+        `✅ Tepat sekali — **${prevLoc.expected}** adalah betul!\n\nSekarang mari teruskan ke langkah seterusnya:\n👉 **${nextLoc.prompt}** (Petunjuk: ${nextLoc.hint})`
+      )
+    );
+    englishCompanion = `✅ Spot on — **${localizeScaffold(prevScaffoldRaw, "en").expected}** is right! Next step:\n👉 **${nextEn.prompt}** (Hint: ${nextEn.hint})`;
   } else {
-    const lastStep = scaffolds[scaffolds.length - 1];
-    replyZh = `思路已经非常接近终点啦！回顾核心关系式 \`${topic?.microLesson.coreFormula ?? ""}\`：\n${
-      lastStep
-        ? `• 关键中间提示：${lastStep.promptZh}（线索：\`${lastStep.hintZh}\`）\n`
-        : ""
-    }把你算出的数值填进左侧作答框提交验证吧——如果某一步正负号或单位不确定，把你的算式发给我，我帮你逐行诊断！`;
-    replyEn = `You're right at the finish line! Apply \`${topic?.microLesson.coreFormula ?? ""}\` ${
-      lastStep ? `(Hint: ${lastStep.hintEn})` : ""
-    } and submit your answer on the left—or paste your working so I can check your signs and units!`;
+    const lastRaw = scaffolds[scaffolds.length - 1];
+    const lastLoc = lastRaw ? localizeScaffold(lastRaw, locale) : null;
+    const lastEn = lastRaw ? localizeScaffold(lastRaw, "en") : null;
+    const formula = topic?.microLesson.coreFormula ?? "";
+    primaryReply = uiPick(
+      locale,
+      c(
+        `思路已经非常接近终点啦！回顾核心关系式 \`${formula}\`：\n${
+          lastLoc ? `• 关键中间提示：${lastLoc.prompt}（线索：\`${lastLoc.hint}\`）\n` : ""
+        }把你算出的数值填进作答框提交验证吧——如果某一步正负号或单位不确定，把你的算式发给我，我帮你逐行诊断！`,
+        `You're right at the finish line! Review the core relation \`${formula}\`:\n${
+          lastLoc ? `• Key clue: ${lastLoc.prompt} (\`${lastLoc.hint}\`)\n` : ""
+        }Enter your result in the answer box to verify — or share your working if you'd like me to check your signs and units!`,
+        `ゴールまであと少しです！基本式 \`${formula}\` を確認しましょう：\n${
+          lastLoc ? `• ヒント：${lastLoc.prompt}（手がかり：\`${lastLoc.hint}\`）\n` : ""
+        }計算結果を解答欄に入力して確認してみましょう。途中式を送ってくれれば符号や単位もチェックします！`,
+        `거의 다 왔어요! 핵심 관계식 \`${formula}\`을 다시 확인해 보세요:\n${
+          lastLoc ? `• 핵심 단서: ${lastLoc.prompt} (힌트: \`${lastLoc.hint}\`)\n` : ""
+        }계산한 값을 답안란에 입력해 제출해 보세요. 부호나 단위가 헷갈리면 풀이 과정을 보내주세요!`,
+        `Anda hampir sampai ke jawapan akhir! Semak hubungan teras \`${formula}\`:\n${
+          lastLoc ? `• Petunjuk utama: ${lastLoc.prompt} (\`${lastLoc.hint}\`)\n` : ""
+        }Masukkan jawapan anda untuk pengesahan, atau kongsikan jalan kerja anda untuk semakan tanda dan unit!`
+      )
+    );
+    englishCompanion = `You're right at the finish line! Apply \`${formula}\` ${
+      lastEn ? `(Hint: ${lastEn.hint})` : ""
+    } and submit your answer!`;
   }
 
-  const finalReply = req.bilingual ? `${replyZh}\n\n---\n${replyEn}` : replyZh;
+  const finalReply =
+    req.bilingual && locale !== "en"
+      ? `${primaryReply}\n\n---\n${englishCompanion}`
+      : primaryReply;
 
   return {
     reply: finalReply,

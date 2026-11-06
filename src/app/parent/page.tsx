@@ -14,16 +14,29 @@ import {
   Award,
 } from "lucide-react";
 import { usePlatform } from "@/components/PlatformProvider";
+import {
+  localizePactReward,
+  localizeRelationship,
+  uiPick,
+} from "@/lib/i18n";
+import { PARENT_COPY } from "@/lib/i18n/copy-educator-parent";
 import type { RegionCode } from "@/types/taxonomy";
 
 export default function ParentPortalPage() {
   const {
     data,
     loading,
+    locale,
     activeStudentId,
     setActiveStudentId,
     activeStudent,
-    bilingual,
+    pick,
+    localize,
+    localizePlain,
+    userName,
+    regionName,
+    regionProfile,
+    gradeLabel,
     getAlignment,
     getStudentTopicState,
     refreshData,
@@ -32,11 +45,9 @@ export default function ParentPortalPage() {
   const [targetRegion, setTargetRegion] = useState<RegionCode>("HK");
   const [pactLimitMin, setPactLimitMin] = useState<number>(45);
   const [pactWeeklyNodes, setPactWeeklyNodes] = useState<number>(4);
-  const [pactReward, setPactReward] = useState<string>(
-    "周末科学馆探索特展 + 户外运动时光"
-  );
+  const [pactReward, setPactReward] = useState<string>("");
   const [pactBadgeUnlocked, setPactBadgeUnlocked] = useState<boolean>(false);
-  const [pactSavedToast, setPactSavedToast] = useState<string | null>(null);
+  const [pactSaved, setPactSaved] = useState<boolean>(false);
 
   const activePact = useMemo(
     () =>
@@ -45,13 +56,16 @@ export default function ParentPortalPage() {
   );
 
   useEffect(() => {
+    setPactSaved(false);
     if (activePact) {
       setPactLimitMin(activePact.dailyLimitMinutes);
       setPactWeeklyNodes(activePact.weeklyTargetNodes);
-      setPactReward(activePact.rewardTitle);
+      setPactReward(localizePactReward(activePact, locale));
       setPactBadgeUnlocked(activePact.badgeUnlocked);
+    } else {
+      setPactReward(uiPick(locale, PARENT_COPY.defaultPactReward));
     }
-  }, [activePact]);
+  }, [activePact, locale, activeStudentId]);
 
   const linkedChildren = useMemo(() => {
     if (!data) return [];
@@ -67,11 +81,14 @@ export default function ParentPortalPage() {
   if (loading || !data) {
     return (
       <div className="p-12 text-center text-slate-400">
-        正在生成家长白话学情周报与 9 地升学衔接对标...
+        {pick(PARENT_COPY.loading)}
       </div>
     );
   }
 
+  const parentUser = data.users.find((u) => u.id === "par_lin");
+  const parentDisplayName = parentUser ? userName(parentUser) : "";
+  const childDisplayName = activeStudent ? userName(activeStudent) : "";
   const childGrade = activeStudent?.currentGrade ?? 9;
 
   // States of current selected child
@@ -96,6 +113,10 @@ export default function ParentPortalPage() {
 
   // 9-Region Cross-Border Readiness Comparison for targetRegion at <= childGrade
   const targetRegionMeta = data.regions.find((r) => r.code === targetRegion);
+  const targetProf = targetRegionMeta
+    ? regionProfile(targetRegionMeta)
+    : undefined;
+
   const expectedTopicsInTarget = data.topics.filter((t) => {
     const aln = getAlignment(t.id, targetRegion);
     return (aln?.localGrade ?? t.baselineGrade) <= childGrade;
@@ -123,12 +144,12 @@ export default function ParentPortalPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 text-xs text-indigo-300 font-semibold">
             <Users className="h-4 w-4" />
-            <span>家长伴学与全球升学衔接空间（零术语焦虑 · 聚焦成长可操作建议）</span>
+            <span>{pick(PARENT_COPY.eyebrow)}</span>
           </div>
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            👨‍👧‍👦 林远航家长，您好！正在查看{" "}
-            <span className="text-indigo-300">{activeStudent?.displayName}</span>{" "}
-            的图谱成长周报
+            {PARENT_COPY.greetingBefore(parentDisplayName, locale)}
+            <span className="text-indigo-300">{childDisplayName}</span>
+            {pick(PARENT_COPY.greetingAfter)}
           </h1>
 
           {/* Multi-Child Switcher Pills */}
@@ -151,10 +172,14 @@ export default function ParentPortalPage() {
                   }`}
                 >
                   <div className="font-bold">
-                    {child.avatarEmoji} {child.displayName}
+                    {child.avatarEmoji} {userName(child)}
                   </div>
                   <div className="text-[11px] opacity-80">
-                    {link.relationshipLabel}
+                    {localizeRelationship(
+                      link.studentId,
+                      link.relationshipLabel,
+                      locale
+                    )}
                   </div>
                 </button>
               );
@@ -167,7 +192,7 @@ export default function ParentPortalPage() {
           className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-500 transition"
         >
           <Printer className="h-4 w-4" />
-          <span>导出 A4 双语防背题重练打印卷</span>
+          <span>{pick(PARENT_COPY.exportPrintCta)}</span>
         </Link>
       </div>
 
@@ -177,42 +202,50 @@ export default function ParentPortalPage() {
         <div className="lg:col-span-6 space-y-6">
           <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <Sparkles className="h-4 w-4 text-amber-400" />
-              <span>本周白话版学情解读（为什么孩子新课某几题总卡壳？）</span>
+              <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+              <span>{pick(PARENT_COPY.weeklyInsightTitle)}</span>
             </div>
 
             <div className="rounded-xl bg-slate-950/80 p-4 text-xs leading-relaxed text-slate-200 space-y-2.5">
               <p>
                 1.{" "}
-                <strong className="text-emerald-300">扎实闪光点：</strong>
-                {activeStudent?.displayName} 目前已稳固掌握{" "}
-                <strong>{masteredList.length}</strong> 个核心知识模块，基础运算、正负符号和直线图像理解非常扎实，请先给予充分肯定！
+                <strong className="text-emerald-300">
+                  {pick(PARENT_COPY.insightPoint1Title)}
+                </strong>
+                {PARENT_COPY.insightPoint1Body(
+                  childDisplayName,
+                  masteredList.length,
+                  locale
+                )}
               </p>
               <p>
                 2.{" "}
-                <strong className="text-amber-300">真正的根源并非“粗心或笨”：</strong>
-                知识图谱追踪发现，孩子近期在{" "}
-                <strong>
-                  {dinnerPrompts[0]?.topic.title["zh-CN"] ?? "进阶综合题"}
-                </strong>{" "}
-                遇到阻力，其实是因为早先的 1~2 个“上游工具小零件”（如公式中间交叉项或倒数通分）还没熟透。只要花 15 分钟把这个上游小零件补齐，后面几章物理和数学新课就会顺理成章打通！
+                <strong className="text-amber-300">
+                  {pick(PARENT_COPY.insightPoint2Title)}
+                </strong>
+                {PARENT_COPY.insightPoint2Body(
+                  dinnerPrompts[0]
+                    ? localizePlain(dinnerPrompts[0].topic.title)
+                    : pick(PARENT_COPY.advancedSynthesisFallback),
+                  locale
+                )}
               </p>
             </div>
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <MessageCircleHeart className="h-4 w-4 text-rose-400" />
-              <span>餐桌 / 放学路上 3 分钟轻松互动提问话术</span>
+              <MessageCircleHeart className="h-4 w-4 text-rose-400 shrink-0" />
+              <span>{pick(PARENT_COPY.dinnerSectionTitle)}</span>
             </div>
             <p className="text-xs text-slate-400">
-              无需家长自己会解难题！照着下面的一句话问孩子，让孩子当“小老师”讲给你听（费曼学习法）：
+              {pick(PARENT_COPY.dinnerSectionSubtitle)}
             </p>
 
             <div className="space-y-3">
               {dinnerPrompts.length === 0 ? (
                 <p className="text-xs text-emerald-300">
-                  当前所有已测知识点非常稳固，可以让孩子挑一道今天最得意的题讲给您听！
+                  {pick(PARENT_COPY.dinnerAllSolid)}
                 </p>
               ) : (
                 dinnerPrompts.map(({ topic, state }) => (
@@ -220,22 +253,20 @@ export default function ParentPortalPage() {
                     key={topic.id}
                     className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-1.5"
                   >
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
                       <span className="font-bold text-indigo-300">
-                        对应微技能：{topic.title["zh-CN"]}
+                        {pick(PARENT_COPY.microSkillPrefix)}
+                        {localizePlain(topic.title)}
                       </span>
-                      <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-300">
-                        {state.status === "weak" ? "优先补基" : "防粗心巩固"}
+                      <span className="rounded bg-amber-500/15 px-2 py-0.5 text-amber-300 shrink-0">
+                        {state.status === "weak"
+                          ? pick(PARENT_COPY.priorityRemediateBadge)
+                          : pick(PARENT_COPY.antiSlipConsolidateBadge)}
                       </span>
                     </div>
                     <p className="text-xs font-medium text-white leading-relaxed">
-                      💬 {topic.homeCheckPrompt["zh-CN"]}
+                      💬 {localize(topic.homeCheckPrompt)}
                     </p>
-                    {bilingual && (
-                      <p className="text-[11px] text-slate-400">
-                        {topic.homeCheckPrompt.en}
-                      </p>
-                    )}
                   </div>
                 ))
               )}
@@ -244,17 +275,17 @@ export default function ParentPortalPage() {
         </div>
 
         {/* Right 6 Cols: 9-Region Cross-Border Transition Readiness Benchmark */}
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-6 space-y-6">
           <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Globe2 className="h-5 w-5 text-emerald-400" />
+                <Globe2 className="h-5 w-5 text-emerald-400 shrink-0" />
                 <div>
                   <h2 className="text-sm font-bold text-white">
-                    9 地跨学制转学 / 升学课程衔接度雷达
+                    {pick(PARENT_COPY.readinessTitle)}
                   </h2>
                   <p className="text-[11px] text-slate-400">
-                    对比当前掌握度与目标国家/地区同年级（G{childGrade}）官方课标要求
+                    {PARENT_COPY.readinessSubtitle(childGrade, locale)}
                   </p>
                 </div>
               </div>
@@ -266,7 +297,12 @@ export default function ParentPortalPage() {
               >
                 {data.regions.map((r) => (
                   <option key={r.code} value={r.code}>
-                    目标对标：{r.flag} {r.nameZh} ({r.code})
+                    {PARENT_COPY.targetRegionOption(
+                      r.flag,
+                      regionName(r.code),
+                      r.code,
+                      locale
+                    )}
                   </option>
                 ))}
               </select>
@@ -274,16 +310,17 @@ export default function ParentPortalPage() {
 
             {/* Readiness Progress Meter */}
             <div className="rounded-xl border border-slate-800 bg-slate-950/85 p-4 space-y-2.5">
-              <div className="flex items-baseline justify-between">
+              <div className="flex items-baseline justify-between gap-2">
                 <span className="text-xs text-slate-300">
-                  衔接{" "}
+                  {pick(PARENT_COPY.readinessMeterBefore)}
                   <strong className="text-white">
-                    {targetRegionMeta?.flag} {targetRegionMeta?.nameLocal}（
-                    {targetRegionMeta?.gradeLabels[childGrade]}）
-                  </strong>{" "}
-                  核心先修准备度：
+                    {targetRegionMeta?.flag}{" "}
+                    {targetProf?.labelWithSystem ?? regionName(targetRegion)} (
+                    {gradeLabel(childGrade, targetRegion)})
+                  </strong>
+                  {pick(PARENT_COPY.readinessMeterAfter)}
                 </span>
-                <span className="text-2xl font-bold text-emerald-400">
+                <span className="text-2xl font-bold text-emerald-400 shrink-0">
                   {readinessPct}%
                 </span>
               </div>
@@ -294,21 +331,28 @@ export default function ParentPortalPage() {
                 />
               </div>
               <p className="text-[11px] text-slate-400">
-                目标考纲：{targetRegionMeta?.flagshipExams.join(" / ")} ·{" "}
-                共覆盖 {expectedTopicsInTarget.length} 个必学模块（已达标{" "}
-                {readyInTarget.length} 个，待衔接补齐 {bridgeGapsInTarget.length} 个）
+                {PARENT_COPY.readinessSummary(
+                  (targetProf?.flagshipExams ?? []).join(" / "),
+                  expectedTopicsInTarget.length,
+                  readyInTarget.length,
+                  bridgeGapsInTarget.length,
+                  locale
+                )}
               </p>
             </div>
 
             {/* Gap Modules for Target Region */}
             <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
               <div className="text-xs font-semibold text-slate-300">
-                📌 衔接 {targetRegionMeta?.nameZh} 需重点关注的差异/薄弱章节：
+                {PARENT_COPY.gapModulesHeader(
+                  regionName(targetRegion),
+                  locale
+                )}
               </div>
               {bridgeGapsInTarget.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3 text-xs text-emerald-300">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>已 100% 覆盖目标地区该年级全部核心先修要求！</span>
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>{pick(PARENT_COPY.gapAllCovered)}</span>
                 </div>
               ) : (
                 bridgeGapsInTarget.map((t) => {
@@ -322,18 +366,22 @@ export default function ParentPortalPage() {
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1.5 font-semibold text-white">
                           <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                          <span>{t.title["zh-CN"]}</span>
+                          <span>{localizePlain(t.title)}</span>
                         </div>
                         <div className="text-[11px] text-slate-400">
-                          目标课标：<code>{destAln?.standardCode}</code> ·{" "}
-                          {destAln?.localStageLabel}《{destAln?.localChapterTitle}》
+                          {pick(PARENT_COPY.targetAlignmentPrefix)}
+                          <code>{destAln?.standardCode}</code> ·{" "}
+                          {destAln?.localStageLabel} ·{" "}
+                          {destAln?.localChapterTitle}
                         </div>
                       </div>
                       <Link
                         href={`/diagnose?topic=${t.id}`}
                         className="shrink-0 rounded-lg border border-indigo-500/40 bg-indigo-950/30 px-2.5 py-1 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-900/40"
                       >
-                        {st?.status === "weak" ? "补齐薄弱" : "衔接自测"}
+                        {st?.status === "weak"
+                          ? pick(PARENT_COPY.remediateWeakBtn)
+                          : pick(PARENT_COPY.bridgeSelfCheckBtn)}
                       </Link>
                     </div>
                   );
@@ -342,28 +390,36 @@ export default function ParentPortalPage() {
             </div>
           </section>
 
-          {/* P4: Anti-Addiction Screen-Time & Positive Incentive Pact */}
+          {/* Anti-Addiction Screen-Time & Positive Incentive Pact */}
           <section className="rounded-2xl border border-amber-500/30 bg-slate-900/75 p-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm font-bold text-white">
-                <Clock className="h-4 w-4 text-amber-400" />
-                <span>P4 防沉迷屏幕时长契约 & 正向勋章签发</span>
+                <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+                <span>{pick(PARENT_COPY.pactTitle)}</span>
               </div>
               {pactBadgeUnlocked && (
                 <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
-                  <Award className="h-3.5 w-3.5" /> 已点亮荣誉勋章
+                  <Award className="h-3.5 w-3.5" />{" "}
+                  {pick(PARENT_COPY.badgeUnlockedPill)}
                 </span>
               )}
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs space-y-2">
-              <div className="flex justify-between text-slate-300">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-300">
                 <span>
-                  今日已用伴学时长：<strong>{activePact?.todayUsedMinutes ?? 20}</strong> /{" "}
-                  <strong>{pactLimitMin}</strong> 分钟
+                  {PARENT_COPY.todayUsedLine(
+                    activePact?.todayUsedMinutes ?? 20,
+                    pactLimitMin,
+                    locale
+                  )}
                 </span>
                 <span className="text-emerald-300 font-semibold">
-                  本周攻克节点：{activePact?.completedNodesThisWeek ?? 2}/{pactWeeklyNodes}
+                  {PARENT_COPY.weeklyNodesLine(
+                    activePact?.completedNodesThisWeek ?? 2,
+                    pactWeeklyNodes,
+                    locale
+                  )}
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
@@ -386,7 +442,7 @@ export default function ParentPortalPage() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-slate-400 mb-1">
-                  每日健康用眼上限（分钟）：
+                  {pick(PARENT_COPY.dailyLimitLabel)}
                 </label>
                 <input
                   type="number"
@@ -400,7 +456,7 @@ export default function ParentPortalPage() {
               </div>
               <div>
                 <label className="block text-slate-400 mb-1">
-                  每周微技能清零目标数：
+                  {pick(PARENT_COPY.weeklyTargetLabel)}
                 </label>
                 <input
                   type="number"
@@ -415,7 +471,7 @@ export default function ParentPortalPage() {
 
             <div className="text-xs">
               <label className="block text-slate-400 mb-1">
-                家庭正向激励约定（达成目标解锁）：
+                {pick(PARENT_COPY.rewardLabel)}
               </label>
               <input
                 type="text"
@@ -433,7 +489,7 @@ export default function ParentPortalPage() {
                   onChange={(e) => setPactBadgeUnlocked(e.target.checked)}
                   className="accent-amber-500"
                 />
-                <span>签发本周「跨科闯关小达人」亲子激励勋章</span>
+                <span>{pick(PARENT_COPY.unlockBadgeCheckbox)}</span>
               </label>
 
               <button
@@ -444,6 +500,7 @@ export default function ParentPortalPage() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       action: "update_study_pact",
+                      locale,
                       studentId: activeStudentId,
                       parentId: "par_lin",
                       dailyLimitMinutes: pactLimitMin,
@@ -452,18 +509,18 @@ export default function ParentPortalPage() {
                       badgeUnlocked: pactBadgeUnlocked,
                     }),
                   });
-                  setPactSavedToast("✅ 已同步保存亲子学习时长契约与勋章状态！");
+                  setPactSaved(true);
                   await refreshData();
                 }}
                 className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-500"
               >
-                保存亲子契约
+                {pick(PARENT_COPY.savePactBtn)}
               </button>
             </div>
 
-            {pactSavedToast && (
+            {pactSaved && (
               <div className="text-xs font-semibold text-emerald-300">
-                {pactSavedToast}
+                {pick(PARENT_COPY.pactSavedToast)}
               </div>
             )}
           </section>

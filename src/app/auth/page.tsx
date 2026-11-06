@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ShieldCheck,
   KeyRound,
@@ -9,15 +9,34 @@ import {
   EyeOff,
   CheckCircle2,
   Lock,
+  Globe2,
 } from "lucide-react";
-import { usePlatform } from "@/components/PlatformProvider";
-import { PRIVACY_REGIMES } from "@/lib/engines/privacy-shield";
-import type { RegionCode, UserRole } from "@/types/taxonomy";
+import { usePlatform, type UserRecord } from "@/components/PlatformProvider";
+import { getLocalizedPrivacyRegime } from "@/lib/engines/privacy-shield";
+import { localizeAuditPreview, localizeClassroomName } from "@/lib/i18n";
+import {
+  AUTH_COPY,
+  getPiiSandboxSample,
+} from "@/lib/i18n/copy-capture-clearance-auth";
+import type { LocaleCode, RegionCode, UserRole } from "@/types/taxonomy";
+
+type AuthBannerState =
+  | { kind: "login_ok"; user: UserRecord; anonToken: string }
+  | { kind: "pin_ok"; user: UserRecord }
+  | { kind: "register_ok"; kidPin: string | null }
+  | { kind: "error"; msg: string }
+  | null;
+
+type JoinClassState =
+  | { ok: true; classroom: { id: string; name: string } }
+  | { ok: false; error: string }
+  | null;
 
 export default function AuthAndPrivacyPage() {
   const {
     data,
     loading,
+    locale,
     regionCode,
     setRegionCode,
     setActiveRole,
@@ -25,43 +44,45 @@ export default function AuthAndPrivacyPage() {
     setActiveStudentId,
     loggedInUserId,
     setLoggedInUserId,
+    pick,
+    userName,
+    regionName,
+    gradeLabel,
     refreshData,
   } = usePlatform();
 
   // --- 1. Login & Kid PIN State ---
-  const [loginMode, setLoginMode] = useState<"credentials" | "kid_pin" | "register">(
-    "credentials"
-  );
+  const [loginMode, setLoginMode] = useState<
+    "credentials" | "kid_pin" | "register"
+  >("credentials");
   const [loginHandle, setLoginHandle] = useState<string>("wang@omnigraph.edu");
   const [secretCode, setSecretCode] = useState<string>("teach123");
   const [kidPinInput, setKidPinInput] = useState<string>("880901");
   const [regName, setRegName] = useState<string>("");
   const [regRole, setRegRole] = useState<UserRole>("student");
   const [regGrade, setRegGrade] = useState<number>(8);
-  const [authBanner, setAuthBanner] = useState<{
-    ok: boolean;
-    msg: string;
-  } | null>(null);
+  const [authBanner, setAuthBanner] = useState<AuthBannerState>(null);
 
   // --- 2. Parent Child Sub-Account Creator ---
   const [childName, setChildName] = useState<string>("");
   const [childRegion, setChildRegion] = useState<RegionCode>("SG");
   const [childGrade, setChildGrade] = useState<number>(4);
-  const [childDailyLimit, setChildDailyLimit] = useState<number>(35);
+  const [childDailyLimit] = useState<number>(35);
   const [consentChecked, setConsentChecked] = useState<boolean>(true);
   const [createdChildResult, setCreatedChildResult] = useState<{
     childId: string;
     kidPin: string;
-    privacyRegime: string;
+    regionCode: RegionCode;
   } | null>(null);
 
   // --- 3. Student Join Class by Invite Code ---
   const [inviteCode, setInviteCode] = useState<string>("OMNI-9A");
-  const [joinMsg, setJoinMsg] = useState<string | null>(null);
+  const [joinState, setJoinState] = useState<JoinClassState>(null);
 
   // --- 4. Live PII De-Identification Sandbox ---
-  const [sandboxRaw, setSandboxRaw] = useState<string>(
-    "老师您好，我是深圳南山实验中学的林小宇（手机 13812345678，邮箱 leo.lin@school.cn），请问 1/R = 1/6 + 1/12 为什么不能直接把分母相加？"
+  const [sandboxEdited, setSandboxEdited] = useState<boolean>(false);
+  const [sandboxRaw, setSandboxRaw] = useState<string>(() =>
+    getPiiSandboxSample(locale)
   );
   const [sandboxResult, setSandboxResult] = useState<{
     sanitizedText: string;
@@ -70,15 +91,31 @@ export default function AuthAndPrivacyPage() {
     anonToken: string;
   } | null>(null);
 
+  const prevLocaleRef = useRef<LocaleCode>(locale);
+  useEffect(() => {
+    if (!sandboxEdited) {
+      setSandboxRaw(getPiiSandboxSample(locale));
+    }
+    if (prevLocaleRef.current !== locale) {
+      prevLocaleRef.current = locale;
+      if (!sandboxEdited) {
+        setSandboxResult(null);
+      }
+      setAuthBanner((prev) => (prev?.kind === "error" ? null : prev));
+      setJoinState((prev) => (prev && !prev.ok ? null : prev));
+    }
+  }, [locale, sandboxEdited]);
+
   if (loading || !data) {
     return (
       <div className="p-12 text-center text-slate-400">
-        正在加载三端账号认证与 9 地未成年人隐私合规中心...
+        {pick(AUTH_COPY.loading)}
       </div>
     );
   }
 
   const currentLoggedUser = data.users.find((u) => u.id === loggedInUserId);
+  const childRegimeSpec = getLocalizedPrivacyRegime(childRegion, locale);
 
   const handleCredentialsLogin = async () => {
     setAuthBanner(null);
@@ -89,6 +126,7 @@ export default function AuthAndPrivacyPage() {
         action: "login_credentials",
         loginHandle,
         secretCode,
+        locale,
       }),
     });
     const json = await res.json();
@@ -100,11 +138,15 @@ export default function AuthAndPrivacyPage() {
         setActiveStudentId(json.user.id);
       }
       setAuthBanner({
-        ok: true,
-        msg: `登录成功！当前身份：${json.user.avatarEmoji} ${json.user.displayName}（匿名合规令牌：${json.authProfile.anonymousToken}）`,
+        kind: "login_ok",
+        user: json.user as UserRecord,
+        anonToken: String(json.authProfile.anonymousToken),
       });
     } else {
-      setAuthBanner({ ok: false, msg: json.error || "登录失败" });
+      setAuthBanner({
+        kind: "error",
+        msg: json.error || pick(AUTH_COPY.loginFailFallback),
+      });
     }
   };
 
@@ -116,6 +158,7 @@ export default function AuthAndPrivacyPage() {
       body: JSON.stringify({
         action: "login_kid_pin",
         kidPin: kidPinInput,
+        locale,
       }),
     });
     const json = await res.json();
@@ -125,11 +168,14 @@ export default function AuthAndPrivacyPage() {
       setActiveStudentId(json.user.id);
       setRegionCode(json.user.regionCode);
       setAuthBanner({
-        ok: true,
-        msg: `🎉 儿童家庭 PIN 免密登录成功！欢迎回来，${json.user.displayName}（受 ${json.authProfile.privacyRegime} 保护）`,
+        kind: "pin_ok",
+        user: json.user as UserRecord,
       });
     } else {
-      setAuthBanner({ ok: false, msg: json.error || "PIN 码无效" });
+      setAuthBanner({
+        kind: "error",
+        msg: json.error || pick(AUTH_COPY.pinFailFallback),
+      });
     }
   };
 
@@ -147,6 +193,7 @@ export default function AuthAndPrivacyPage() {
         regionCode,
         currentGrade: regGrade,
         parentConsentVerified: true,
+        locale,
       }),
     });
     const json = await res.json();
@@ -158,13 +205,14 @@ export default function AuthAndPrivacyPage() {
         setActiveStudentId(json.user.id);
       }
       setAuthBanner({
-        ok: true,
-        msg: `注册并登录成功！${
-          json.kidPin ? `专属 6 位快捷 PIN 码：${json.kidPin}` : ""
-        }`,
+        kind: "register_ok",
+        kidPin: json.kidPin ? String(json.kidPin) : null,
       });
     } else {
-      setAuthBanner({ ok: false, msg: json.error || "注册失败" });
+      setAuthBanner({
+        kind: "error",
+        msg: json.error || pick(AUTH_COPY.registerFailFallback),
+      });
     }
   };
 
@@ -181,24 +229,28 @@ export default function AuthAndPrivacyPage() {
         grade: childGrade,
         dailyLimitMinutes: childDailyLimit,
         consentConfirmed: consentChecked,
+        locale,
       }),
     });
     const json = await res.json();
     if (json.ok) {
       setCreatedChildResult({
-        childId: json.childId,
-        kidPin: json.kidPin,
-        privacyRegime: json.privacyRegime,
+        childId: String(json.childId),
+        kidPin: String(json.kidPin),
+        regionCode: childRegion,
       });
       setChildName("");
       await refreshData();
     } else {
-      setAuthBanner({ ok: false, msg: json.error });
+      setAuthBanner({
+        kind: "error",
+        msg: String(json.error || pick(AUTH_COPY.registerFailFallback)),
+      });
     }
   };
 
   const handleJoinClass = async () => {
-    setJoinMsg(null);
+    setJoinState(null);
     const res = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -206,16 +258,24 @@ export default function AuthAndPrivacyPage() {
         action: "join_class_by_code",
         studentId: activeStudentId,
         inviteCode,
+        locale,
       }),
     });
     const json = await res.json();
-    if (json.ok) {
-      setJoinMsg(
-        `✅ 学生已凭邀请码加入班级《${json.classroom.name}》！教师端热力图将实时同步其掌握度。`
-      );
+    if (json.ok && json.classroom) {
+      setJoinState({
+        ok: true,
+        classroom: {
+          id: String(json.classroom.id),
+          name: String(json.classroom.name),
+        },
+      });
       await refreshData();
     } else {
-      setJoinMsg(`❌ ${json.error}`);
+      setJoinState({
+        ok: false,
+        error: `❌ ${String(json.error ?? "")}`,
+      });
     }
   };
 
@@ -228,6 +288,7 @@ export default function AuthAndPrivacyPage() {
         rawText: sandboxRaw,
         studentId: activeStudentId,
         regionCode,
+        locale,
       }),
     });
     const json = await res.json();
@@ -237,40 +298,69 @@ export default function AuthAndPrivacyPage() {
     }
   };
 
+  const renderBannerText = (banner: Exclude<AuthBannerState, null>): string => {
+    switch (banner.kind) {
+      case "login_ok":
+        return AUTH_COPY.loginSuccessMsg(
+          banner.user.avatarEmoji,
+          userName(banner.user),
+          banner.anonToken,
+          locale
+        );
+      case "pin_ok": {
+        const regNameStr = getLocalizedPrivacyRegime(
+          banner.user.regionCode,
+          locale
+        ).regulationName;
+        return AUTH_COPY.pinSuccessMsg(
+          userName(banner.user),
+          regNameStr,
+          locale
+        );
+      }
+      case "register_ok":
+        return AUTH_COPY.registerSuccessMsg(banner.kidPin, locale);
+      case "error":
+        return banner.msg;
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white sm:text-2xl flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-emerald-400" />
-            <span>三端真实认证、家庭 PIN / 班级邀请码与 9 地未成年人隐私脱敏盾</span>
+            <span>{pick(AUTH_COPY.title)}</span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            全面对齐中国 <code>PIPL</code>、美国 <code>COPPA/FERPA</code>、英国{" "}
-            <code>AADC</code>、新加坡 <code>PDPA</code>、日韩 <code>APPI/PIPA</code>{" "}
-            未成年人数据最小化与监护人可验证授权规范。
+            {pick(AUTH_COPY.subtitle)}
           </p>
         </div>
 
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-3.5 py-2 text-xs text-emerald-200">
-          当前会话身份：<strong>{currentLoggedUser?.avatarEmoji} {currentLoggedUser?.displayName}</strong>
+          {pick(AUTH_COPY.activeSessionLabel)}
+          <strong>
+            {currentLoggedUser?.avatarEmoji}{" "}
+            {currentLoggedUser ? userName(currentLoggedUser) : ""}
+          </strong>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Card 1: Login / Kid PIN / Register */}
         <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-indigo-400" />
-              <span>1. 三端账号认证 & 低龄儿童 6 位 PIN 免密登录</span>
+              <span>{pick(AUTH_COPY.card1Title)}</span>
             </h2>
             <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-0.5 text-[11px]">
               {(
                 [
-                  { id: "credentials", label: "账号口令" },
-                  { id: "kid_pin", label: "儿童 PIN 码" },
-                  { id: "register", label: "新用户注册" },
+                  { id: "credentials", label: pick(AUTH_COPY.modeCredentials) },
+                  { id: "kid_pin", label: pick(AUTH_COPY.modeKidPin) },
+                  { id: "register", label: pick(AUTH_COPY.modeRegister) },
                 ] as const
               ).map((m) => (
                 <button
@@ -300,7 +390,7 @@ export default function AuthAndPrivacyPage() {
               }}
               className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-slate-300 hover:border-indigo-400"
             >
-              👩‍🏫 填入教师演示号
+              {pick(AUTH_COPY.demoTeacherBtn)}
             </button>
             <button
               type="button"
@@ -311,7 +401,7 @@ export default function AuthAndPrivacyPage() {
               }}
               className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-slate-300 hover:border-indigo-400"
             >
-              👨‍👧‍👦 填入家长演示号
+              {pick(AUTH_COPY.demoParentBtn)}
             </button>
             <button
               type="button"
@@ -321,7 +411,7 @@ export default function AuthAndPrivacyPage() {
               }}
               className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-slate-300 hover:border-emerald-400"
             >
-              🧑‍🚀 小宇 PIN: 880901
+              {pick(AUTH_COPY.demoLeoPinBtn)}
             </button>
             <button
               type="button"
@@ -331,14 +421,16 @@ export default function AuthAndPrivacyPage() {
               }}
               className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-slate-300 hover:border-emerald-400"
             >
-              🦄 小朵 PIN: 550502
+              {pick(AUTH_COPY.demoMiaPinBtn)}
             </button>
           </div>
 
           {loginMode === "credentials" && (
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">登录邮箱 / 账号：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(AUTH_COPY.loginHandleLabel)}
+                </label>
                 <input
                   value={loginHandle}
                   onChange={(e) => setLoginHandle(e.target.value)}
@@ -346,7 +438,9 @@ export default function AuthAndPrivacyPage() {
                 />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">访问口令：</label>
+                <label className="block text-slate-400 mb-1">
+                  {pick(AUTH_COPY.passcodeLabel)}
+                </label>
                 <input
                   type="password"
                   value={secretCode}
@@ -359,29 +453,60 @@ export default function AuthAndPrivacyPage() {
                 onClick={() => void handleCredentialsLogin()}
                 className="w-full rounded-xl bg-indigo-600 py-2.5 font-bold text-white hover:bg-indigo-500"
               >
-                安全登录并同步工作台角色
+                {pick(AUTH_COPY.loginSubmitBtn)}
               </button>
             </div>
           )}
 
           {loginMode === "kid_pin" && (
             <div className="space-y-3 text-xs">
-              <p className="text-slate-400">
-                低龄中小学生无需记忆邮箱或暴露手机号，凭家长签发的 6 位家庭 PIN 码即可安全进入伴学舱：
-              </p>
+              <p className="text-slate-400">{pick(AUTH_COPY.kidPinLead)}</p>
               <input
                 value={kidPinInput}
-                onChange={(e) => setKidPinInput(e.target.value)}
+                onChange={(e) =>
+                  setKidPinInput(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
                 maxLength={6}
-                placeholder="输入 6 位数字 PIN 码"
+                placeholder={pick(AUTH_COPY.kidPinPlaceholder)}
                 className="w-full rounded-xl border border-emerald-500/40 bg-slate-950 px-4 py-3 text-center font-mono text-lg tracking-widest text-emerald-300"
               />
+              {/* Interactive Kid PIN Keypad */}
+              <div className="grid grid-cols-6 gap-1.5">
+                {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() =>
+                      setKidPinInput((prev) =>
+                        prev.length < 6 ? `${prev}${d}` : prev
+                      )
+                    }
+                    className="rounded-lg border border-slate-800 bg-slate-950 py-1.5 font-mono text-sm font-bold text-slate-200 hover:border-emerald-400 hover:text-emerald-300"
+                  >
+                    {d}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setKidPinInput((prev) => prev.slice(0, -1))}
+                  className="rounded-lg border border-slate-800 bg-slate-950 py-1.5 text-[11px] font-semibold text-slate-300 hover:border-amber-400"
+                >
+                  {pick(AUTH_COPY.kidPinBackBtn)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setKidPinInput("")}
+                  className="rounded-lg border border-slate-800 bg-slate-950 py-1.5 text-[11px] font-semibold text-slate-300 hover:border-rose-400"
+                >
+                  {pick(AUTH_COPY.kidPinClearBtn)}
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => void handleKidPinLogin()}
                 className="w-full rounded-xl bg-emerald-600 py-2.5 font-bold text-white hover:bg-emerald-500"
               >
-                凭家庭 PIN 码进入学生个人学习舱
+                {pick(AUTH_COPY.kidPinSubmitBtn)}
               </button>
             </div>
           )}
@@ -392,7 +517,7 @@ export default function AuthAndPrivacyPage() {
                 <input
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="显示昵称（如：张思远）"
+                  placeholder={pick(AUTH_COPY.regNamePlaceholder)}
                   className="col-span-2 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                 />
                 <select
@@ -400,16 +525,16 @@ export default function AuthAndPrivacyPage() {
                   onChange={(e) => setRegRole(e.target.value as UserRole)}
                   className="rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-white"
                 >
-                  <option value="student">学生</option>
-                  <option value="teacher">教师</option>
-                  <option value="parent">家长</option>
+                  <option value="student">{pick(AUTH_COPY.roleStudent)}</option>
+                  <option value="teacher">{pick(AUTH_COPY.roleTeacher)}</option>
+                  <option value="parent">{pick(AUTH_COPY.roleParent)}</option>
                 </select>
               </div>
               <div className="grid grid-cols-3 gap-2.5">
                 <input
                   value={loginHandle}
                   onChange={(e) => setLoginHandle(e.target.value)}
-                  placeholder="登录账号 / 邮箱"
+                  placeholder={pick(AUTH_COPY.regHandlePlaceholder)}
                   className="col-span-2 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                 />
                 <input
@@ -418,7 +543,7 @@ export default function AuthAndPrivacyPage() {
                   max={12}
                   value={regGrade}
                   onChange={(e) => setRegGrade(Number(e.target.value))}
-                  placeholder="年级"
+                  placeholder={pick(AUTH_COPY.regGradePlaceholder)}
                   className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
                 />
               </div>
@@ -426,7 +551,7 @@ export default function AuthAndPrivacyPage() {
                 type="password"
                 value={secretCode}
                 onChange={(e) => setSecretCode(e.target.value)}
-                placeholder="设置至少 4 位登录口令"
+                placeholder={pick(AUTH_COPY.regPasscodePlaceholder)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
               <button
@@ -434,7 +559,7 @@ export default function AuthAndPrivacyPage() {
                 onClick={() => void handleRegister()}
                 className="w-full rounded-xl bg-violet-600 py-2.5 font-bold text-white hover:bg-violet-500"
               >
-                立即注册真实账号（写入 SQLite）
+                {pick(AUTH_COPY.regSubmitBtn)}
               </button>
             </div>
           )}
@@ -442,12 +567,12 @@ export default function AuthAndPrivacyPage() {
           {authBanner && (
             <div
               className={`rounded-xl border p-3 text-xs font-semibold ${
-                authBanner.ok
+                authBanner.kind !== "error"
                   ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
                   : "border-rose-500/40 bg-rose-950/30 text-rose-300"
               }`}
             >
-              {authBanner.msg}
+              {renderBannerText(authBanner)}
             </div>
           )}
         </div>
@@ -457,14 +582,14 @@ export default function AuthAndPrivacyPage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-3.5 text-xs">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <UserPlus className="h-4 w-4 text-emerald-400" />
-              <span>2. 家长创建低龄子账号（9 地未成年人监护授权 VPC + 签发家庭 PIN）</span>
+              <span>{pick(AUTH_COPY.card2Title)}</span>
             </h2>
 
             <div className="grid grid-cols-3 gap-2.5">
               <input
                 value={childName}
                 onChange={(e) => setChildName(e.target.value)}
-                placeholder="孩子昵称（如：林小星）"
+                placeholder={pick(AUTH_COPY.childNamePlaceholder)}
                 className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white"
               />
               <select
@@ -474,7 +599,7 @@ export default function AuthAndPrivacyPage() {
               >
                 {data.regions.map((r) => (
                   <option key={r.code} value={r.code}>
-                    {r.flag} {r.code} 课标与法规
+                    {r.flag} {regionName(r.code)} ({r.code})
                   </option>
                 ))}
               </select>
@@ -485,7 +610,7 @@ export default function AuthAndPrivacyPage() {
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((g) => (
                   <option key={g} value={g}>
-                    Grade {g} ({g}年级)
+                    {gradeLabel(g, childRegion)}
                   </option>
                 ))}
               </select>
@@ -493,10 +618,11 @@ export default function AuthAndPrivacyPage() {
 
             <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3 space-y-1.5">
               <div className="font-semibold text-indigo-300">
-                📜 适用司法辖区保护条例：{PRIVACY_REGIMES[childRegion].regulationName}
+                {pick(AUTH_COPY.jurisdictionPrefix)}
+                {childRegimeSpec.regulationName}
               </div>
               <p className="text-[11px] text-slate-400">
-                {PRIVACY_REGIMES[childRegion].summaryZh}
+                {childRegimeSpec.summary}
               </p>
               <label className="flex items-center gap-2 pt-1 text-emerald-300 font-medium cursor-pointer">
                 <input
@@ -506,8 +632,7 @@ export default function AuthAndPrivacyPage() {
                   className="accent-emerald-500"
                 />
                 <span>
-                  我作为法定监护人已阅读并授权创建低龄脱敏学习档案（每日防沉迷上限{" "}
-                  {childDailyLimit} 分钟）
+                  {AUTH_COPY.guardianConsentCheckbox(childDailyLimit, locale)}
                 </span>
               </label>
             </div>
@@ -517,22 +642,22 @@ export default function AuthAndPrivacyPage() {
               onClick={() => void handleCreateChildAccount()}
               className="w-full rounded-xl bg-emerald-600 py-2.5 font-bold text-white hover:bg-emerald-500"
             >
-              创建子账号并自动绑定至家长伴学端
+              {pick(AUTH_COPY.createChildSubmitBtn)}
             </button>
 
             {createdChildResult && (
               <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-3 text-emerald-200 space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
                   <span>
-                    子账号创建成功！专属 6 位家庭 PIN 码：
+                    {pick(AUTH_COPY.childCreatedSuccessPrefix)}
                     <code className="ml-1 rounded bg-slate-950 px-2 py-0.5 text-sm font-bold text-amber-300">
                       {createdChildResult.kidPin}
                     </code>
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-300">
-                  现在可在上方切换器或用该 PIN 码免密登录，且已在「家长伴学空间」自动绑定。
+                  {pick(AUTH_COPY.childCreatedHint)}
                 </div>
               </div>
             )}
@@ -542,13 +667,13 @@ export default function AuthAndPrivacyPage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-3 text-xs">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <Users className="h-4 w-4 text-violet-400" />
-              <span>3. 学生凭班级邀请码一键入班（师生学情绑定）</span>
+              <span>{pick(AUTH_COPY.card3Title)}</span>
             </h2>
             <div className="flex gap-2">
               <input
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
-                placeholder="输入教师发放的班级邀请码（如 OMNI-9A）"
+                placeholder={pick(AUTH_COPY.inviteCodePlaceholder)}
                 className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 font-mono uppercase text-white"
               />
               <button
@@ -556,25 +681,36 @@ export default function AuthAndPrivacyPage() {
                 onClick={() => void handleJoinClass()}
                 className="rounded-xl bg-violet-600 px-4 py-2 font-bold text-white hover:bg-violet-500"
               >
-                加入班级
+                {pick(AUTH_COPY.joinClassBtn)}
               </button>
             </div>
-            {joinMsg && <div className="text-indigo-300 font-medium">{joinMsg}</div>}
+            {joinState && (
+              <div
+                className={`font-medium ${
+                  joinState.ok ? "text-emerald-300" : "text-rose-300"
+                }`}
+              >
+                {joinState.ok
+                  ? AUTH_COPY.joinClassSuccessMsg(
+                      localizeClassroomName(joinState.classroom, locale),
+                      locale
+                    )
+                  : joinState.error}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Card 4: Live 9-Region PII De-Identification Inspector & Audit Trail */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-4">
+      {/* Card 4: Live 9-Region PII De-Identification Inspector, Audit Trail & 9-Region Regime Matrix */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold text-white flex items-center gap-2">
             <EyeOff className="h-4 w-4 text-emerald-400" />
-            <span>
-              4. 9 地未成年人 PII 物理脱敏盾实时检验台 & 合规审计台账（Zero-PII LLM Gateway）
-            </span>
+            <span>{pick(AUTH_COPY.card4Title)}</span>
           </h2>
           <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-300">
-            <Lock className="h-3.5 w-3.5" /> 数学公式与比例尺数字 100% 零损保留
+            <Lock className="h-3.5 w-3.5" /> {pick(AUTH_COPY.formulaPreservedTag)}
           </span>
         </div>
 
@@ -583,24 +719,47 @@ export default function AuthAndPrivacyPage() {
             <textarea
               rows={3}
               value={sandboxRaw}
-              onChange={(e) => setSandboxRaw(e.target.value)}
+              onChange={(e) => {
+                setSandboxEdited(true);
+                setSandboxRaw(e.target.value);
+              }}
               className="w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-white leading-relaxed"
             />
-            <button
-              type="button"
-              onClick={() => void runPrivacySandbox()}
-              className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white hover:bg-emerald-500"
-            >
-              执行 {regionCode} 法规脱敏检测并写入合规审计日志
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void runPrivacySandbox()}
+                className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white hover:bg-emerald-500"
+              >
+                {AUTH_COPY.runSandboxBtn(regionCode, locale)}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSandboxEdited(false);
+                  setSandboxRaw(getPiiSandboxSample(locale));
+                  setSandboxResult(null);
+                }}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 font-semibold text-slate-300 hover:border-emerald-400"
+              >
+                {pick(AUTH_COPY.sandboxResetBtn)}
+              </button>
+            </div>
 
             {sandboxResult && (
               <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-3.5 space-y-2">
-                <div className="flex justify-between font-mono text-[11px] text-emerald-300">
-                  <span>假名令牌：{sandboxResult.anonToken}</span>
-                  <span>剥离字段：{sandboxResult.redactedTypes.join(", ") || "无"}</span>
+                <div className="flex flex-wrap justify-between gap-2 font-mono text-[11px] text-emerald-300">
+                  <span>
+                    {AUTH_COPY.sandboxTokenLabel(sandboxResult.anonToken, locale)}
+                  </span>
+                  <span>
+                    {AUTH_COPY.sandboxRedactedLabel(
+                      sandboxResult.redactedTypes,
+                      locale
+                    )}
+                  </span>
                 </div>
-                <div className="rounded-lg bg-slate-950 p-2.5 font-mono text-slate-200">
+                <div className="rounded-lg bg-slate-950 p-2.5 font-mono text-slate-200 break-words">
                   {sandboxResult.sanitizedText}
                 </div>
               </div>
@@ -609,7 +768,9 @@ export default function AuthAndPrivacyPage() {
 
           <div className="lg:col-span-6 space-y-2">
             <div className="text-xs font-bold text-slate-300">
-              最近外部 AI 调用隐私合规审计记录（SQLite <code>privacy_audit_logs</code>）：
+              {pick(AUTH_COPY.auditLogTitlePrefix)}
+              <code>privacy_audit_logs</code>
+              {pick(AUTH_COPY.auditLogTitleSuffix)}
             </div>
             <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
               {(data.privacyAuditLogs ?? []).slice(0, 8).map((log) => (
@@ -622,13 +783,57 @@ export default function AuthAndPrivacyPage() {
                       [{log.regionCode}] {log.endpoint} · {log.actorAnonToken}
                     </span>
                     <span className="text-emerald-300">
-                      剥离: {log.redactedFieldsJson.join(",")}
+                      {pick(AUTH_COPY.auditRedactedPrefix)}{" "}
+                      {log.redactedFieldsJson.join(",")}
                     </span>
                   </div>
-                  <div className="text-slate-400 truncate">{log.payloadPreview}</div>
+                  <div className="text-slate-400 truncate">
+                    {localizeAuditPreview(log, locale)}
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* All 9-Region Privacy Regime Cards */}
+        <div className="pt-2 border-t border-slate-800/80 space-y-3">
+          <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <Globe2 className="h-4 w-4 text-emerald-400" />
+            <span>{pick(AUTH_COPY.regimeMatrixTitle)}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.regions.map((r) => {
+              const spec = getLocalizedPrivacyRegime(r.code, locale);
+              const isActive = r.code === regionCode;
+              return (
+                <button
+                  key={r.code}
+                  type="button"
+                  onClick={() => setChildRegion(r.code)}
+                  className={`rounded-xl border p-3.5 text-left space-y-1.5 transition ${
+                    isActive
+                      ? "border-emerald-500/60 bg-emerald-950/20"
+                      : "border-slate-800 bg-slate-950/70 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="font-bold text-white">
+                      {r.flag} {regionName(r.code)} ({r.code})
+                    </span>
+                    <span className="rounded bg-indigo-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-indigo-300">
+                      {AUTH_COPY.minorAgeBadge(spec.minorConsentAge, locale)}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-semibold text-emerald-300">
+                    {spec.regulationName}
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    {spec.summary}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -277,7 +277,7 @@ async function runFullSeed(forceReset: boolean): Promise<void> {
         avatarEmoji: "🎹",
         regionCode: "KR",
         currentGrade: 9,
-        schoolTrack: "韩国 중학교 3학년 (2022 개정 교육과정)",
+        schoolTrack: "대한민국 중학교 3학년 (2022 개정 교육과정)",
         targetTransitionRegion: "SG",
         createdAt: nowIso,
       },
@@ -903,7 +903,7 @@ async function runFullSeed(forceReset: boolean): Promise<void> {
         regulation: PRIVACY_REGIMES.SG.regulationName,
         endpoint: "/api/capture",
         redactedFieldsJson: ["STUDENT_NAME", "PHONE"],
-        payloadPreview: "[REDACTED_NAME] (+65 [REDACTED_PHONE]) 错题归因：条形图已知全长 S$120 求 3/5...",
+        payloadPreview: "[REDACTED_NAME] (+65 [REDACTED_PHONE]) Capture note: Bar model total S$120, find 3/5...",
       },
     ])
     .onConflictDoNothing();

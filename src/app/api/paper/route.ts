@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { ensureSeeded } from "@/db/seed";
 import { customSchoolQuestions, irtItemStats } from "@/db/schema";
-import type { DifficultyTier, RegionCode, SubjectId } from "@/types/taxonomy";
+import type { DifficultyTier, LocaleCode, RegionCode, SubjectId } from "@/types/taxonomy";
 import { buildSmartExamPapers } from "@/lib/engines/smart-capture-and-paper";
 
 export async function POST(req: Request) {
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const regionCode = ((body.regionCode as RegionCode) || "CN") as RegionCode;
+    const locale = (body.locale as LocaleCode | undefined) ?? undefined;
     const subjectId = ((body.subjectId as SubjectId) || "math") as SubjectId;
     const topicIds = Array.isArray(body.topicIds) ? (body.topicIds as string[]) : [];
     const totalItems = Number(body.totalItems ?? 8);
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
     const bundle = buildSmartExamPapers({
       paperTitle,
       regionCode,
+      locale,
       subjectId,
       topicIds,
       totalItems,
