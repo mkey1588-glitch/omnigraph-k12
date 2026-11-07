@@ -14,6 +14,7 @@ import {
 import { usePlatform } from "@/components/PlatformProvider";
 import { KnowledgeGraphCanvas } from "@/components/KnowledgeGraphCanvas";
 import { MathText } from "@/components/MathText";
+import { gradeQuickCheckAnswer } from "@/lib/engines/grader";
 import {
   getLoadingText,
   getMasteryStatusLabel,
@@ -118,9 +119,11 @@ function ExploreContent() {
 
   const handleCheckAnswer = () => {
     if (!firstStep?.checkAnswer) return;
-    const cleanUser = checkInput.trim().toLowerCase();
-    const cleanExp = firstStep.checkAnswer.trim().toLowerCase();
-    setCheckFeedback(cleanUser === cleanExp ? "right" : "wrong");
+    setCheckFeedback(
+      gradeQuickCheckAnswer(firstStep.checkAnswer, checkInput)
+        ? "right"
+        : "wrong"
+    );
   };
 
   return (
@@ -364,7 +367,7 @@ function ExploreContent() {
                     {pick(EXPLORE_COPY.coreIntuitionTitle)}
                   </div>
                   <p className="text-xs leading-relaxed text-slate-200">
-                    {localize(selectedTopic.microLesson.intuition)}
+                    <MathText text={localize(selectedTopic.microLesson.intuition)} />
                   </p>
                   {selectedTopic.microLesson.coreFormula && (
                     <div className="rounded-lg bg-slate-950/90 px-3 py-2 font-mono text-xs font-semibold text-emerald-300">
@@ -396,13 +399,13 @@ function ExploreContent() {
                       🧩 {localize(firstStep.title)}
                     </div>
                     <p className="text-xs text-slate-300">
-                      {localize(firstStep.body)}
+                      <MathText text={localize(firstStep.body)} />
                     </p>
                     {firstStep.checkQuestion && (
                       <div className="space-y-2 pt-1">
                         <div className="text-xs font-semibold text-indigo-300">
                           ⚡ {pick(EXPLORE_COPY.quickCheckPrefix)}
-                          {localize(firstStep.checkQuestion)}
+                          <MathText text={localize(firstStep.checkQuestion)} />
                         </div>
                         <div className="flex gap-2">
                           <input
@@ -457,11 +460,11 @@ function ExploreContent() {
                     </div>
                     <p className="text-xs text-slate-300">
                       <strong>{pick(EXPLORE_COPY.wrongPatternLabel)}</strong>
-                      {localize(m.wrongPattern)}
+                      <MathText text={localize(m.wrongPattern)} />
                     </p>
                     <p className="text-xs text-emerald-300/90">
                       <strong>{pick(EXPLORE_COPY.remediationTipLabel)}</strong>
-                      {localize(m.remediationTip)}
+                      <MathText text={localize(m.remediationTip)} />
                     </p>
                   </div>
                 ))}

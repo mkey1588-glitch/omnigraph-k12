@@ -26,13 +26,13 @@ const CAPTURE_SAMPLE_PRESETS_RAW: Array<{
     ),
     stem: {
       "zh-CN":
-        "我是深圳南山实验中学初三林小宇（电话 13812345678）：电阻 R1 = 6 Ω 与 R2 = 12 Ω 并联在 12V 电源两端，用欧姆定律求并联等效总电阻 R 是多少 Ω？",
+        "深圳南山实验中学初三，我是林小宇（电话 13812345678，邮箱 leo.lin@school.cn）：电阻 R1 = 6 Ω 与 R2 = 12 Ω 并联在 12V 电源两端，用欧姆定律求并联等效总电阻 R 是多少 Ω？",
       "zh-TW":
-        "我是南山國際學校九年級林小宇（電話 +852-9123-4567，信箱 leo.lin@school.edu.hk）：電阻 R1 = 6 Ω 與 R2 = 12 Ω 並聯在 12V 電源兩端，由歐姆定律（Ohm's Law, 1/R）求並聯等效總電阻 R 是多少 Ω？",
-      en: "My name is Alex Chen from Nanshan High School (phone +65-9123-4567, email alex.chen@school.edu): Resistors R1 = 6 Ω and R2 = 12 Ω are connected in a parallel circuit across a 12V source. Using Ohm's law (1/R), find the equivalent resistance R in Ω.",
-      ja: "Nanshan High School 中学3年（電話 +81-9012-3456、メール kenta.sato@school.jp）：抵抗 R1 = 6 Ω と R2 = 12 Ω を 12V 電源に並列接続したとき、オームの法則（Ohm's law, 1/R）を用いて合成抵抗 R [Ω] を求めよ。",
-      ko: "Nanshan High School 중3 학생 (연락처 +82-1012-3456, 이메일 minjun.kim@school.kr): 저항 R1 = 6 Ω 과 R2 = 12 Ω 이 12V 전원에 병렬 연결되어 있을 때, 옴의 법칙(Ohm's law, 1/R)으로 합성 등가저항 R(Ω)을 구하시오.",
-      ms: "My name is Amir Razak dari Nanshan Secondary School (telefon +60-1234-5678, e-mel amir.razak@school.edu.my): Perintang R1 = 6 Ω dan R2 = 12 Ω disambung dalam litar selari pada bekalan 12V. Gunakan Hukum Ohm (ohm, 1/R) untuk mencari rintangan setara R dalam Ω.",
+        "南山國際學校九年級，我是林小宇（電話 0912-345-678，信箱 leo.lin@school.edu.tw）：電阻 R1 = 6 Ω 與 R2 = 12 Ω 並聯在 12V 電源兩端，由歐姆定律（Ohm's Law, 1/R）求並聯等效總電阻 R 是多少 Ω？",
+      en: "Student Name: Alex Chen, Nanshan High School (phone +1-415-555-0192, email alex.chen@school.edu): Resistors R1 = 6 Ω and R2 = 12 Ω are connected in a parallel circuit across a 12V source. Using Ohm's law (1/R), find the equivalent resistance R in Ω.",
+      ja: "南山中学校3年、私は佐藤健太です（電話 090-1234-5678、メール kenta.sato@school.jp）。抵抗 R1 = 6 Ω と R2 = 12 Ω を 12V 電源に並列接続したとき、オームの法則（Ohm's law, 1/R）を用いて合成抵抗 R は何 Ω になりますか？",
+      ko: "남산중학교 3학년 저는 김민준입니다(연락처 010-1234-5678, 이메일 minjun.kim@school.kr): 저항 R1 = 6 Ω과 R2 = 12 Ω이 12V 전원에 병렬 연결되어 있을 때, 옴의 법칙(Ohm's law, 1/R)으로 구한 합성 등가저항 R의 값은 몇 Ω인가요?",
+      ms: "Nama pelajar: Amir Razak, SMK Nanshan (telefon 012-345-6789, e-mel amir.razak@school.edu.my): Perintang R1 = 6 Ω dan R2 = 12 Ω disambung dalam litar selari pada bekalan 12V. Gunakan Hukum Ohm (ohm, 1/R) untuk mencari rintangan setara R dalam Ω.",
     },
     wrongAns: {
       "zh-CN": "18",
@@ -59,8 +59,8 @@ const CAPTURE_SAMPLE_PRESETS_RAW: Array<{
       "zh-TW":
         "實驗室配製溶液：將 250 mL 莫耳濃度（molarity）為 2 mol/L 的 NaCl 溶液加水稀釋（dilution, c1V1）至 500 mL，求溶質的莫耳數 n 是多少 mol？",
       en: "Lab dilution problem: 250 mL of a 2 mol/L NaCl solution (molarity) is diluted with water to 500 mL (c1V1 = c2V2). How many moles (mol) of NaCl solute n are present?",
-      ja: "溶液の希釈（molarity / dilution）：モル濃度 2 mol/L の NaCl 水溶液 250 mL に水を加えて 500 mL に希釈（c1V1）したとき、溶質 NaCl の物質量 n [mol] を求めよ。",
-      ko: "용액 희석 실험(molarity & dilution): 몰농도 2 mol/L 인 NaCl 수용액 250 mL 에 물을 넣어 500 mL 로 희석(c1V1)할 때, 용질 NaCl 의 몰수 n(mol)은 얼마인가?",
+      ja: "溶液の希釈（molarity / dilution）：モル濃度 2 mol/L の NaCl 水溶液 250 mL に水を加えて 500 mL に希釈（c1V1）したとき、溶質 NaCl の物質量 n は何 mol ですか？",
+      ko: "용액 희석 실험(molarity & dilution): 몰농도 2 mol/L인 NaCl 수용액 250 mL에 물을 넣어 500 mL로 희석(c1V1)할 때, 용질 NaCl의 몰수 n(mol)은 몇 mol인가요?",
       ms: "Pencairan larutan makmal (molarity & dilution): 250 mL larutan NaCl berkepekatan 2 mol/L dicairkan dengan air sehingga 500 mL (c1V1). Berapakah bilangan mol zat terlarut n?",
     },
     wrongAns: {
@@ -88,8 +88,8 @@ const CAPTURE_SAMPLE_PRESETS_RAW: Array<{
       "zh-TW":
         "在長度為 n = 1024 的升冪有序陣列（array）中執行二分搜尋（Binary Search, mid），最壞情況下的最大比較次數是多少？",
       en: "When running binary search (mid index) on a sorted array of length n = 1024, what is the worst-case maximum number of comparisons?",
-      ja: "要素数 n = 1024 の昇順ソート済み配列（array）に対して二分探索（binary search, mid）を行うとき、最悪ケースの最大比較回数は何回か？",
-      ko: "길이 n = 1024 인 오름차순 정렬 배열(array)에서 이진 탐색(binary search, mid)을 수행할 때 최악의 경우 최대 비교 횟수는?",
+      ja: "要素数 n = 1024 の昇順ソート済み配列（array）に対して二分探索（binary search, mid）を行うとき、最悪ケースでの最大比較回数は何回ですか？",
+      ko: "길이가 n = 1024인 오름차순 정렬 배열(array)에서 이진 탐색(binary search, mid)을 수행할 때, 최악의 경우 최대 비교 횟수는 몇 번인가요?",
       ms: "Apabila menjalankan carian binari (binary search, mid) pada tatasusunan terisih (array) sepanjang n = 1024, berapakah bilangan perbandingan maksimum dalam kes terburuk?",
     },
     wrongAns: {
@@ -117,8 +117,8 @@ const CAPTURE_SAMPLE_PRESETS_RAW: Array<{
       "zh-TW":
         "關係子句（relative clause）語法題：This is the science museum ______ we visited with our teacher last Friday. (which / where)",
       en: "Relative clause grammar check: This is the science museum ______ we visited with our teacher last Friday. (which / where)",
-      ja: "関係節（relative clause）英文法問題：This is the science museum ______ we visited with our teacher last Friday. (which / where)",
-      ko: "관계사절(relative clause) 영문법 문제: This is the science museum ______ we visited with our teacher last Friday. (which / where)",
+      ja: "関係詞節（relative clause）の英文法問題：空欄に入る適切な語はどちらですか？ This is the science museum ______ we visited with our teacher last Friday. (which / where)",
+      ko: "관계사절(relative clause) 영문법 문제: 다음 빈칸에 알맞은 관계사는 무엇인가요? This is the science museum ______ we visited with our teacher last Friday. (which / where)",
       ms: "Soalan tatabahasa klausa relatif (relative clause): This is the science museum ______ we visited with our teacher last Friday. (which / where)",
     },
     wrongAns: {
@@ -146,8 +146,8 @@ const CAPTURE_SAMPLE_PRESETS_RAW: Array<{
       "zh-TW":
         "閱讀論證分析：調查顯示「常去圖書館的學生近視率更高，因此去圖書館會導致近視」，指出該推論犯了哪類邏輯謬誤（fallacy）？",
       en: "Critical reading argument analysis: A survey shows that students who visit the library frequently have higher myopia rates, concluding that libraries cause myopia. Which logical fallacy (correlation vs. causation or survivorship) does this commit?",
-      ja: "批判的読解・論理的誤謬（fallacy）分析：「図書館によく通う生徒ほど近視率が高い。したがって図書館に行くと近視になる」という推論が含む論理的誤謬は何か？",
-      ko: "비판적 독해 논리적 오류(fallacy) 분석: '도서관에 자주 가는 학생일수록 근시율이 높으므로 도서관이 근시를 유발한다'는 추론이 범한 논리적 오류는?",
+      ja: "批判的読解・論理的誤謬（fallacy）の分析：「図書館によく通う生徒ほど近視率が高い。したがって図書館に行くと近視になる」という推論には、どのような論理的誤謬が含まれていますか？",
+      ko: "비판적 독해 논리적 오류(fallacy) 분석: '도서관에 자주 가는 학생일수록 근시율이 높으므로 도서관이 근시를 유발한다'라는 추론이 범한 논리적 오류는 무엇인가요?",
       ms: "Analisis hujah bacaan kritis (fallacy): Tinjauan mendapati pelajar yang kerap ke perpustakaan mempunyai kadar rabun lebih tinggi, lalu menyimpulkan perpustakaan menyebabkan rabun. Apakah falasi logik dalam kesimpulan ini?",
     },
     wrongAns: {
@@ -178,13 +178,13 @@ export function getCaptureSamplePresets(locale: LocaleCode): CaptureSamplePreset
 
 const PII_SANDBOX_SAMPLE_BY_LOCALE: Record<LocaleCode, string> = {
   "zh-CN":
-    "老师您好，我是深圳南山实验中学的林小宇（手机 13812345678，邮箱 leo.lin@school.cn），请问 1/R = 1/6 + 1/12 为什么不能直接把分母相加？",
+    "老师您好，深圳南山实验中学初三，我是林小宇（手机 13812345678，邮箱 leo.lin@school.cn），请问 1/R = 1/6 + 1/12 为什么不能直接把分母相加？",
   "zh-TW":
-    "老師您好，我是南山國際學校的林小宇（手機 +852-9123-4567，信箱 leo.lin@school.edu.hk），請問 1/R = 1/6 + 1/12 為什麼不能直接把分母相加？",
-  en: "Hello teacher, my name is Leo Lin from Nanshan High School (mobile +65-9123-4567, email leo.lin@school.edu). Why can't we add the denominators directly in 1/R = 1/6 + 1/12?",
-  ja: "先生こんにちは、Nanshan High School の Kenta Sato です（電話 +81-9012-3456、メール kenta.sato@school.jp）。1/R = 1/6 + 1/12 で分母をそのまま足してはいけない理由を教えてください。",
-  ko: "선생님 안녕하세요, Nanshan High School 학생 Minjun Kim 입니다 (휴대폰 +82-1012-3456, 이메일 minjun.kim@school.kr). 1/R = 1/6 + 1/12 에서 왜 분모를 바로 더하면 안 되나요?",
-  ms: "Helo cikgu, my name is Amir Razak dari Nanshan Secondary School (telefon +60-1234-5678, e-mel amir.razak@school.edu.my). Mengapa kita tidak boleh menambah penyebut secara terus dalam 1/R = 1/6 + 1/12?",
+    "老師您好，南山國際學校九年級，我是林小宇（手機 0912-345-678，信箱 leo.lin@school.edu.tw），請問 1/R = 1/6 + 1/12 為什麼不能直接把分母相加？",
+  en: "Hello teacher, Student Name: Leo Lin, Nanshan High School (mobile +1-415-555-0192, email leo.lin@school.edu). Why can't we add the denominators directly in 1/R = 1/6 + 1/12?",
+  ja: "先生こんにちは、南山中学校の私は佐藤健太です（電話 090-1234-5678、メール kenta.sato@school.jp）。1/R = 1/6 + 1/12 で分母をそのまま足してはいけない理由を教えてください。",
+  ko: "선생님 안녕하세요, 남산중학교에 다니는 저는 김민준입니다(휴대폰 010-1234-5678, 이메일 minjun.kim@school.kr). 1/R = 1/6 + 1/12에서 왜 분모를 바로 더하면 안 되나요?",
+  ms: "Helo cikgu, Nama pelajar: Amir Razak, SMK Nanshan (telefon 012-345-6789, e-mel amir.razak@school.edu.my). Mengapakah kita tidak boleh menambah penyebut secara terus dalam 1/R = 1/6 + 1/12?",
 };
 
 export function getPiiSandboxSample(locale: LocaleCode): string {
@@ -274,7 +274,7 @@ export const WRONG_BOOK_COPY = {
     "Loading FSRS Spaced-Repetition Wrong-Question Ledger…",
     "FSRS 間隔反復・誤答ノートを読み込み中…",
     "FSRS 간격 반복 오답 노트를 불러오는 중…",
-    "Memuatkan Buku Salah Ulangan Berjarak FSRS…",
+    "Memuatkan Buku Kesilapan Ulangan Berjarak FSRS…",
     "正在載入 FSRS 間隔重複錯題帳本…"
   ),
   headerTitle: (studentLabel: string, locale: LocaleCode) =>
@@ -283,16 +283,16 @@ export const WRONG_BOOK_COPY = {
       c(
         `FSRS 智能错题本 & 防刷穿孪生变式清零台（${studentLabel}）`,
         `FSRS Smart Wrong-Book & Twin-Variant Clearance (${studentLabel})`,
-        `FSRS スマート誤答ノート＆双子類題クリア台（${studentLabel}）`,
+        `FSRS スマート誤答ノート＆ペア類題クリア台（${studentLabel}）`,
         `FSRS 스마트 오답 노트 & 쌍둥이 변형문제 클리어 (${studentLabel})`,
-        `Buku Salah Pintar FSRS & Arena Variasi Kembar (${studentLabel})`,
+        `Buku Kesilapan Pintar FSRS & Arena Variasi Kembar (${studentLabel})`,
         `FSRS 智慧錯題本 & 防刷穿孿生變式清零台（${studentLabel}）`
       )
     ),
   subtitle: c(
     "基于 FSRS 动态遗忘曲线（难度 D · 稳定性 S · 记忆保留率 R）调度复习；每次重练实时生成全新参数孪生题，连续 3 次掌握自动归档清零。",
     "Scheduled via the FSRS forgetting curve (Difficulty D · Stability S · Retrievability R); spawns fresh parameterized Twin Variants each review and archives after 3 consecutive Good/Easy clears.",
-    "FSRS 忘却曲線（難易度 D・安定性 S・記憶保持率 R）で復習を最適化。毎回新しい数値の双子類題を生成し、3連続クリアで完全習得へ移行します。",
+    "FSRS 忘却曲線（難易度 D・安定性 S・記憶保持率 R）で復習を最適化します。毎回新しい数値の類題（ペア問題）を生成し、3連続クリアで完全習得へ移行します。",
     "FSRS 망각곡선(난이도 D · 안정성 S · 기억 유지율 R)에 따라 복습을 스케줄링하며, 매번 새로운 난수 쌍둥이 문제를 생성해 3연속 통과 시 완전 클리어됩니다.",
     "Dijadualkan melalui lengkung lupa FSRS (Kesukaran D · Kestabilan S · Kebolehingatan R); menjana Variasi Kembar baharu setiap ulangan dan selesai selepas 3 kejayaan berturut-turut.",
     "基於 FSRS 動態遺忘曲線（難度 D · 穩定性 S · 記憶保留率 R）排程複習；每次重練即時產生全新參數孿生題，連續 3 次掌握自動歸檔清零。"
@@ -324,7 +324,7 @@ export const WRONG_BOOK_COPY = {
   emptyPending: c(
     "🎉 当前学生所有错题均已清零！可前往「靶向回溯诊断」探索新章节。",
     "🎉 All wrong questions for this student are cleared! Head to Adaptive Diagnose to explore new chapters.",
-    "🎉 現在の誤答はすべてクリア済みです！「遡及アダプティブ診断」で新しい単元に挑戦しましょう。",
+    "🎉 現在の誤答はすべてクリア済みです！「さかのぼり診断」で新しい単元に挑戦しましょう。",
     "🎉 현재 학생의 모든 오답이 클리어되었습니다! '역추적 적응형 진단'에서 새 단원을 탐색해 보세요.",
     "🎉 Semua soalan salah pelajar ini telah diselesaikan! Terokai bab baharu di Diagnosis Adaptif.",
     "🎉 目前學生所有錯題均已清零！可前往「靶向回溯診斷」探索新章節。"
@@ -332,7 +332,7 @@ export const WRONG_BOOK_COPY = {
   emptyCleared: c(
     "暂无已清零错题记录——在右侧连续答对第 3 次孪生变式即可清零晋级！",
     "No cleared records yet — answer a 3rd consecutive Twin Variant in the right panel to graduate an item!",
-    "まだクリア済みの記録はありません。右パネルの双子類題で3連続正解を達成するとクリアになります！",
+    "まだクリア済みの記録はありません。右パネルのペア類題で3連続正解を達成するとクリアになります！",
     "아직 클리어된 오답 기록이 없습니다 — 오른쪽 패널에서 쌍둥이 변형문제를 3연속 맞히면 클리어됩니다!",
     "Tiada rekod selesai lagi — jawab betul Variasi Kembar kali ke-3 berturut-turut di panel kanan!",
     "暫無已清零錯題記錄——在右側連續答對第 3 次孿生變式即可清零晉級！"
@@ -401,7 +401,7 @@ export const WRONG_BOOK_COPY = {
         `Stability S=${s}d`,
         `安定性 S=${s}d`,
         `안정성 S=${s}d`,
-        `Kestabilan S=${s}d`,
+        `Kestabilan S=${s}h`,
         `穩定性 S=${s}d`
       )
     ),
@@ -416,7 +416,7 @@ export const WRONG_BOOK_COPY = {
   spawnTwinBtn: c(
     "生成防背题孪生变式重练",
     "Spawn Anti-Memorization Twin Variant",
-    "暗記防止・双子類題を生成して再演習",
+    "暗記防止・ペア類題を生成して再演習",
     "암기 방지 쌍둥이 변형문제 생성",
     "Jana Variasi Kembar & Ulang Latih",
     "產生防背題孿生變式重練"
@@ -424,7 +424,7 @@ export const WRONG_BOOK_COPY = {
   arenaTitle: c(
     "孪生变式防刷穿演练舱（Twin-Variant Arena）",
     "Twin-Variant Anti-Memorization Arena",
-    "双子類題・転移力検証アリーナ",
+    "ペア類題・転移力検証アリーナ",
     "쌍둥이 변형문제 전이력 검증 아레나",
     "Arena Variasi Kembar Anti-Hafalan",
     "孿生變式防刷穿演練艙（Twin-Variant Arena）"
@@ -440,7 +440,7 @@ export const WRONG_BOOK_COPY = {
   arenaEmptyLead: c(
     "👈 点击左侧任意错题的「生成防背题孪生变式重练」按钮",
     "👈 Click 'Spawn Anti-Memorization Twin Variant' on any card on the left",
-    "👈 左リストの誤答カードから「双子類題を生成して再演習」をクリックしてください",
+    "👈 左リストの誤答カードから「暗記防止・ペア類題を生成して再演習」をクリックしてください",
     "👈 왼쪽 오답 카드의 '암기 방지 쌍둥이 변형문제 생성' 버튼을 클릭하세요",
     "👈 Klik 'Jana Variasi Kembar & Ulang Latih' pada mana-mana kad di sebelah kiri",
     "👈 點擊左側任意錯題的「產生防背題孿生變式重練」按鈕"
@@ -541,7 +541,7 @@ export const WRONG_BOOK_COPY = {
       c(
         `仍未命中（正解：${answer}），连击归零，6 小时后再次调度！`,
         `Not quite (Key: ${answer}) — streak reset to 0, re-queued in 6 hours!`,
-        `不正解（正解：${answer}）。連続記録はリセットされ、6時間後に再出題されます！`,
+        `不正解です（正解：${answer}）。連続記録はリセットされ、6時間後に再出題されます！`,
         `아쉽네요 (정답: ${answer}) — 연속 기록 초기화, 6시간 후 다시 스케줄링됩니다!`,
         `Belum tepat (Jawapan: ${answer}) — rentetan diset semula ke 0, dijadualkan semula dalam 6 jam!`,
         `仍未命中（正解：${answer}），連擊歸零，6 小時後再次排程！`
@@ -562,7 +562,7 @@ export const WRONG_BOOK_COPY = {
   practiceAnotherTwinBtn: c(
     "再练一道新参数孪生题 →",
     "Practice Another Fresh Twin Variant →",
-    "別の数値で双子類題をもう1問解く →",
+    "別の数値でペア類題をもう1問解く →",
     "새로운 쌍둥이 변형문제 한 문제 더 풀기 →",
     "Cuba Satu Lagi Variasi Kembar Baharu →",
     "再練一道新參數孿生題 →"
@@ -614,7 +614,7 @@ export const CAPTURE_COPY = {
   loading: c(
     "正在加载 AI 智能录错题与 9 地课标归因引擎…",
     "Loading AI Smart Capture & 9-Region Curriculum Attribution Engine…",
-    "AI誤答キャプチャ＆9地域カリキュラム帰属エンジンを読み込み中…",
+    "AI誤答キャプチャ＆9地域カリキュラムつまずき原因診断エンジンを読み込み中…",
     "AI 스마트 오답 캡처 및 9개 지역 성취기준 분석 엔진을 불러오는 중…",
     "Memuatkan Rakaman Pintar AI & Enjin Jajaran 9 Rantau…",
     "正在載入 AI 智慧錄錯題與 9 地課標歸因引擎…"
@@ -622,7 +622,7 @@ export const CAPTURE_COPY = {
   title: c(
     "AI 智能拍题 / 录错题归因台（9 地课标锚定 + PII 隐私脱敏盾）",
     "AI Smart Problem Capture & Root-Cause Attribution (9-Region Standards + PII Shield)",
-    "AI スマート誤答キャプチャ＆根本原因診断（9地域基準＋PII保護シールド）",
+    "AI スマート誤答キャプチャ＆つまずき原因診断（9地域基準＋PII保護シールド）",
     "AI 스마트 오답 캡처 & 선수 근본원인 진단 (9개 지역 교육과정 + PII 보호막)",
     "Rakaman Masalah Pintar AI & Surihan Punca (9 Rantau + Perisai Privasi PII)",
     "AI 智慧拍題 / 錄錯題歸因台（9 地課標錨定 + PII 隱私去識別化盾）"
@@ -633,7 +633,7 @@ export const CAPTURE_COPY = {
       c(
         `粘贴纸质试卷错题或上传题目照片 → 自动剥离学生姓名/学校/电话 PII → 精准映射 ${regionCode} 官方课标节点、跨科先修根因与防背题孪生变式。`,
         `Paste a missed worksheet problem or upload a photo → auto-redact student name/school/phone PII → map directly to ${regionCode} official standards, cross-subject prerequisites & Twin Variants.`,
-        `問題文の貼り付けまたは写真アップロード → 氏名・学校・電話番号などの PII を自動除去 → ${regionCode} 公式カリキュラム単元・教科横断の前提原因・双子類題へ即座にマッピング。`,
+        `問題文の貼り付けまたは写真アップロード → 氏名・学校・電話番号などの PII を自動除去 → ${regionCode} 公式カリキュラム単元・教科横断の前提原因・類題（ペア問題）へ即座にマッピングします。`,
         `시험지 오답 지문 붙여넣기 또는 사진 업로드 → 학생 실명·학교·연락처 PII 자동 마스킹 → ${regionCode} 공식 성취기준 단원, 교과 간 선수 원인 및 쌍둥이 변형문제로 정밀 매핑합니다.`,
         `Tampal soalan kertas ujian atau muat naik foto → tanggalkan PII nama/sekolah/telefon secara automatik → petakan terus ke standard rasmi ${regionCode}, prasyarat rentas subjek & Variasi Kembar.`,
         `貼上紙本試卷錯題或上傳題目照片 → 自動剝離學生姓名/學校/電話 PII → 精準對應 ${regionCode} 官方課標節點、跨科先修根因與防背題孿生變式。`
@@ -647,7 +647,7 @@ export const CAPTURE_COPY = {
         `Open ${studentName}'s FSRS Wrong-Book`,
         `${studentName} の FSRS 誤答ノートを開く`,
         `${studentName}의 FSRS 오답 노트 보기`,
-        `Buka Buku Salah FSRS ${studentName}`,
+        `Buka Buku Kesilapan FSRS ${studentName}`,
         `查看 ${studentName} 的 FSRS 錯題本`
       )
     ),
@@ -726,8 +726,8 @@ export const CAPTURE_COPY = {
       c(
         `[拍照识题文件：${fileName}] 已知二次函数 y = (x - 3)^2 - 4，求抛物线顶点坐标与对称轴 x 的值。`,
         `[OCR Image Capture: ${fileName}] Given the quadratic function parabola y = (x - 3)^2 - 4, find the vertex coordinates and the axis of symmetry x.`,
-        `[画像OCR読取：${fileName}] 二次関数の放物線（parabola） y = (x - 3)^2 - 4 について、頂点（vertex）の座標と対称軸（axis of symmetry）x の値を求めよ。`,
-        `[이미지 OCR 인식: ${fileName}] 이차함수 포물선(parabola) y = (x - 3)^2 - 4 의 꼭짓점(vertex) 좌표와 대칭축(axis of symmetry) x 의 값을 구하시오.`,
+        `[画像OCR読取：${fileName}] 二次関数の放物線（parabola） y = (x - 3)^2 - 4 について、頂点（vertex）の座標と対称軸（axis of symmetry）x の値を求めてください。`,
+        `[이미지 OCR 인식: ${fileName}] 이차함수 포물선(parabola) y = (x - 3)^2 - 4의 꼭짓점(vertex) 좌표와 대칭축(axis of symmetry) x의 값을 구하시오.`,
         `[Imbasan OCR Imej: ${fileName}] Diberi fungsi kuadratik parabola y = (x - 3)^2 - 4, cari koordinat verteks (vertex) dan paksi simetri (axis of symmetry) x.`,
         `[拍照識題檔案：${fileName}] 已知二次函數 y = (x - 3)^2 - 4，求拋物線（parabola）頂點座標（vertex）與對稱軸（axis of symmetry）x 的值。`
       )
@@ -783,7 +783,7 @@ export const CAPTURE_COPY = {
   analyzingBtn: c(
     "正在执行 PII 脱敏与 9 地课标图谱溯源…",
     "Redacting PII & Tracing 9-Region Knowledge Graph…",
-    "PII マスキング＆9地域知識グラフ遡及解析を実行中…",
+    "PII マスキング＆9地域知識グラフさかのぼり解析を実行中…",
     "PII 비식별화 및 9개 지역 지식그래프 역추적 중…",
     "Menyahpengenalan PII & Menyurih Graf 9 Rantau…",
     "正在執行 PII 去識別化與 9 地課標圖譜溯源…"
@@ -791,7 +791,7 @@ export const CAPTURE_COPY = {
   runAnalyzeBtn: c(
     "开始 AI 智能归因 · 定位先修病灶并生成孪生题",
     "Run AI Attribution · Trace Root Causes & Spawn Twin Variant",
-    "AI 帰属診断を開始・前提の弱点特定＆双子類題を生成",
+    "AI つまずき原因診断を開始・前提の弱点特定＆ペア類題を生成",
     "AI 스마트 진단 시작 · 선수 병목 추적 및 쌍둥이 문제 생성",
     "Jalankan Analisis AI · Kesan Punca & Jana Variasi Kembar",
     "開始 AI 智慧歸因 · 定位先修病灶並產生孿生題"
@@ -807,7 +807,7 @@ export const CAPTURE_COPY = {
   waitingTitle: c(
     "等待错题归因分析",
     "Ready for Problem Attribution",
-    "誤答の帰属診断待機中",
+    "つまずき原因診断の待機中",
     "오답 귀인 분석 대기 중",
     "Sedia untuk Analisis Masalah",
     "等待錯題歸因分析"
@@ -818,7 +818,7 @@ export const CAPTURE_COPY = {
       c(
         `点击左侧「开始 AI 智能归因」按钮，系统将先通过 9 地未成年人 PII 脱敏盾剥离姓名、学校与联系方式，再精准锚定至 ${regionCode} 课标微技能节点与上游跨科根因。`,
         `Click "Run AI Attribution" on the left. The 9-Region Minor PII Shield will strip names, schools, and contact info before anchoring to ${regionCode} micro-topic standards and upstream cross-subject root causes.`,
-        `左側の「AI 帰属診断を開始」をクリックすると、9地域未成年 PII 保護シールドで氏名・学校・連絡先を除去した上で、${regionCode} 基準のマイクロ単元と上流の前提原因を特定します。`,
+        `左側の「AI つまずき原因診断を開始」をクリックすると、9地域未成年 PII 保護シールドで氏名・学校・連絡先を除去した上で、${regionCode} 基準のマイクロ単元と上流の前提原因を特定します。`,
         `왼쪽의 'AI 스마트 진단 시작' 버튼을 클릭하면 9개 지역 미성년자 PII 보호막이 실명·학교·연락처를 분리한 뒤 ${regionCode} 교육과정 마이크로 단원과 상위 선수 원인을 정밀 매핑합니다.`,
         `Klik "Jalankan Analisis AI" di sebelah kiri. Perisai PII Bawah Umur 9 Rantau akan menanggalkan nama, sekolah dan kenalan sebelum memetakan ke nod mikro ${regionCode} serta punca huluan.`,
         `點擊左側「開始 AI 智慧歸因」按鈕，系統將先透過 9 地未成年人 PII 去識別化盾剝離姓名、學校與聯絡方式，再精準錨定至 ${regionCode} 課標微技能節點與上游跨科根因。`
@@ -844,7 +844,7 @@ export const CAPTURE_COPY = {
         `Pseudonymous Token: ${token}`,
         `匿名トークン：${token}`,
         `가명 토큰: ${token}`,
-        `Token Namaaran: ${token}`,
+        `Token Nama Samaran: ${token}`,
         `匿名權杖：${token}`
       )
     ),
@@ -919,7 +919,7 @@ export const CAPTURE_COPY = {
   upstreamChainTitle: c(
     "上游先修与跨学科根因链路（点击可直接跳转回溯诊断）：",
     "Upstream Prerequisite & Cross-Subject Root-Cause Chain (click to launch Adaptive Diagnose):",
-    "上流の前提単元＆教科横断ルート原因（クリックで遡及診断へ移動）：",
+    "上流の前提単元＆教科横断ルート原因（クリックでさかのぼり診断へ移動）：",
     "상위 선수 단원 및 교과 간 근본원인 체인 (클릭 시 역추적 진단으로 이동):",
     "Rantaian Prasyarat Huluan & Punca Rentas Subjek (klik untuk Diagnosis Adaptif):",
     "上游先修與跨學科根因鏈路（點擊可直接跳轉回溯診斷）："
@@ -945,7 +945,7 @@ export const CAPTURE_COPY = {
     "Saved to FSRS Wrong-Book (ID ",
     "FSRS 誤答ノートに登録しました（ID ",
     "FSRS 오답 노트에 저장됨 (ID ",
-    "Disimpan ke Buku Salah FSRS (ID ",
+    "Disimpan ke Buku Kesilapan FSRS (ID ",
     "已收錄至 FSRS 錯題本（編號 "
   ),
   savedSuffix: c(
@@ -961,7 +961,7 @@ export const CAPTURE_COPY = {
     "Save to FSRS Wrong-Book & Start 3-Streak Clearance",
     "FSRS 誤答ノートに追加して3連続クリアを開始",
     "FSRS 오답 노트에 추가하고 3연속 클리어 시작",
-    "Simpan ke Buku Salah FSRS & Mulakan Rentetan 3",
+    "Simpan ke Buku Kesilapan FSRS & Mulakan Rentetan 3",
     "一鍵加入 FSRS 錯題本並開啟三連清零計畫"
   ),
   exploreNodeLink: c(
@@ -975,7 +975,7 @@ export const CAPTURE_COPY = {
   instantTwinTitle: c(
     "🧬 即时生成的防背题同构「孪生变式题」（立即检验是否真正搞懂）：",
     "🧬 Instant Anti-Memorization Isomorphic Twin Variant (verify transfer right now):",
-    "🧬 即時生成された暗記防止「双子類題」（本当に理解できたか今すぐ確認）：",
+    "🧬 即時生成された暗記防止「類題（ペア問題）」（本当に理解できたか今すぐ確認）：",
     "🧬 즉시 생성된 암기 방지 동형 '쌍둥이 변형문제' (개념 전이 즉시 확인):",
     "🧬 Variasi Kembar Seiras Segera (uji kefahaman sebenar sekarang):",
     "🧬 即時產生的防背題同構「孿生變式題」（立即檢驗是否真正搞懂）："
@@ -983,7 +983,7 @@ export const CAPTURE_COPY = {
   instantTwinPlaceholder: c(
     "输入孪生变式题答案…",
     "Enter Twin Variant answer…",
-    "双子類題の解答を入力…",
+    "ペア類題の解答を入力…",
     "쌍둥이 변형문제 정답 입력…",
     "Masukkan jawapan variasi kembar…",
     "輸入孿生變式題答案…"
@@ -999,7 +999,7 @@ export const CAPTURE_COPY = {
   twinRightPrefix: c(
     "🎉 变式秒通！解析：",
     "🎉 Nailed the Twin Variant! Explanation: ",
-    "🎉 双子類題クリア！解説：",
+    "🎉 ペア類題クリア！解説：",
     "🎉 쌍둥이 변형문제 정답! 해설: ",
     "🎉 Variasi Kembar Tepat! Penjelasan: ",
     "🎉 變式秒通！解析："
@@ -1011,7 +1011,7 @@ export const CAPTURE_COPY = {
         `再试一次！正确答案是 ${answer}。解析：`,
         `Try once more! The correct answer is ${answer}. Explanation: `,
         `もう一歩！正解は ${answer} です。解説：`,
-        `다시 확인해 보세요! 정답은 ${answer} 입니다. 해설: `,
+        `다시 확인해 보세요! 정답은 ${answer}입니다. 해설: `,
         `Cuba lagi! Jawapan betul ialah ${answer}. Penjelasan: `,
         `再試一次！正確答案是 ${answer}。解析：`
       )
@@ -1193,7 +1193,7 @@ export const AUTH_COPY = {
         `Signed in! Active identity: ${emoji} ${name} (Pseudonymous Token: ${anonToken})`,
         `ログイン成功！現在のID：${emoji} ${name}（匿名準拠トークン：${anonToken}）`,
         `로그인 성공! 현재 계정: ${emoji} ${name} (가명 준수 토큰: ${anonToken})`,
-        `Berjaya log masuk! Identiti aktif: ${emoji} ${name} (Token Namaaran: ${anonToken})`,
+        `Berjaya log masuk! Identiti aktif: ${emoji} ${name} (Token Nama Samaran: ${anonToken})`,
         `登入成功！目前身分：${emoji} ${name}（匿名合規權杖：${anonToken}）`
       )
     ),
@@ -1329,7 +1329,7 @@ export const AUTH_COPY = {
         `✅ 学生已凭邀请码加入班级《${className}》！教师端热力图将实时同步其掌握度。`,
         `✅ Joined classroom "${className}"! Teacher Hub heatmaps now sync this student's live mastery.`,
         `✅ クラス「${className}」に参加しました！教員ダッシュボードのヒートマップにリアルタイム同期されます。`,
-        `✅ 「${className}」 학급에 합류했습니다! 교사 연구실 히트맵에 성취도가 실시간 동기화됩니다.`,
+        `✅ '${className}' 학급에 합류했습니다! 교사 연구실 히트맵에 성취도가 실시간 동기화됩니다.`,
         `✅ Berjaya menyertai kelas "${className}"! Peta haba Hab Guru kini menyegerakkan penguasaan pelajar ini.`,
         `✅ 學生已憑邀請碼加入班級《${className}》！教師端熱力圖將即時同步其掌握度。`
       )
@@ -1378,7 +1378,7 @@ export const AUTH_COPY = {
         `Pseudonym Token: ${token}`,
         `仮名トークン：${token}`,
         `가명 토큰: ${token}`,
-        `Token Namaaran: ${token}`,
+        `Token Nama Samaran: ${token}`,
         `假名權杖：${token}`
       )
     ),

@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { ALL_QUESTION_TEMPLATES } from "../src/data/canonical-graph";
+import { ALL_CANONICAL_TOPICS, ALL_QUESTION_TEMPLATES, CANONICAL_EDGES } from "../src/data/canonical-graph";
 import { generateQuestion } from "../src/lib/engines/item-generator";
 import {
   areAlgebraicExpressionsEquivalent,
   gradeQuestionResponse,
+  gradeQuickCheckAnswer,
   parseRational,
   areRationalsEqual,
 } from "../src/lib/engines/grader";
+import { tokenizeMathText } from "../src/components/MathText";
+import { localizeChoice, localizeExplanation, localizePrompt, toTraditionalChinese } from "../src/lib/i18n";
 import {
   applyDiagnosticAnswer,
   createDiagnosticSession,
@@ -28,7 +31,6 @@ import {
   analyzeCapturedWrongQuestion,
   buildSmartExamPapers,
 } from "../src/lib/engines/smart-capture-and-paper";
-import { CANONICAL_EDGES } from "../src/data/canonical-graph";
 
 async function runAllEngineTests(): Promise<void> {
   console.log("🔬 Running OmniGraph K12 Core Engine Test Suite...");
@@ -64,41 +66,236 @@ async function runAllEngineTests(): Promise<void> {
     false,
     "(x + 3)^2 must NOT equal Freshman's Dream x^2 + 9"
   );
-  console.log("  ✔ Grader: rational, percentage, mixed-fraction & algebraic identity checks passed");
 
-  // 2. Test All 90 Parameterized Question Templates (Self-consistency + Anti-memorization Twin Variants)
-  for (const tpl of ALL_QUESTION_TEMPLATES) {
-    const q0 = generateQuestion({
-      templateId: tpl.id,
-      seed: "unit_test_seed",
-      regionCode: "SG",
-      variantIndex: 0,
+  // Pedagogical Guardrail A: Reject verbatim copy-pasted unexpanded / uncombined algebraic prompts!
+  {
+    const algInst = generateQuestion({
+      templateId: "tpl_math_special_products_challenge",
+      seed: "copy_paste_guard",
+      regionCode: "US",
     });
-    const q0Same = generateQuestion({
-      templateId: tpl.id,
-      seed: "unit_test_seed",
-      regionCode: "SG",
-      variantIndex: 0,
-    });
-    assert.equal(q0.promptZh, q0Same.promptZh, `Deterministic seed check failed for ${tpl.id}`);
-    assert.ok(q0.promptZh.length > 5 && q0.promptEn.length > 5, `Bilingual prompt missing on ${tpl.id}`);
+    assert.equal(gradeQuestionResponse(algInst, algInst.answer).isCorrect, true);
+    const unexpandedCopy = gradeQuestionResponse(algInst, `(${algInst.answer})`);
+    assert.equal(unexpandedCopy.isCorrect, false, "Bracketed unexpanded expression must NOT pass!");
 
-    // Must grade its own canonical answer as 100% correct!
-    const selfGrade = gradeQuestionResponse(q0, q0.answer);
+    const sqMock = { ...algInst, answer: "x^2 + 12x + 36", itemType: "expression" as const };
     assert.equal(
-      selfGrade.isCorrect,
-      true,
-      `Template ${tpl.id} failed self-grading for answer "${q0.answer}"`
+      gradeQuestionResponse(sqMock, "(x + 6)^2").isCorrect,
+      false,
+      "Verbatim (x + 6)^2 must be rejected on expansion item!"
     );
+    assert.equal(
+      gradeQuestionResponse(sqMock, "x^2 + 6x + 6x + 36").isCorrect,
+      false,
+      "Uncombined like terms x^2 + 6x + 6x + 36 must be rejected!"
+    );
+    assert.equal(gradeQuestionResponse(sqMock, "x^2 + 12x + 36").isCorrect, true);
+  }
 
-    // Unordered multi-root reversal check (e.g. quadratic roots "5, -1" vs "-1, 5")
-    if (q0.unorderedMulti && q0.itemType === "numeric") {
-      const reversed = q0.answer.split(",").map((s) => s.trim()).reverse().join(", ");
-      const revGrade = gradeQuestionResponse(q0, reversed);
-      assert.equal(revGrade.isCorrect, true, `Unordered multi-root reversal failed on ${tpl.id}`);
+  // Pedagogical Guardrail B: Enforce reduced fractions when requireSimplifiedFraction is true!
+  {
+    const fracInst = generateQuestion({
+      templateId: "tpl_math_frac_add_sub_standard",
+      seed: "frac_reduce_guard",
+      regionCode: "CN",
+    });
+    const fracMock = {
+      ...fracInst,
+      answer: "7/12",
+      requireSimplifiedFraction: true,
+      itemType: "numeric" as const,
+    };
+    const unred = gradeQuestionResponse(fracMock, "14/24");
+    assert.equal(unred.isCorrect, false, "Unreduced 14/24 must be rejected on lowest-terms item!");
+    assert.equal(unred.detectedMisconception, "misc_unsimplified_fraction");
+    assert.equal(gradeQuestionResponse(fracMock, "7/12").isCorrect, true);
+  }
+
+  // Pedagogical Guardrail C: CJK enumeration comma `、`, multi-locale conjunctions, and currency prefixes!
+  {
+    const quadInst = generateQuestion({
+      templateId: "tpl_math_quad_roots_standard",
+      seed: "ime_comma_guard",
+      regionCode: "JP",
+    });
+    const parts = quadInst.answer.split(",").map((s) => s.trim());
+    if (parts.length === 2) {
+      assert.equal(gradeQuestionResponse(quadInst, `${parts[1]}、${parts[0]}`).isCorrect, true);
+      assert.equal(gradeQuestionResponse(quadInst, `${parts[0]} または ${parts[1]}`).isCorrect, true);
+      assert.equal(gradeQuestionResponse(quadInst, `${parts[0]} 또는 ${parts[1]}`).isCorrect, true);
+      assert.equal(gradeQuestionResponse(quadInst, `${parts[0]} atau ${parts[1]}`).isCorrect, true);
+    }
+    const pctInst = generateQuestion({
+      templateId: "tpl_math_ratio_percent_standard",
+      seed: "currency_strip_guard",
+      regionCode: "US",
+    });
+    assert.equal(gradeQuestionResponse(pctInst, `$${pctInst.answer}`).isCorrect, true);
+    assert.equal(gradeQuestionResponse(pctInst, `RM ${pctInst.answer}`).isCorrect, true);
+    assert.equal(gradeQuestionResponse(pctInst, `HK$${pctInst.answer}`).isCorrect, true);
+
+    assert.equal(gradeQuickCheckAnswer("6", "+6"), true, "Oxidation state +6 must match 6");
+    assert.equal(gradeQuickCheckAnswer("5, -1", "-1、5"), true, "Quick check must accept reversed `、` roots");
+  }
+  console.log("  ✔ Grader: rational, algebraic simplification guardrails, reduced-fraction & IME/currency checks passed");
+
+  // 2. Test All 150 Parameterized Question Templates (Zero-Collision, Zero-Leak, MathText Balance & dTier Variety)
+  const BAD_FALLBACK_RE = /\(变式\+|\(alt \+|別案\s*\+|변형\s*\+|alternatif\s*\+/i;
+  const BAD_ALGEBRA_RE = /(?:^|[^\d.])0x\b|(?:^|[+\-\s])1x\b|-1x\b|\+\s*-\d|Having saw/i;
+  const RAW_LATEX_IN_PROSE_RE = /\\(?:frac|sum|implies|longrightarrow|text\{|lfloor|Theta)|\^\s*\{|\^\s*\\circ/;
+
+  for (const tpl of ALL_QUESTION_TEMPLATES) {
+    for (let sIdx = 0; sIdx < 25; sIdx++) {
+      const q = generateQuestion({
+        templateId: tpl.id,
+        seed: `stress_seed_${sIdx}`,
+        regionCode: sIdx % 2 === 0 ? "US" : "HK",
+        variantIndex: sIdx,
+      });
+
+      if (sIdx === 0) {
+        const qSame = generateQuestion({
+          templateId: tpl.id,
+          seed: `stress_seed_${sIdx}`,
+          regionCode: "US",
+          variantIndex: 0,
+        });
+        assert.equal(q.promptZh, qSame.promptZh, `Deterministic seed check failed for ${tpl.id}`);
+        assert.ok(q.promptZh.length > 5 && q.promptEn.length > 5, `Bilingual prompt missing on ${tpl.id}`);
+      }
+
+      // Must grade its own canonical answer as 100% correct!
+      const selfGrade = gradeQuestionResponse(q, q.answer);
+      assert.equal(
+        selfGrade.isCorrect,
+        true,
+        `Template ${tpl.id} (seed ${sIdx}) failed self-grading for answer "${q.answer}"`
+      );
+
+      // Zero "(变式+1)" / "(alt +1)" collisions and 4 distinct choices on MCQs
+      if (q.choices) {
+        assert.equal(q.choices.length, 4, `Expected 4 choices on ${tpl.id}`);
+        const zhSet = new Set<string>();
+        for (const ch of q.choices) {
+          assert.equal(
+            BAD_FALLBACK_RE.test(ch.text) || BAD_FALLBACK_RE.test(ch.textEn ?? ""),
+            false,
+            `Collision fallback leaked on ${tpl.id}: ${ch.text} / ${ch.textEn}`
+          );
+          assert.equal(
+            BAD_ALGEBRA_RE.test(ch.text) || BAD_ALGEBRA_RE.test(ch.textEn ?? ""),
+            false,
+            `Malformed algebra/grammar distractor on ${tpl.id}: ${ch.text} / ${ch.textEn}`
+          );
+          zhSet.add(ch.text.trim().toLowerCase());
+        }
+        assert.equal(
+          zhSet.size,
+          4,
+          `Duplicate choice texts on ${tpl.id} (seed ${sIdx}): ${q.choices.map((c) => c.text).join(" | ")}`
+        );
+      }
+
+      // Answer must NEVER appear inside misconceptionsByValue
+      if (q.misconceptionsByValue && q.itemType !== "choice") {
+        for (const wrongKey of Object.keys(q.misconceptionsByValue)) {
+          assert.notEqual(
+            wrongKey.trim().toLowerCase(),
+            q.answer.trim().toLowerCase(),
+            `Canonical answer "${q.answer}" polluted misconceptionsByValue on ${tpl.id}`
+          );
+        }
+      }
+
+      // Zero unsimplified `0x`, `-1x`, `+ -` in canonical answers; zero `V(` or `U = U` in SVGs
+      assert.equal(
+        BAD_ALGEBRA_RE.test(q.answer),
+        false,
+        `Malformed canonical answer "${q.answer}" on ${tpl.id}`
+      );
+      if (q.svgDiagram) {
+        assert.equal(
+          /U\s*=\s*U\b|V\(-?\d/.test(q.svgDiagram),
+          false,
+          `SVG answer leak or U=U on ${tpl.id}`
+        );
+      }
+
+      // MathText tokenizer must leave ZERO raw LaTeX in plain-text segments across locales!
+      if (sIdx < 4) {
+        for (const loc of ["zh-CN", "zh-TW", "en", "ja", "ko", "ms"] as const) {
+          for (const str of [localizePrompt(q, loc, false), localizeExplanation(q, loc, false)]) {
+            for (const seg of tokenizeMathText(str, false)) {
+              if (!seg.isMath) {
+                assert.equal(
+                  RAW_LATEX_IN_PROSE_RE.test(seg.raw),
+                  false,
+                  `Broken $ math delimiter in ${tpl.id} [${loc}]: raw prose segment = "${seg.raw}"`
+                );
+              }
+            }
+          }
+          for (const ch of q.choices ?? []) {
+            for (const seg of tokenizeMathText(localizeChoice(ch, loc, false), false)) {
+              if (!seg.isMath) {
+                assert.equal(
+                  RAW_LATEX_IN_PROSE_RE.test(seg.raw),
+                  false,
+                  `Broken $ math delimiter in choice of ${tpl.id} [${loc}]: "${seg.raw}"`
+                );
+              }
+            }
+          }
+        }
+      }
     }
   }
-  console.log(`  ✔ Item Generator: all ${ALL_QUESTION_TEMPLATES.length} templates passed self-grading & determinism`);
+
+  // Verify all 50 canonical topics have >= 3 distinct prompts across tiers/seeds and clean coreFormula rendering
+  for (const topic of ALL_CANONICAL_TOPICS) {
+    if (topic.microLesson.coreFormula) {
+      for (const seg of tokenizeMathText(topic.microLesson.coreFormula, false)) {
+        if (!seg.isMath) {
+          assert.equal(
+            RAW_LATEX_IN_PROSE_RE.test(seg.raw),
+            false,
+            `Un-delimited coreFormula on ${topic.id}: "${seg.raw}"`
+          );
+        }
+      }
+    }
+    const promptsSeen = new Set<string>();
+    for (const tier of ["basic", "standard", "challenge"] as const) {
+      for (let v = 0; v < 8; v++) {
+        const inst = generateQuestion({
+          topicId: topic.id,
+          difficulty: tier,
+          seed: `variety_${v}`,
+          regionCode: "SG",
+          variantIndex: v,
+        });
+        promptsSeen.add(inst.promptEn);
+      }
+    }
+    assert.ok(
+      promptsSeen.size >= 3,
+      `Topic ${topic.id} lacks parameterization/variety (only ${promptsSeen.size} unique prompt(s) across 24 draws)!`
+    );
+  }
+
+  // Verify s2tw idempotence & polysemy accuracy
+  {
+    const sample = "维多利亚女王与印度皇后在合并同类项、测量干路电流、排除干扰项、审读题干与句子主干时观察沉淀。";
+    const once = toTraditionalChinese(sample);
+    const twice = toTraditionalChinese(once);
+    assert.equal(once, twice, "toTraditionalChinese must be 100% idempotent!");
+    assert.ok(once.includes("皇后") && !once.includes("皇後"));
+    assert.ok(once.includes("合併同類項") && !once.includes("合並"));
+    assert.ok(once.includes("幹路電流") && !once.includes("乾路"));
+    assert.ok(once.includes("干擾項") && !once.includes("乾擾"));
+    assert.ok(once.includes("題幹") && once.includes("主幹") && once.includes("沉澱"));
+  }
+  console.log(`  ✔ Item Generator & MathText: 3,750 instances across ${ALL_QUESTION_TEMPLATES.length} templates passed zero-collision, zero-leak, variety & KaTeX balance`);
 
   // 3. Adaptive DAG Engine Test A: Mastery Confirmation + Ancestor Closure Pruning
   {
@@ -255,8 +452,33 @@ async function runAllEngineTests(): Promise<void> {
         sanitized.sanitizedText.includes("100000"),
       "Math expressions and scale numbers must remain completely intact!"
     );
+
+    // Multi-locale (ja / ko / ms / zh-TW) PII & Govt ID stripping checks
+    const jaSan = sanitizeForExternalAi({
+      rawText: "私は佐藤健太です。東京都立日比谷高等学校に通っています。携帯は 090-1234-5678 です。",
+      userId: "stu_ja",
+      regionCode: "JP",
+    });
+    assert.ok(!jaSan.sanitizedText.includes("佐藤健太") && !jaSan.sanitizedText.includes("090-1234-5678"));
+    assert.ok(jaSan.sanitizedText.includes("[REDACTED_SCHOOL]"));
+
+    const koSan = sanitizeForExternalAi({
+      rawText: "제 이름은 김민준입니다. 서울과학고등학교 재학 중이며 주민번호 080512-3456789 입니다.",
+      userId: "stu_ko",
+      regionCode: "KR",
+    });
+    assert.ok(!koSan.sanitizedText.includes("김민준") && !koSan.sanitizedText.includes("080512-3456789"));
+    assert.ok(koSan.sanitizedText.includes("[REDACTED_SCHOOL]"));
+
+    const msSan = sanitizeForExternalAi({
+      rawText: "Nama saya Ahmad bin Ali dari SMK Taman Desa, MyKad 090102-14-5678.",
+      userId: "stu_ms",
+      regionCode: "MY",
+    });
+    assert.ok(!msSan.sanitizedText.includes("Ahmad bin Ali") && !msSan.sanitizedText.includes("090102-14-5678"));
+    assert.ok(msSan.sanitizedText.includes("[REDACTED_SCHOOL]"));
   }
-  console.log("  ✔ Privacy Shield: 9-region PII stripping & math-token preservation passed");
+  console.log("  ✔ Privacy Shield: 6-locale × 9-region PII stripping & math-token preservation passed");
 
   // 8. Online Elo-IRT 2PL Calibration & School Graph DAG Cycle Guard Test
   {
@@ -305,6 +527,28 @@ async function runAllEngineTests(): Promise<void> {
       cap.upstreamRootCauses.some((u) => u.topicId === "mt_math_rational_eq"),
       "Smart Capture must surface cross-subject rational equations prerequisite!"
     );
+
+    // Multi-locale Smart Capture Attribution (ja / ko / zh-TW)
+    const capJa = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText: "並列回路の合成抵抗とオームの法則で R1=6Ω, R2=12Ω を求める問題",
+      regionCode: "JP",
+      locale: "ja",
+    });
+    assert.equal(capJa.matchedPrimary.topicId, "mt_phy_ohm_law");
+
+    const capKo = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText: "병렬 회로 합성저항과 옴의 법칙을 이용하여 등가 저항 구하기",
+      regionCode: "KR",
+      locale: "ko",
+    });
+    assert.equal(capKo.matchedPrimary.topicId, "mt_phy_ohm_law");
+
+    const capTw = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText: "並聯電路等效電阻與歐姆定律計算",
+      regionCode: "TW",
+      locale: "zh-TW",
+    });
+    assert.equal(capTw.matchedPrimary.topicId, "mt_phy_ohm_law");
 
     const bundle = buildSmartExamPapers({
       regionCode: "SG",

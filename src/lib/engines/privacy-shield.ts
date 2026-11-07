@@ -224,15 +224,26 @@ export function sanitizeForExternalAi(input: SanitizeInput): SanitizeResult {
     }
   }
 
-  // 2. Strip Chinese/English self-introduced names: "我叫张小明", "我是李华", "My name is Alex Chen"
-  const selfIntroZh = /(我叫|我是|学生姓名[:：]\s*)([\u4e00-\u9fa5]{2,4})/g;
+  // 2. Strip 6-locale self-introduced names (zh-CN, zh-TW, en, ja, ko, ms)
+  const selfIntroZh = /(我叫|我是|学生姓名[:：]\s*|學生姓名[:：]\s*|姓名[:：]\s*)([\u4e00-\u9fff]{2,4})/g;
   if (selfIntroZh.test(text)) {
     text = text.replace(selfIntroZh, "$1[REDACTED_NAME]");
     redactedSet.add("SELF_INTRO_NAME");
   }
-  const selfIntroEn = /\b(my name is|student name\s*:\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/gi;
+  const selfIntroEn =
+    /\b([Mm]y name is\s+|[Ss]tudent name\s*:\s*|[Nn]ama saya(?:\s+ialah)?\s+|[Nn]ama(?:\s+murid|\s+pelajar)?\s*:\s*)([A-Z][a-z]+(?:\s+(?:bin|binti|a\/l|a\/p|[A-Z][a-z]+)){0,3})\b/g;
   if (selfIntroEn.test(text)) {
     text = text.replace(selfIntroEn, "$1[REDACTED_NAME]");
+    redactedSet.add("SELF_INTRO_NAME");
+  }
+  const selfIntroJa = /(私は|ぼくは|わたしは|氏名[:：]\s*|名前[:：]\s*)([\u3040-\u30ff\u4e00-\u9fff]{2,8})(?=\s*です|と申します|[、。\n]|$)/g;
+  if (selfIntroJa.test(text)) {
+    text = text.replace(selfIntroJa, "$1[REDACTED_NAME]");
+    redactedSet.add("SELF_INTRO_NAME");
+  }
+  const selfIntroKo = /(제\s*이름은\s*|저는\s*|성명[:：]\s*|이름[:：]\s*)([\uac00-\ud7a3]{2,4})(?=\s*(?:입니다|이에요|예요|이고|이며)|[,.!\s]|$)/g;
+  if (selfIntroKo.test(text)) {
+    text = text.replace(selfIntroKo, "$1[REDACTED_NAME]");
     redactedSet.add("SELF_INTRO_NAME");
   }
 
@@ -243,34 +254,39 @@ export function sanitizeForExternalAi(input: SanitizeInput): SanitizeResult {
     redactedSet.add("EMAIL");
   }
 
-  // 4. Strip National IDs (CN 18-digit ID, HKID, SG NRIC, US SSN) BEFORE phone check
+  // 4. Strip National IDs (CN 18-digit, HKID, TW ID, SG NRIC/FIN, MY MyKad, KR RRN, US SSN) BEFORE phone check
   const nationalIdRegex =
-    /\b(?:\d{17}[\dXx]|[A-Z]{1,2}\d{6}\([\dA]\)|[STFGM]\d{7}[A-Z]|\d{3}-\d{2}-\d{4})\b/g;
+    /\b(?:\d{17}[\dXx]|[A-Z]{1,2}\d{6}\([\dA]\)|[A-Z][1289]\d{8}|[STFGM]\d{7}[A-Z]|\d{6}-\d{2}-\d{4}|\d{6}-[1-4]\d{6}|\d{3}-\d{2}-\d{4})\b/g;
   if (nationalIdRegex.test(text)) {
     text = text.replace(nationalIdRegex, "[REDACTED_ID]");
     redactedSet.add("GOVT_ID");
   }
 
-  // 5. Strip Mobile / Phone numbers (CN 11-digit mobile, international +852/+65/+44/+1, dashed phone numbers)
+  // 5. Strip Mobile / Phone numbers (CN/TW/JP/KR/MY/SG/UK/US mobile & international formats)
   // Carefully structured so plain math constants like 100000 or 3.14159265 are untouched.
   const phoneRegex =
-    /(?:\+\d{1,3}[-\s]?\d{3,4}[-\s]?\d{4,6}|\b1[3-9]\d{9}\b|\b\d{3}-\d{3,4}-\d{4}\b)/g;
+    /(?:\+\d{1,3}[-\s]?\d{2,4}[-\s]?\d{3,4}[-\s]?\d{3,4}|\b1[3-9]\d{9}\b|\b09\d{2}-?\d{3}-?\d{3}\b|\b01[016-9]-\d{3,4}-\d{4}\b|\b0[789]0-\d{4}-\d{4}\b|\b\d{3}-\d{3,4}-\d{4}\b)/g;
   if (phoneRegex.test(text)) {
     text = text.replace(phoneRegex, "[REDACTED_PHONE]");
     redactedSet.add("PHONE");
   }
 
-  // 6. Strip School names (Chinese & English school suffixes)
-  const schoolZhRegex =
-    /[\u4e00-\u9fa5A-Za-z0-9]{2,14}(?:实验中学|外国语学校|第一中学|第二中学|第三中学|附属中学|国际学校|小学|中学)/g;
-  if (schoolZhRegex.test(text)) {
-    text = text.replace(schoolZhRegex, "[REDACTED_SCHOOL]");
+  // 6. Strip School names across zh-CN, zh-TW, ja, ko, ms, and en
+  const schoolCjkRegex =
+    /[\u3040-\u30ff\u4e00-\u9fffA-Za-z0-9]{2,14}(?:实验中学|實驗中學|外国语学校|外國語學校|第一中学|第一中學|第二中学|第二中學|第三中学|第三中學|附属中学|附屬中學|国际学校|國際學校|国民中学|國民中學|国民小学|國民小學|高等学校|中學校|中学校|小學校|小学校|高级中学|高級中學|国中|國中|国小|國小|小学|小學|中学|中學)/g;
+  if (schoolCjkRegex.test(text)) {
+    text = text.replace(schoolCjkRegex, "[REDACTED_SCHOOL]");
     redactedSet.add("SCHOOL_NAME");
   }
-  const schoolEnRegex =
-    /\b(?:[A-Z][a-zA-Z]+\s+){1,3}(?:High School|Secondary School|Primary School|Grammar School|Academy)\b/g;
-  if (schoolEnRegex.test(text)) {
-    text = text.replace(schoolEnRegex, "[REDACTED_SCHOOL]");
+  const schoolKoRegex = /[\uac00-\ud7a3A-Za-z0-9]{2,12}(?:초등학교|중학교|고등학교|국제학교)/g;
+  if (schoolKoRegex.test(text)) {
+    text = text.replace(schoolKoRegex, "[REDACTED_SCHOOL]");
+    redactedSet.add("SCHOOL_NAME");
+  }
+  const schoolEnMsRegex =
+    /\b(?:(?:SMK|SK|SJKC|SJKT|Sekolah\s+(?:Menengah\s+)?Kebangsaan)\s+(?:[A-Z][a-zA-Z]+\s*){1,3}|(?:[A-Z][a-zA-Z]+\s+){1,3}(?:High School|Secondary School|Primary School|Middle School|Grammar School|Junior College|Academy))\b/g;
+  if (schoolEnMsRegex.test(text)) {
+    text = text.replace(schoolEnMsRegex, "[REDACTED_SCHOOL]");
     redactedSet.add("SCHOOL_NAME");
   }
 

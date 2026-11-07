@@ -36,7 +36,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "密度衡量“物质排布有多紧密”：切走一半橡皮，质量÷2、体积也÷2，比值 m/V 纹丝不动！",
         en: "Density measures how tightly mass is packed per unit volume; halving an object halves both m and V, leaving m/V unchanged.",
       },
-      coreFormula: "ρ = m / V,   1 g/cm³ = 1000 kg/m³",
+      coreFormula: "$\\rho = \\frac{m}{V}, \\quad 1\\text{ g/cm}^3 = 1000\\text{ kg/m}^3$",
       steps: [
         {
           title: { "zh-CN": "先统一单位再代入比值", en: "Unify Units Before Dividing" },
@@ -57,13 +57,13 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     generatorKey: "phy_density",
     regionalCodeOverrides: {
       CN: { grade: 8, code: "cps-2022:1.2.3", chapter: "八上 第六章 质量与密度", edition: "人教版物理 2024" },
-      HK: { grade: 7, code: "HK-EDB-IS-U6", chapter: "S1 Integrated Science: Matter & Density", edition: "EDB 綜合科學" },
-      TW: { grade: 8, code: "108-Sci:Me-IV-2", chapter: "國中八上 基本測量與密度", edition: "108課綱 自然" },
+      HK: { grade: 7, code: "HK-EDB-S1-Sci-U6", chapter: "S1 Integrated Science: Matter & Density", edition: "EDB 初中科學" },
+      TW: { grade: 8, code: "108-Sci:Ca-IV-1", chapter: "國中八上 基本測量與密度", edition: "108課綱 自然" },
       SG: { grade: 7, code: "SG-MOE-LSS-D1", chapter: "Lower Sec Science: Physical Properties & Density", edition: "MOE Science" },
       MY: { grade: 7, code: "MY-KSSM-Sains-T1-1.5", chapter: "Form 1 Ketumpatan (Density)", edition: "DSKP Sains" },
       JP: { grade: 7, code: "JP-MEXT-Sci-1A2", chapter: "中1理科 身の回りの物質とその密度", edition: "学習指導要領" },
       KR: { grade: 8, code: "KR-2022:[9과09-01]", chapter: "중2 물질의 특성(밀도)", edition: "2022 개정 과학과" },
-      UK: { grade: 8, code: "UK-NC-KS3-Phy-Matter", chapter: "KS3/GCSE Particle Model & Density", edition: "England NC / GCSE" },
+      UK: { grade: 8, code: "UK-NC-KS3-Phy-Matter", chapter: "KS3 Matter: Particle Model & Density", edition: "England NC KS3" },
       US: { grade: 7, code: "NGSS.MS-PS1-2", chapter: "Middle School Characteristic Properties & Density", edition: "NGSS" },
     },
   },
@@ -100,7 +100,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "上山慢，耗费了整趟旅程 3/4 的时间！平均速度按时间加权，必须用“往返总路程 ÷ 往返总时间”。",
         en: "You spend 3× longer going uphill at 2 m/s than coming down at 6 m/s! Always use Total Distance ÷ Total Time.",
       },
-      coreFormula: "v_avg = (s₁ + s₂) / (t₁ + t₂),   1 m/s = 3.6 km/h",
+      coreFormula: "$v_{\\text{avg}} = \\frac{s_1 + s_2}{t_1 + t_2}, \\quad 1\\text{ m/s} = 3.6\\text{ km/h}$",
       visualType: "parabola",
       steps: [
         {
@@ -122,13 +122,13 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     generatorKey: "phy_motion_speed",
     regionalCodeOverrides: {
       CN: { grade: 8, code: "cps-2022:2.2.2", chapter: "八上 第一章 机械运动（运动的快慢）", edition: "人教版物理 2024" },
-      HK: { grade: 8, code: "HK-EDB-IS-U11 / DSE-Phy-1", chapter: "S2 Force & Motion / S4 Position and Movement", edition: "EDB / HKDSE" },
+      HK: { grade: 8, code: "HK-EDB-S2-Sci-U11", chapter: "S2 Integrated Science: Force & Motion", edition: "EDB 初中科學" },
       TW: { grade: 9, code: "108-Sci:Eb-IV-1", chapter: "國中九上 直線運動（位置、速度與圖形）", edition: "108課綱 理化" },
       SG: { grade: 9, code: "SG-MOE-Phy-O-2.1", chapter: "Sec 3 Physics: Kinematics & Graphical Analysis", edition: "MOE O-Level Physics" },
       MY: { grade: 10, code: "MY-KSSM-Fizik-T4-2.1", chapter: "Form 4 Gerakan Linear & Graf Gerakan", edition: "DSKP Fizik SPM" },
       JP: { grade: 9, code: "JP-MEXT-Sci-3A2", chapter: "中3理科 物体の運動と速さ", edition: "学習指導要領" },
-      KR: { grade: 9, code: "KR-2022:[9과15-01]", chapter: "중3 운동과 에너지(등속 운동)", edition: "2022 개정 과학과" },
-      UK: { grade: 9, code: "UK-GCSE-Phy-Forces-2", chapter: "KS3/GCSE Distance-Time & Velocity-Time Graphs", edition: "AQA / Edexcel GCSE" },
+      KR: { grade: 9, code: "KR-2022:[9과02-01]", chapter: "중학교 과학 운동과 에너지(속력과 운동 그래프)", edition: "2022 개정 과학과" },
+      UK: { grade: 9, code: "UK-NC-KS3-Phy-Motion", chapter: "KS3 Forces & Motion: Distance-Time & Speed Graphs", edition: "England NC KS3" },
       US: { grade: 9, code: "AP-PHY1-1.2", chapter: "High School / AP Physics 1 Representations of Motion", edition: "NGSS / AP" },
     },
   },
@@ -165,7 +165,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "力不是维持速度的原因，而是改变速度（产生加速度 a）的原因！匀速直线运动意味着合力严格等于 0。",
         en: "Force causes acceleration, NOT velocity! Constant velocity means all forces cancel to zero net force.",
       },
-      coreFormula: "∑F = F_pull - f = m · a",
+      coreFormula: "$\\sum F = F_{\\text{pull}} - f = m \\cdot a$",
       visualType: "force_diagram",
       steps: [
         {
@@ -191,8 +191,8 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
       TW: { grade: 9, code: "108-Sci:Eb-IV-4", chapter: "國中九上 牛頓運動定律", edition: "108課綱 理化" },
       SG: { grade: 9, code: "SG-MOE-Phy-O-3.2", chapter: "Sec 3 Dynamics: Balanced/Unbalanced Forces & F = ma", edition: "MOE O-Level Physics" },
       MY: { grade: 10, code: "MY-KSSM-Fizik-T4-2.6", chapter: "Form 4 Daya (Hukum Gerakan Newton Kedua)", edition: "DSKP Fizik SPM" },
-      JP: { grade: 10, code: "JP-MEXT-PhyBasic-1A2", chapter: "中3 力のつり合い / 物理基礎 運動の法則", edition: "学習指導要領" },
-      KR: { grade: 10, code: "KR-2022:[12물리-01-02]", chapter: "통합과학·물리학 뉴턴 운동 법칙", edition: "2022 개정 교육과정" },
+      JP: { grade: 10, code: "JP-MEXT-PhyBasic-1A2", chapter: "物理基礎 力のつり合いと運動の法則", edition: "学習指導要領" },
+      KR: { grade: 10, code: "KR-2022:[12물리01-02]", chapter: "통합과학·물리학 뉴턴 운동 법칙", edition: "2022 개정 교육과정" },
       UK: { grade: 10, code: "UK-GCSE-Phy-Resultant", chapter: "GCSE Physics Resultant Forces & Newton's Second Law", edition: "AQA / Edexcel GCSE" },
       US: { grade: 9, code: "NGSS.HS-PS2-1", chapter: "HS Physics / AP Physics 1 Newton's Second Law", edition: "NGSS / AP" },
     },
@@ -230,7 +230,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "水流类比：串联是一根单行水管，水流量（电流 I）处处相同，水压差（电压 U）分段消耗；并联是河道分叉再汇合，总水流 I = I₁ + I₂，两条支路落差（电压 U）完全相同！",
         en: "Water-pipe analogy: series = single pipe (same flow I, heights U add); parallel = split channels (same height drop U, flows I add).",
       },
-      coreFormula: "Series: I = I₁ = I₂, U = U₁ + U₂  |  Parallel: U = U₁ = U₂, I = I₁ + I₂",
+      coreFormula: "$\\text{Series: } I = I_1 = I_2, \\; U = U_1 + U_2 \\quad | \\quad \\text{Parallel: } U = U_1 = U_2, \\; I = I_1 + I_2$",
       visualType: "circuit",
       steps: [
         {
@@ -252,13 +252,13 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     generatorKey: "phy_circuits_laws",
     regionalCodeOverrides: {
       CN: { grade: 9, code: "cps-2022:3.4.2", chapter: "九年级 电流和电路 / 电压和电阻", edition: "人教版物理" },
-      HK: { grade: 8, code: "HK-EDB-IS-U8", chapter: "S2 Making Use of Electricity (串聯與並聯電路)", edition: "EDB 綜合科學" },
-      TW: { grade: 9, code: "108-Sci:Kp-IV-2", chapter: "國中九上 電路與電壓電流", edition: "108課綱 理化" },
-      SG: { grade: 8, code: "SG-MOE-LSS-Elec", chapter: "Sec 2 Electrical Systems &Sec 4 D.C. Circuits", edition: "MOE Science / Physics" },
+      HK: { grade: 8, code: "HK-EDB-S2-Sci-U8", chapter: "S2 Integrated Science: Making Use of Electricity (串聯與並聯電路)", edition: "EDB 初中科學" },
+      TW: { grade: 9, code: "108-Sci:Kb-IV-1", chapter: "國中九上 電路與電壓電流", edition: "108課綱 理化" },
+      SG: { grade: 8, code: "SG-MOE-LSS-Elec", chapter: "Sec 2 Electrical Systems & Sec 4 D.C. Circuits", edition: "MOE Science / Physics" },
       MY: { grade: 8, code: "MY-KSSM-Sains-T2-7.2", chapter: "Form 2 Pengaliran Arus dalam Litar Bersiri & Selari", edition: "DSKP Sains" },
       JP: { grade: 8, code: "JP-MEXT-Sci-2A1", chapter: "中2理科 電流の性質（直列・並列回路）", edition: "学習指導要領" },
-      KR: { grade: 8, code: "KR-2022:[9과06-02]", chapter: "중2 전기와 자기(저항의 직렬·병렬 연결)", edition: "2022 개정 과학과" },
-      UK: { grade: 8, code: "UK-GCSE-Phy-Elec-2", chapter: "KS3/GCSE Series and Parallel Circuits", edition: "AQA / Edexcel GCSE" },
+      KR: { grade: 8, code: "KR-2022:[9과09-02]", chapter: "중2 전기와 자기(저항의 직렬·병렬 연결)", edition: "2022 개정 과학과" },
+      UK: { grade: 8, code: "UK-NC-KS3-Phy-Elec", chapter: "KS3 Electricity: Series and Parallel Circuits", edition: "England NC KS3" },
       US: { grade: 8, code: "AP-PHY2-11.3", chapter: "Physical Science / Physics DC Circuits", edition: "NGSS / AP" },
     },
   },
@@ -295,7 +295,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "R = U/I 只是电阻的测量计算式，不是决定式——就像公路没车走时路况宽度依然存在；并联相当于多开一条车道，总阻碍 R_总 必然比单条车道更小！",
         en: "Resistance is like road narrowness—it stays fixed at V = 0, and opening a parallel lane always lowers total resistance!",
       },
-      coreFormula: "I = U / R,   R_series = R₁ + R₂,   1/R_parallel = 1/R₁ + 1/R₂,   P = U·I",
+      coreFormula: "$I = \\frac{U}{R}, \\quad R_{\\text{s}} = R_1 + R_2, \\quad \\frac{1}{R_{\\text{p}}} = \\frac{1}{R_1} + \\frac{1}{R_2}, \\quad P = U \\cdot I$",
       visualType: "circuit",
       steps: [
         {
@@ -318,13 +318,13 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     regionalCodeOverrides: {
       CN: { grade: 9, code: "cps-2022:3.4.3", chapter: "九年级 第十七、十八章 欧姆定律与电功率", edition: "人教版物理" },
       HK: { grade: 10, code: "HK-DSE-Phy-IV2", chapter: "S4–S5 Electricity: Ohm's Law & Resistor Networks", edition: "HKDSE Physics" },
-      TW: { grade: 9, code: "108-Sci:Kp-IV-3", chapter: "國中九上 歐姆定律與電功率", edition: "108課綱 理化" },
+      TW: { grade: 9, code: "108-Sci:Kb-IV-2", chapter: "國中九上 歐姆定律與電功率", edition: "108課綱 理化" },
       SG: { grade: 9, code: "SG-MOE-Phy-O-14.2", chapter: "Sec 3–4 Current of Electricity & D.C. Circuits (O-Level)", edition: "MOE Physics" },
       MY: { grade: 11, code: "MY-KSSM-Fizik-T5-2.2", chapter: "Form 5 Elektrik: Hukum Ohm & Kuasa Elektrik", edition: "DSKP Fizik SPM" },
       JP: { grade: 8, code: "JP-MEXT-Sci-2A2", chapter: "中2理科 オームの法則と電力・熱量", edition: "学習指導要領" },
-      KR: { grade: 8, code: "KR-2022:[9과06-03]", chapter: "중2 옴의 법칙과 소비 전력", edition: "2022 개정 과학과" },
+      KR: { grade: 8, code: "KR-2022:[9과09-03]", chapter: "중2 옴의 법칙과 소비 전력", edition: "2022 개정 과학과" },
       UK: { grade: 10, code: "UK-GCSE-Phy-Elec-3", chapter: "GCSE Physics Resistance, V = IR & Power P = VI", edition: "AQA / Edexcel GCSE" },
-      US: { grade: 10, code: "NGSS.HS-PS3-5 / AP-PHY", chapter: "High School Physics Ohm's Law & Power", edition: "NGSS / AP" },
+      US: { grade: 10, code: "NGSS.HS-PS3-5 / AP-PHY-DC", chapter: "High School Physics Ohm's Law & Power", edition: "NGSS / AP" },
     },
   },
   {
@@ -360,7 +360,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "动能公式 ½mv² 里藏着速度的平方 v²！速度翻 2 倍，动能翻 4 倍，刹车摩擦力需要走 4 倍距离才能把能量耗尽。",
         en: "Kinetic energy scales with v²: 2× speed packs 4× energy, requiring 4× stopping distance against constant friction.",
       },
-      coreFormula: "W = F · s,   E_k = (1/2)mv²,   E_p = mgh",
+      coreFormula: "$W = F \\cdot s, \\quad E_k = \\frac{1}{2} m v^2, \\quad E_p = m g h$",
       steps: [
         {
           title: { "zh-CN": "无摩擦滑落：减少的势能 mgh = 增加的动能 ½mv²", en: "Potential Lost Equals Kinetic Gained" },
@@ -385,8 +385,8 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
       TW: { grade: 9, code: "108-Sci:Eb-IV-6", chapter: "國中九上 功與力學能守恆", edition: "108課綱 理化" },
       SG: { grade: 9, code: "SG-MOE-Phy-O-5.1", chapter: "Sec 3 Energy, Work and Power", edition: "MOE O-Level Physics" },
       MY: { grade: 10, code: "MY-KSSM-Fizik-T4-2.8", chapter: "Form 4 Kerja, Tenaga dan Kuasa", edition: "DSKP Fizik SPM" },
-      JP: { grade: 9, code: "JP-MEXT-Sci-3A3", chapter: "中3理科 仕事と力学的エネルギー / 物理基礎", edition: "学習指導要領" },
-      KR: { grade: 9, code: "KR-2022:[9과15-02]", chapter: "중3 일과 역학적 에너지 전환·보존", edition: "2022 개정 과학과" },
+      JP: { grade: 9, code: "JP-MEXT-Sci-3A3", chapter: "中3理科 仕事と力学的エネルギー", edition: "学習指導要領" },
+      KR: { grade: 9, code: "KR-2022:[9과02-04]", chapter: "중3 일과 역학적 에너지 전환·보존", edition: "2022 개정 과학과" },
       UK: { grade: 10, code: "UK-GCSE-Phy-Energy-1", chapter: "GCSE Physics Kinetic & Gravitational Potential Energy", edition: "AQA / Edexcel GCSE" },
       US: { grade: 10, code: "NGSS.HS-PS3-1", chapter: "HS / AP Physics 1 Work-Energy Theorem & Conservation", edition: "NGSS / AP" },
     },
@@ -433,7 +433,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "化学反应只是“拆乐高重拼”——反应前后每一颗碳、氢、氧原子的总数一颗不少，气态二氧化碳飘散在空气里才让灰变轻。",
         en: "Chemical reactions rearrange atoms like LEGO bricks; total atom counts on left and right must match.",
       },
-      coreFormula: "a H₂ + b O₂ → c H₂O   ⇒   2 H₂ + 1 O₂ → 2 H₂O",
+      coreFormula: "$a\\text{H}_2 + b\\text{O}_2 \\to c\\text{H}_2\\text{O} \\implies 2\\text{H}_2 + \\text{O}_2 \\to 2\\text{H}_2\\text{O}$",
       steps: [
         {
           title: { "zh-CN": "先配最复杂分子，最后配单质", en: "Balance Complex Molecules First, Pure Elements Last" },
@@ -455,12 +455,12 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     regionalCodeOverrides: {
       CN: { grade: 9, code: "cks-2022:SR.02", chapter: "九上 第五单元 化学方程式与质量守恒", edition: "人教版化学" },
       HK: { grade: 10, code: "HK-DSE-Chem-III", chapter: "S4 Molar Mass & Chemical Equations", edition: "HKDSE Chemistry" },
-      TW: { grade: 8, code: "108-Sci:Je-IV-1", chapter: "國中八下 化學反應與質量守恆", edition: "108課綱 理化" },
+      TW: { grade: 8, code: "108-Sci:Jd-IV-1", chapter: "國中八下 化學反應與質量守恆", edition: "108課綱 理化" },
       SG: { grade: 9, code: "SG-MOE-Chem-O-5.1", chapter: "Sec 3 Formulae, Stoichiometry & Mole Concept", edition: "MOE Chemistry" },
       MY: { grade: 10, code: "MY-KSSM-Kimia-T4-3.4", chapter: "Form 4 Persamaan Kimia", edition: "DSKP Kimia" },
       JP: { grade: 8, code: "JP-MEXT-Sci-2B2", chapter: "中2理科 化学反応式と質量保存の法則", edition: "学習指導要領" },
-      KR: { grade: 9, code: "KR-2022:[9과11-02]", chapter: "중3 화학 반응식과 질량 보존 법칙", edition: "2022 개정 과학과" },
-      UK: { grade: 9, code: "UK-GCSE-Chem-Quant-1", chapter: "GCSE Quantitative Chemistry & Conservation of Mass", edition: "AQA / Edexcel" },
+      KR: { grade: 9, code: "KR-2022:[9과06-04]", chapter: "중3 화학 반응식과 질량 보존 법칙", edition: "2022 개정 과학과" },
+      UK: { grade: 9, code: "UK-NC-KS3-Chem-React", chapter: "KS3 Chemical Reactions & Conservation of Mass", edition: "England NC KS3" },
       US: { grade: 10, code: "NGSS.HS-PS1-7", chapter: "HS Chemistry Conservation of Atoms & Stoichiometry", edition: "NGSS" },
     },
   },
@@ -504,7 +504,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "每次生育就像父母各自独立抛出一枚印着 A 和 a 的硬币，两次都抛出 a 的概率正是 (1/2) × (1/2) = 1/4（25%）！",
         en: "Each parent flips an independent A/a coin; landing 'aa' happens with probability (1/2)×(1/2) = 25% every pregnancy.",
       },
-      coreFormula: "Aa × Aa  →  1 AA : 2 Aa : 1 aa  (75% Dominant : 25% Recessive)",
+      coreFormula: "$Aa \\times Aa \\to 1\\,AA : 2\\,Aa : 1\\,aa \\quad (75\\%\\text{ Dom} : 25\\%\\text{ Rec})$",
       steps: [
         {
           title: { "zh-CN": "画 2×2 棋盘格列配子组合", en: "Draw the 2×2 Gamete Grid" },
@@ -530,7 +530,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
       SG: { grade: 10, code: "SG-MOE-Bio-O-16", chapter: "Sec 4 Molecular Genetics & Inheritance", edition: "MOE O-Level Biology" },
       MY: { grade: 11, code: "MY-KSSM-Bio-T5-11.1", chapter: "Form 5 Pewarisan Monohibrid", edition: "DSKP Biologi" },
       JP: { grade: 9, code: "JP-MEXT-Sci-3B2", chapter: "中3理科 遺伝の規則性と遺伝子", edition: "学習指導要領" },
-      KR: { grade: 9, code: "KR-2022:[9과13-02]", chapter: "중3 생식과 유전(멘델의 유전 원리)", edition: "2022 개정 과학과" },
+      KR: { grade: 9, code: "KR-2022:[9과12-02]", chapter: "중3 생식과 유전(멘델의 유전 원리)", edition: "2022 개정 과학과" },
       UK: { grade: 10, code: "UK-GCSE-Bio-Inherit", chapter: "GCSE Biology Genetic Crosses & Punnett Squares", edition: "AQA / Edexcel" },
       US: { grade: 9, code: "NGSS.HS-LS3-3", chapter: "HS Biology Variation & Distribution of Traits", edition: "NGSS" },
     },
@@ -575,7 +575,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "不要只看先行词是不是地点/时间，要把先行词塞回从句还原！visit the museum（及物宾语→which）；work in the museum（介词短语状语→where）。",
         en: "Plug the antecedent back into the subordinate clause: 'visit [it]' needs pronoun 'which', while 'work [in it]' needs adverb 'where'.",
       },
-      coreFormula: "Subj/Obj → who / which / that  |  Adverbial → where / when (= prep + which)",
+      coreFormula: "$\\text{Subj/Obj} \\to \\text{who/which/that} \\quad | \\quad \\text{Adverbial} \\to \\text{where/when } (= \\text{prep} + \\text{which})$",
       steps: [
         {
           title: { "zh-CN": "两步还原法：一找先行词，二看从句谓语是否缺宾语", en: "Two-Step Clause Reconstruction" },
@@ -595,14 +595,14 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "eng_relative_clause",
     regionalCodeOverrides: {
-      CN: { grade: 9, code: "ces-2022:3.GR.09", chapter: "九年级 Unit 9 定语从句 / 高一必修一 关系副词深化", edition: "人教版 Go for it! & 高中必修" },
-      HK: { grade: 9, code: "HK-EDB-KS3-Eng-G5", chapter: "S3 Defining & Non-defining Relative Clauses", edition: "EDB English Language" },
+      CN: { grade: 9, code: "CN-2022-Eng-L3-Gram / CN-2017-Eng-B1", chapter: "九年级 定语从句 / 高一必修一 关系代词与关系副词", edition: "义务教育英语课标(2022) & 普通高中英语课标(2017/2020)" },
+      HK: { grade: 9, code: "HK-EDB-S3-Eng-G5", chapter: "S3 Defining & Non-defining Relative Clauses", edition: "EDB English Language" },
       TW: { grade: 9, code: "108-Eng:Ad-IV-3", chapter: "國中九上 關係代名詞與形容詞子句", edition: "108課綱 英語文" },
       SG: { grade: 8, code: "SG-MOE-EL-Sec2-G4", chapter: "Sec 2 Complex Sentences & Relative Clauses", edition: "MOE English Syllabus" },
       MY: { grade: 9, code: "MY-CEFR-B1-G6", chapter: "Form 3–4 Relative Pronouns & Clauses", edition: "KSSM CEFR English" },
       JP: { grade: 9, code: "JP-MEXT-Eng-3G4", chapter: "中3 関係代名詞 / 高1 関係副詞", edition: "学習指導要領" },
-      KR: { grade: 8, code: "KR-2022:[9영04-02]", chapter: "중2·중3 관계대명사와 관계부사", edition: "2022 개정 영어과" },
-      UK: { grade: 7, code: "UK-NC-KS2-Y5-Rel", chapter: "KS2/KS3 Relative Clauses & Omitted Pronouns", edition: "England NC" },
+      KR: { grade: 8, code: "KR-2022:[9영02-06]", chapter: "중2·중3 관계대명사와 관계부사", edition: "2022 개정 영어과" },
+      UK: { grade: 7, code: "UK-NC-KS3-Eng-Rel", chapter: "KS3 Grammar: Relative Clauses & Complex Sentences", edition: "England NC KS3" },
       US: { grade: 7, code: "CCSS.ELA-LITERACY.L.7.1.A", chapter: "Grade 7–9 Adjective/Relative Clauses", edition: "Common Core ELA" },
     },
   },
@@ -646,7 +646,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "十进制逢十进一（位权 1, 10, 100），二进制逢二进一（位权 1, 2, 4, 8, 16）——5 根手指共有 2⁵ = 32 种开关组合！",
         en: "Each binary bit doubles the place value (1, 2, 4, 8, 16), allowing n bits to encode 2ⁿ distinct states.",
       },
-      coreFormula: "(b₃b₂b₁b₀)₂ = b₃·8 + b₂·4 + b₁·2 + b₀·1",
+      coreFormula: "$(b_3 b_2 b_1 b_0)_2 = 8 b_3 + 4 b_2 + 2 b_1 + b_0$",
       steps: [
         {
           title: { "zh-CN": "在每位上方标出 8-4-2-1 再把有 1 的位相加", en: "Label 8-4-2-1 Above Bits and Sum the 1s" },
@@ -671,9 +671,9 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
       TW: { grade: 8, code: "108-IT:t-IV-2", chapter: "國中資訊科技 數位資料表示法", edition: "108課綱" },
       SG: { grade: 9, code: "SG-MOE-Comp-O-1.1", chapter: "O-Level Computing: Data Representation (Binary)", edition: "MOE Computing" },
       MY: { grade: 7, code: "MY-KSSM-ASK-T1-2.1", chapter: "Form 1 Asas Sains Komputer: Sistem Nombor Perduaan", edition: "DSKP ASK" },
-      JP: { grade: 10, code: "JP-MEXT-Info1-3A", chapter: "高1（情報I）情報のデジタル化と2進法・論理回路", edition: "高校学習指導要領" },
+      JP: { grade: 10, code: "JP-MEXT-Info1-2B", chapter: "高1（情報I）情報のデジタル化と2進法・論理回路", edition: "高校学習指導要領" },
       KR: { grade: 8, code: "KR-2022:[9정01-02]", chapter: "중학교 정보 디지털 데이터의 표현(이진수)", edition: "2022 개정 정보과" },
-      UK: { grade: 8, code: "UK-NC-KS3-CS-Binary", chapter: "KS3/GCSE Computer Science Binary & Boolean Logic", edition: "England NC / GCSE" },
+      UK: { grade: 8, code: "UK-NC-KS3-CS-Binary", chapter: "KS3 Computing: Binary Representation & Boolean Logic", edition: "England NC KS3" },
       US: { grade: 9, code: "CSTA.2-DA-07 / AP-CSP", chapter: "AP Computer Science Principles Binary Data", edition: "CSTA / AP CSP" },
     },
   },
@@ -717,7 +717,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "地球自西向东 24 小时转一圈 360°，每小时转 360÷24 = 15°；越往东越先看到日出，口诀“东加西减”！",
         en: "Earth rotates 360° in 24 h (15° per hour) eastward—places further east are ahead in time.",
       },
-      coreFormula: "1 km = 10⁵ cm,   Δt = Δλ / 15°  (East +, West -)",
+      coreFormula: "$1\\text{ km} = 10^5\\text{ cm}, \\quad \\Delta t = \\frac{\\Delta\\lambda}{15^\\circ} \\; (\\text{East } +, \\text{ West } -)$",
       steps: [
         {
           title: { "zh-CN": "比例尺去 5 个 0 秒变“1 cm 代表几 km”", en: "Drop Five Zeros to Convert cm Scale to km" },
@@ -738,14 +738,14 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     generatorKey: "geo_scale_time",
     regionalCodeOverrides: {
       CN: { grade: 7, code: "cgs-2022:EM.03", chapter: "七上 第一章 地球和地图", edition: "人教版地理 2024" },
-      HK: { grade: 7, code: "HK-EDB-Geog-Map", chapter: "S1 Map Reading Skills & Scale", edition: "EDB Geography" },
+      HK: { grade: 7, code: "HK-EDB-S1-Geog-Map", chapter: "S1 Geography: Map Reading Skills & Scale", edition: "EDB 初中地理" },
       TW: { grade: 7, code: "108-Soc:Ge-IV-1", chapter: "國中七上 經緯度、時區與地圖比例尺", edition: "108課綱 社會" },
       SG: { grade: 7, code: "SG-MOE-Geog-S1-Topo", chapter: "Sec 1 Topographical Map Reading & Scale", edition: "MOE Geography" },
       MY: { grade: 7, code: "MY-KSSM-Geog-T1-2", chapter: "Form 1–2 Kedudukan, Skala dan Jarak", edition: "DSKP Geografi" },
       JP: { grade: 7, code: "JP-MEXT-Geo-1A2", chapter: "中1地理 世界の姿・緯度経度と時差・地形図の縮尺", edition: "学習指導要領" },
       KR: { grade: 7, code: "KR-2022:[9사(지리)01-02]", chapter: "중1 위치와 시차, 지도의 축척", edition: "2022 개정 사회과" },
-      UK: { grade: 7, code: "UK-NC-KS3-Geog-OS", chapter: "KS3 Ordnance Survey Map Scale & Coordinates", edition: "England NC" },
-      US: { grade: 6, code: "NCSS.Geo.6-8.1", chapter: "Middle School Spatial Scales & Time Zones", edition: "C3 Framework" },
+      UK: { grade: 7, code: "UK-NC-KS3-Geog-OS", chapter: "KS3 Ordnance Survey Map Scale & Coordinates", edition: "England NC KS3" },
+      US: { grade: 6, code: "C3:D2.Geo.1.6-8", chapter: "Middle School Spatial Scales & Time Zones", edition: "C3 Framework" },
     },
   },
   {
@@ -788,7 +788,7 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "数学数轴上有 0，但公历纪年从公元前 1 年（-1）直接跳到公元 1 年（+1），中间少了一个 0 年，所以跨公元前后相加后必须减 1！",
         en: "Unlike a mathematical number line, the calendar jumps straight from 1 BCE to 1 CE with no Year 0—so subtract 1!",
       },
-      coreFormula: "Span(A BCE → B CE) = A + B - 1",
+      coreFormula: "$\\text{Span}(A\\text{ BCE} \\to B\\text{ CE}) = A + B - 1$",
       steps: [
         {
           title: { "zh-CN": "同侧相减，异侧相加再减 1", en: "Same Era Subtract; Cross BCE/CE Add Then Minus 1" },
@@ -809,14 +809,14 @@ export const STEM_AND_ALL_SUBJECT_TOPICS: TopicSeedDefinition[] = [
     generatorKey: "his_chronology",
     regionalCodeOverrides: {
       CN: { grade: 7, code: "chs-2022:CA.01", chapter: "七上 时空观念与史料实证导论", edition: "统编版历史" },
-      HK: { grade: 7, code: "HK-EDB-Hist-S1", chapter: "S1 Introduction to History: Chronology & Sources", edition: "EDB History" },
+      HK: { grade: 7, code: "HK-EDB-S1-Hist-1", chapter: "S1 Introduction to History: Chronology & Sources", edition: "EDB 初中歷史" },
       TW: { grade: 7, code: "108-Soc:Hi-IV-1", chapter: "國中歷史 時間分期與史料證據", edition: "108課綱 社會" },
       SG: { grade: 7, code: "SG-MOE-Hist-SBQ", chapter: "Sec 1 Historical Inquiry & Source-Based Questions", edition: "MOE History" },
       MY: { grade: 7, code: "MY-KSSM-Sej-T1-1.2", chapter: "Form 1 Pengertian Sejarah & Sumber Primer/Sekunder", edition: "DSKP Sejarah" },
       JP: { grade: 7, code: "JP-MEXT-Hist-1A1", chapter: "中1歴史 年代の数え方（世紀・紀元前）と資料の読み取り", edition: "学習指導要領" },
       KR: { grade: 8, code: "KR-2022:[9역01-01]", chapter: "중학교 역사 역사의 의미와 사료 비판", edition: "2022 개정 역사과" },
-      UK: { grade: 7, code: "UK-NC-KS3-Hist-Evid", chapter: "KS3 History Chronology & Evidential Thinking", edition: "England NC" },
-      US: { grade: 6, code: "NCSS.His.6-8.6", chapter: "Middle School Historical Sources & Chronology", edition: "C3 Framework" },
+      UK: { grade: 7, code: "UK-NC-KS3-Hist-Evid", chapter: "KS3 History Chronology & Evidential Thinking", edition: "England NC KS3" },
+      US: { grade: 6, code: "C3:D2.His.1.6-8", chapter: "Middle School Historical Sources & Chronology", edition: "C3 Framework" },
     },
   },
 ];

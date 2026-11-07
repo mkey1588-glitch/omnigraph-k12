@@ -150,6 +150,7 @@ export interface InteractiveWidgetConfig {
   bindToAnswer?: boolean; // If true, dragging updates the answer box live!
   fixedParamA?: number;
   fixedParamB?: number;
+  fixedParamC?: number;
 }
 
 export interface GeneratedQuestionInstance {
@@ -170,6 +171,7 @@ export interface GeneratedQuestionInstance {
   answer: string;
   acceptedEquivalents?: string[];
   unorderedMulti?: boolean;
+  requireSimplifiedFraction?: boolean;
   unit?: string;
   explanationZh: string;
   explanationEn: string;

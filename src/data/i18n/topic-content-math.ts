@@ -12,7 +12,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Memahami nilai tempat setiap digit dalam nombor berbilang digit (asas 10) dan menggunakan hubungan songsang antara tambah dengan tolak serta darab dengan bahagi, termasuk hubungan bahagi yang ada baki.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：クッキーを 6 人の子どもに 7 まいずつ配ると 4 まいあまりました。はじめに何まいあったかをいちばん早く求めるには？ あまりが 6 まいになることはありますか？",
+      ja: "お子さんに聞いてみましょう：クッキーを 6 人の子どもに 7 まいずつ配ると 4 まいあまりました。はじめに何まいあったかをいちばん早く求めるにはどうすればよいですか？ あまりが 6 まいになることはありますか？",
       ko: "아이에게 물어보세요: 과자를 6명에게 7개씩 나누어 주었더니 4개가 남았어요. 처음에 과자가 몇 개였는지 가장 빨리 구하는 방법은? 나머지가 6개일 수도 있을까요?",
       ms: "Tanya anak anda: Biskut dibahagikan kepada 6 orang kanak-kanak, setiap orang dapat 7 keping dan berbaki 4 keping. Bagaimanakah cara paling cepat untuk mengira bilangan asal biskut? Bolehkah bakinya 6?",
     },
@@ -46,7 +46,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Modelkan jumlah sebagai satu bar yang terdiri daripada q bahagian sama panjang bersaiz d, ditambah satu baki r di hujungnya.",
         },
         checkQuestion: {
-          ja: "ある数を 5 でわると、商が 8 であまりが 3 になります。ある数を求めなさい。",
+          ja: "ある数を 5 でわると、商が 8 であまりが 3 になります。ある数を求めましょう。",
           ko: "어떤 수를 5로 나누었더니 몫이 8, 나머지가 3이에요. 어떤 수는 얼마일까요?",
           ms: "Suatu nombor dibahagi dengan 5 memberikan hasil bahagi 8 dan baki 3. Apakah nombor itu?",
         },
@@ -80,7 +80,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Menjana pecahan setara, memudahkan pecahan kepada sebutan terendah menggunakan FSTB, dan mencari penyebut sepunya menggunakan GSTK.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：2/3 と 4/6 では切り分けたケーキの数がちがうのに、食べる量が同じなのはなぜ？",
+      ja: "お子さんに聞いてみましょう：2/3 と 4/6 では切り分けたケーキの数がちがうのに、食べる量が同じなのはなぜですか？",
       ko: "아이에게 물어보세요: 2/3와 4/6은 자른 케이크 조각 수가 다른데, 왜 먹는 양은 똑같을까요?",
       ms: "Tanya anak anda: 2/3 dan 4/6 mempunyai bilangan potongan yang berbeza — mengapakah jumlah kek yang diperoleh tetap sama?",
     },
@@ -114,7 +114,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Untuk 3/4 dan 5/6, gunakan GSTK(4, 6) = 12 untuk menulis semula sebagai 9/12 dan 10/12.",
         },
         checkQuestion: {
-          ja: "12/18 を約分して既約分数にしなさい。",
+          ja: "12/18 を約分して既約分数にしましょう。",
           ko: "12/18을 기약분수로 나타내세요.",
           ms: "Permudahkan 12/18 kepada sebutan terendah.",
         },
@@ -148,7 +148,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Menambah dan menolak pecahan tak sama penyebut melalui penyebut sepunya terkecil, dan menyelesaikan masalah berayat pelbagai langkah menggunakan model bar.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：1/2 + 1/3 が 2/5 にならないのはなぜ？（1/2 だけですでに半分なのに、2/5 は半分より小さいですね！）",
+      ja: "お子さんに聞いてみましょう：1/2 + 1/3 が 2/5 にならないのはなぜですか？（1/2 だけですでに半分なのに、2/5 は半分より小さいですね！）",
       ko: "아이에게 물어보세요: 1/2 + 1/3은 왜 2/5가 될 수 없을까요? (1/2만으로도 이미 절반인데, 2/5는 절반보다 작아요!)",
       ms: "Tanya anak anda: Mengapakah 1/2 + 1/3 tidak boleh sama dengan 2/5? (Petunjuk: 1/2 sudah separuh, sedangkan 2/5 kurang daripada separuh!)",
     },
@@ -182,7 +182,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "1/2 + 1/3 = 3/6 + 2/6 = 5/6; setelah disamakan, penyebut 6 mewakili saiz unit dan tidak berubah.",
         },
         checkQuestion: {
-          ja: "1/3 + 1/4 を計算しなさい（a/b の形で答えなさい）。",
+          ja: "1/3 + 1/4 を計算しましょう（a/b の形で答えましょう）。",
           ko: "1/3 + 1/4를 계산하세요. (a/b 꼴로 답하세요)",
           ms: "Hitung 1/3 + 1/4 (dalam bentuk a/b).",
         },
@@ -216,7 +216,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Mentafsir pendaraban pecahan sebagai penskalaan dan membahagi pecahan dengan mendarab salingan pembahagi, serta memansuhkan faktor sepunya sebelum mengira.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：2 L のジュースを 1/4 L ずつコップに入れると、1/4 でわったのに答えが小さくならず、8 ぱいと大きくなるのはなぜ？",
+      ja: "お子さんに聞いてみましょう：2 L のジュースを 1/4 L ずつコップに入れると、1/4 でわったのに答えが小さくならず、8 ぱいと大きくなるのはなぜですか？",
       ko: "아이에게 물어보세요: 주스 2 L를 1/4 L씩 컵에 따르면, 1/4로 나누었는데 왜 답이 작아지지 않고 8컵으로 커질까요?",
       ms: "Tanya anak anda: Jika 2 liter jus dituang ke dalam cawan 1/4 liter, mengapakah membahagi dengan 1/4 menjadikan jawapan lebih besar (8 cawan)?",
     },
@@ -250,7 +250,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "(3/4) ÷ (9/8) = (3/4) × (8/9) = 2/3 selepas pemansuhan silang.",
         },
         checkQuestion: {
-          ja: "(2/3) ÷ (4/9) を計算し、もっとも簡単な形で答えなさい。",
+          ja: "(2/3) ÷ (4/9) を計算し、もっとも簡単な形で答えましょう。",
           ko: "(2/3) ÷ (4/9)를 계산하여 가장 간단한 형태로 나타내세요.",
           ms: "Hitung (2/3) ÷ (4/9) dalam bentuk termudah.",
         },
@@ -284,7 +284,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Menyelesaikan kadaran melalui pendaraban silang, membahagikan kuantiti mengikut nisbah, dan mengira peratus kenaikan dan penurunan.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：服の値段が 20% 上がったあと 2 割引き（20% 値下げ）になると、もとの値段にもどりますか？ それはなぜ？",
+      ja: "お子さんに聞いてみましょう：服の値段が 20% 上がったあと 2 割引き（20% 値下げ）になると、もとの値段にもどりますか？ それはなぜでしょうか？",
       ko: "아이에게 물어보세요: 옷값이 20% 오른 뒤 다시 20% 할인되면 원래 가격으로 돌아올까요? 왜 그럴까요?",
       ms: "Tanya anak anda: Jika harga jaket naik 20% kemudian turun 20%, adakah harganya kembali kepada harga asal? Mengapa tidak?",
     },
@@ -318,7 +318,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Daripada 80 kepada 100 ialah +25% (20/80), manakala daripada 100 turun kepada 80 ialah -20% (20/100).",
         },
         checkQuestion: {
-          ja: "もとの値段が 80 円の品物が 100 円になりました。何 % 上がりましたか（数だけ答えなさい）。",
+          ja: "もとの値段が 80 円の品物が 100 円になりました。何 % 上がりましたか（数だけ答えましょう）。",
           ko: "원래 80원이던 물건이 지금 100원이 되었어요. 몇 % 올랐나요? (숫자만 쓰세요)",
           ms: "Harga naik daripada 80 kepada 100. Berapakah peratus kenaikan? (nombor sahaja)",
         },
@@ -454,7 +454,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "-2² + (-3)×(-4): kira -2² = -4 dahulu, kemudian (-3)×(-4) = +12, jumlahnya 8.",
         },
         checkQuestion: {
-          ja: "-3² + (-2)² を計算しなさい。",
+          ja: "-3² + (-2)² を計算しましょう。",
           ko: "-3² + (-2)²을 계산하세요.",
           ms: "Nilaikan -3² + (-2)².",
         },
@@ -473,7 +473,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Menilai -3^2 + 4 sebagai 9 + 4 = 13",
         },
         remediationTip: {
-          ja: "負の符号がかっこでくくられていなければ、累乗が先です：-3² = -(3 × 3) = -9！",
+          ja: "負の符号がかっこでくくられていなければ、累乗が先です：-3² = -(3 × 3) = -9 になります！",
           ko: "음의 부호가 괄호로 묶여 있지 않으면 거듭제곱을 먼저 계산해요: -3² = -(3 × 3) = -9!",
           ms: "Kuasa dikira sebelum penegatifan kecuali tanda kurung merangkumi tanda negatif: -3^2 = -(3·3) = -9.",
         },
@@ -488,7 +488,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Memudahkan ungkapan algebra dengan mengembangkan pendarab negatif merentasi tanda kurung dan menggabungkan sebutan serupa.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：5x - (2x - 3) を簡単にすると、最後は +3 ですか、-3 ですか？「3 点の減点を取り消す」のは 3 点たすこと、それともひくこと？",
+      ja: "お子さんに聞いてみましょう：5x - (2x - 3) を簡単にすると、最後は +3 ですか、-3 ですか？「3 点の減点を取り消す」のは 3 点たすことですか、それともひくことですか？",
       ko: "아이에게 물어보세요: 5x - (2x - 3)을 간단히 하면 마지막은 +3일까요, -3일까요? ‘감점 3점을 취소하는 것’은 3점을 더하는 걸까요, 빼는 걸까요?",
       ms: "Tanya anak anda: Apabila memudahkan 5x - (2x - 3), adakah hasilnya berakhir dengan +3 atau -3? Fikirkan: membatalkan penalti 3 mata itu menambah atau menolak 3?",
     },
@@ -522,7 +522,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "4x - 2(x - 5) = 4x + (-2)(x) + (-2)(-5) = 2x + 10.",
         },
         checkQuestion: {
-          ja: "x = 2 のとき、式 5x - 2(x - 3) の値を求めなさい。",
+          ja: "x = 2 のとき、式 5x - 2(x - 3) の値を求めましょう。",
           ko: "x = 2일 때, 식 5x - 2(x - 3)의 값을 구하세요.",
           ms: "Nilaikan 5x - 2(x - 3) apabila x = 2.",
         },
@@ -590,7 +590,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Darab setiap sebutan (2x+1)/3 - 1 = x/2 dengan 6: 2(2x+1) - 6 = 3x ⇒ 4x + 2 - 6 = 3x ⇒ x = 4.",
         },
         checkQuestion: {
-          ja: "方程式 (x + 2)/3 - 1 = 2 を解き、x の値を求めなさい。",
+          ja: "方程式 (x + 2)/3 - 1 = 2 を解き、x の値を求めましょう。",
           ko: "방정식 (x + 2)/3 - 1 = 2를 풀어 x의 값을 구하세요.",
           ms: "Selesaikan (x + 2)/3 - 1 = 2 untuk x.",
         },
@@ -658,7 +658,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Apabila pekali mempunyai tanda berlawanan (+2y dan -2y), tambahkan persamaan secara terus untuk mengelakkan perangkap tanda semasa menolak.",
         },
         checkQuestion: {
-          ja: "連立方程式 x + y = 7, x - y = 3 を解き、x の値を求めなさい。",
+          ja: "連立方程式 x + y = 7, x - y = 3 を解き、x の値を求めましょう。",
           ko: "연립방정식 x + y = 7, x - y = 3을 풀어 x의 값을 구하세요.",
           ms: "Selesaikan x + y = 7 dan x - y = 3. Berapakah nilai x?",
         },
@@ -721,12 +721,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Perubahan Mencancang Dibahagi Perubahan Mengufuk",
         },
         body: {
-          ja: "2 点 (1, 3) と (3, 7) を通る直線では、k = (7 - 3)/(3 - 1) = 2。これを代入すると 3 = 2(1) + b ⇒ b = 1 です。",
+          ja: "2 点 (1, 3) と (3, 7) を通る直線では、k = (7 - 3)/(3 - 1) = 2 です。これを代入すると 3 = 2(1) + b ⇒ b = 1 になります。",
           ko: "두 점 (1, 3)과 (3, 7)을 지나는 직선은 k = (7 - 3)/(3 - 1) = 2이고, 대입하면 3 = 2(1) + b ⇒ b = 1이에요.",
           ms: "Melalui (1, 3) dan (3, 7): k = (7 - 3)/(3 - 1) = 2, maka b = 3 - 2(1) = 1.",
         },
         checkQuestion: {
-          ja: "2 点 (0, 2) と (2, 8) を通る一次関数の傾き k を求めなさい。",
+          ja: "2 点 (0, 2) と (2, 8) を通る一次関数の傾き k を求めましょう。",
           ko: "두 점 (0, 2)와 (2, 8)을 지나는 일차함수의 기울기 k를 구하세요.",
           ms: "Cari kecerunan k bagi garis lurus yang melalui (0, 2) dan (2, 8).",
         },
@@ -760,7 +760,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Menguasai kembangan dan pemfaktoran dua hala bagi (a±b)², a²-b², dan trinomial kuadratik x² + bx + c.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：1 辺が (a + b) の大きな正方形には、小さな正方形 a² と b² のほかに、すみにどんな長方形が 2 つありますか？（(a+b)² が a²+b² にならないのはなぜ？）",
+      ja: "お子さんに聞いてみましょう：1 辺が (a + b) の大きな正方形には、小さな正方形 a² と b² のほかに、すみにどんな長方形が 2 つありますか？（(a+b)² が a²+b² にならないのはなぜでしょうか？）",
       ko: "아이에게 물어보세요: 한 변이 (a + b)인 큰 정사각형에는 작은 정사각형 a²과 b² 말고도 모서리에 어떤 직사각형 두 개가 더 있을까요? ((a+b)²이 a²+b²이 아닌 이유는?)",
       ms: "Tanya anak anda: Sebuah segi empat sama bersisi (a+b) mengandungi segi empat sama a² dan b² — apakah dua segi empat tepat yang mengisi ruang selebihnya sehingga (a+b)² ≠ a² + b²?",
     },
@@ -789,12 +789,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Kuasa Dua Pertama, Kuasa Dua Akhir, Dua Kali Hasil Darab di Tengah",
         },
         body: {
-          ja: "(x - 5)² = x² - 2·x·5 + 25 = x² - 10x + 25。逆に x² - 10x + k を完全平方式にするには、k = (-10/2)² = 25 です。",
+          ja: "(x - 5)² = x² - 2·x·5 + 25 = x² - 10x + 25 です。逆に x² - 10x + k を完全平方式にするには、k = (-10/2)² = 25 とします。",
           ko: "(x - 5)² = x² - 2·x·5 + 25 = x² - 10x + 25예요. 거꾸로 x² - 10x + k가 완전제곱식이 되려면 k = (-10/2)² = 25예요.",
           ms: "(x - 5)² = x² - 2·x·5 + 25 = x² - 10x + 25; untuk menjadikan x² - 10x + k kuasa dua sempurna, k = (-10/2)² = 25.",
         },
         checkQuestion: {
-          ja: "x² + 8x + k が完全平方式になるとき、定数 k の値を求めなさい。",
+          ja: "x² + 8x + k が完全平方式になるとき、定数 k の値を求めましょう。",
           ko: "x² + 8x + k가 완전제곱식일 때, 상수 k의 값을 구하세요.",
           ms: "Jika x² + 8x + k ialah trinomial kuasa dua sempurna, apakah nilai k?",
         },
@@ -823,12 +823,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
 
   mt_math_rational_eq: {
     description: {
-      ja: "分母に文字をふくむ式（物理の I = U/R、1/R = 1/R₁ + 1/R₂ など）を変形し、分数方程式を解いて、分母が 0 にならないかを必ず確かめます（無縁解を除く）。",
+      ja: "分母に文字をふくむ式（物理の I = U/R、1/R = 1/R₁ + 1/R₂ など）を変形し、分数方程式を解いて、分母が 0 になる不適な解（無縁解）を必ず除きます。",
       ko: "분모에 문자가 있는 식(물리의 I = U/R, 1/R = 1/R₁ + 1/R₂ 등)을 변형하고, 분수방정식을 풀어 분모가 0이 되지 않는지 반드시 확인해요(무연근 제외).",
       ms: "Memanipulasi rumus algebra dengan pemboleh ubah pada penyebut (cth. I = U/R, 1/R = 1/R₁ + 1/R₂) dan menyelesaikan persamaan pecahan sambil menyemak punca luar (penyebut tidak boleh sifar).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：分数方程式を解いて x = 2 が出たとき、すぐに答えにせず、もとの方程式の分母が x - 2 でないかを確かめるのはなぜ？",
+      ja: "お子さんに聞いてみましょう：分数方程式を解いて x = 2 が出たとき、すぐに答えにせず、もとの方程式の分母が x - 2 でないかを確かめるのはなぜでしょうか？",
       ko: "아이에게 물어보세요: 분수방정식을 풀어 x = 2가 나왔을 때, 왜 바로 답으로 쓰지 않고 원래 방정식의 분모가 x - 2인지 다시 확인해야 할까요?",
       ms: "Tanya anak anda: Selepas menyelesaikan persamaan pecahan dan mendapat x = 2, mengapakah anda perlu menyemak sama ada (x - 2) terdapat pada penyebut persamaan asal?",
     },
@@ -839,13 +839,13 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
         ms: "Mengubah perkara rumus pecahan seperti R = U/I dan rintangan selari 1/R = 1/R₁ + 1/R₂",
       },
       {
-        ja: "分数方程式を解いたら、必ず分母に代入して確かめ、分母を 0 にする無縁解を除く",
+        ja: "分数方程式を解いたら、必ず分母に代入して確かめ、分母を 0 にする不適な解（無縁解）を除ける",
         ko: "분수방정식을 푼 뒤에는 반드시 분모에 대입해 확인하고, 분모를 0으로 만드는 무연근은 버려요",
         ms: "Menyemak penyelesaian calon terhadap penyebut sifar untuk menolak punca luar",
       },
     ],
     intuition: {
-      ja: "両辺に (x - 2) をかけて分母をはらうとき、もし x = 2 なら両辺に 0 をかけたことになります（0 をかければ何でも等しくなる）。こうして、もとの分母を 0 にしてしまう「にせの解（無縁解）」が生まれてしまうのです！",
+      ja: "両辺に (x - 2) をかけて分母をはらうとき、もし x = 2 なら両辺に 0 をかけたことになります（0 をかければ何でも等しくなります）。こうして、もとの分母を 0 にしてしまう「不適な解（無縁解）」が生まれてしまうのです！",
       ko: "양변에 (x - 2)를 곱해 분모를 없앨 때 만약 x = 2라면 양변에 0을 곱한 셈이에요(0을 곱하면 무엇이든 같아져요). 그래서 원래 분모를 0으로 만드는 ‘가짜 해(무연근)’가 생겨나요!",
       ms: "Mendarab dengan (x - 2) tidak sah jika x = 2 kerana mendarab dengan sifar memusnahkan kesetaraan (apa-apa sahaja didarab sifar menjadi sama) dan mewujudkan punca luar.",
     },
@@ -862,7 +862,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Kemahiran ini menjadi asas langsung kepada hukum Ohm R = U/I serta persamaan kanta dan perintang selari dalam Fizik.",
         },
         checkQuestion: {
-          ja: "分数方程式 12 / (x + 1) = 3 を解き、x の値を求めなさい。",
+          ja: "分数方程式 12 / (x + 1) = 3 を解き、x の値を求めましょう。",
           ko: "분수방정식 12 / (x + 1) = 3을 풀어 x의 값을 구하세요.",
           ms: "Selesaikan 12 / (x + 1) = 3 untuk x.",
         },
@@ -881,7 +881,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Menyelesaikan 1/R = 1/3 + 1/6 sebagai R = 9 dan bukannya R = 2",
         },
         remediationTip: {
-          ja: "まず右辺を通分して 1 つの分数 (R₁+R₂)/(R₁R₂) にまとめ、そのあとで全体を逆数にして R = R₁R₂/(R₁+R₂) とします！ 例：1/3 + 1/6 = 3/6 = 1/2 ⇒ R = 2",
+          ja: "まず右辺を通分して 1 つの分数 (R₁+R₂)/(R₁R₂) にまとめ、そのあとで全体を逆数にして R = R₁R₂/(R₁+R₂) とします！ 例：1/3 + 1/6 = 3/6 = 1/2 ⇒ R = 2 です。",
           ko: "먼저 우변을 통분해 하나의 분수 (R₁+R₂)/(R₁R₂)로 합친 다음, 마지막에 전체를 역수로 바꿔 R = R₁R₂/(R₁+R₂)를 얻어요! 예: 1/3 + 1/6 = 3/6 = 1/2 ⇒ R = 2",
           ms: "Gabungkan sebelah kanan menjadi satu pecahan TERLEBIH DAHULU: 1/3 + 1/6 = 3/6 = 1/2 ⇒ R = 2! Secara umum, R = R₁R₂/(R₁+R₂).",
         },
@@ -896,7 +896,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Memudahkan punca kuasa dua dan mengaplikasikan a² + b² = c² dalam segi tiga bersudut tegak serta masalah jarak pada satah Cartes.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：分度器がなくても、大工さんがロープで 3 m・4 m・5 m をはかってぴんと張るだけで、正確な直角のかどがつくれるのはなぜ？",
+      ja: "お子さんに聞いてみましょう：分度器がなくても、大工さんがロープで 3 m・4 m・5 m をはかってぴんと張るだけで、正確な直角のかどがつくれるのはなぜでしょうか？",
       ko: "아이에게 물어보세요: 각도기가 없어도 목수가 밧줄로 3 m, 4 m, 5 m를 재서 팽팽하게 당기기만 하면 정확한 직각 모서리를 만들 수 있는 이유는 무엇일까요?",
       ms: "Tanya anak anda: Tanpa protraktor, mengapakah tukang kayu mengukur tali sepanjang 3 m, 4 m dan 5 m untuk memastikan sudut 90° yang tepat?",
     },
@@ -925,12 +925,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Kenal Pasti Hipotenus Dahulu",
         },
         body: {
-          ja: "よく出る 3 辺の組：(3,4,5)、(5,12,13)、(6,8,10)、(8,15,17)。斜辺 13 と 1 辺 5 がわかっていれば、もう 1 辺 = √(13² - 5²) = 12 です。",
+          ja: "よく出る 3 辺の組は (3,4,5)、(5,12,13)、(6,8,10)、(8,15,17) です。斜辺 13 と 1 辺 5 がわかっていれば、もう 1 辺 = √(13² - 5²) = 12 です。",
           ko: "자주 나오는 피타고라스 수: (3,4,5), (5,12,13), (6,8,10), (8,15,17). 빗변이 13이고 한 변이 5이면, 나머지 한 변 = √(13² - 5²) = 12예요.",
           ms: "Kenali tigaan Pythagoras klasik: (3,4,5), (5,12,13), (6,8,10), (8,15,17). Diberi hipotenus 13 dan satu sisi 5, sisi yang satu lagi = √(13² - 5²) = 12.",
         },
         checkQuestion: {
-          ja: "斜辺の長さが 10、1 辺の長さが 6 の直角三角形で、残りの辺の長さを求めなさい。",
+          ja: "斜辺の長さが 10、1 辺の長さが 6 の直角三角形で、残りの辺の長さを求めましょう。",
           ko: "빗변의 길이가 10이고 한 변의 길이가 6인 직각삼각형에서 나머지 한 변의 길이를 구하세요.",
           ms: "Sebuah segi tiga bersudut tegak mempunyai hipotenus 10 dan satu sisi 6. Cari sisi yang satu lagi.",
         },
@@ -949,7 +949,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Mengira √(10² + 6²) = √136 sedangkan 10 sudah pun sisi terpanjang (hipotenus)",
         },
         remediationTip: {
-          ja: "斜辺 c はいつもいちばん長い辺です！ 斜辺がわかっていてほかの辺を求めるときは、ひき算を使います：b = √(c² - a²)。",
+          ja: "斜辺 c はいつもいちばん長い辺です！ 斜辺がわかっていてほかの辺を求めるときは、ひき算を使います：b = √(c² - a²) です。",
           ko: "빗변 c는 항상 가장 긴 변이에요! 빗변을 알고 다른 변을 구할 때는 뺄셈을 써요: b = √(c² - a²).",
           ms: "Hipotenus sentiasa sisi terpanjang; tolak untuk mencari sisi lain: b = √(c² - a²).",
         },
@@ -959,12 +959,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
 
   mt_math_quad_complete_sq: {
     description: {
-      ja: "x² + bx + c = 0 を平方完成して (x + b/2)² = k の形にし、次数を下げて解きます。解の公式と、判別式 Δ = b² - 4ac で実数解の個数を調べる方法も身につけます。",
+      ja: "x² + bx + c = 0 を平方完成して (x + b/2)² = k の形にし、次数を下げて解きます。解の公式と、判別式 D = b^2 - 4ac で実数解の個数を調べる方法も身につけます。",
       ko: "x² + bx + c = 0을 완전제곱식 (x + b/2)² = k 꼴로 바꾸어 차수를 낮춰 풀고, 근의 공식과 판별식 Δ = b² - 4ac로 실근의 개수를 판단해요.",
       ms: "Menukar persamaan kuadratik kepada (x + h)² = k melalui penyempurnaan kuasa dua, mengaplikasikan rumus kuadratik, dan menganalisis Δ = b² - 4ac untuk menentukan bilangan punca nyata.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：(x - 3)² = 16 を解くと、なぜ答えが 2 つ（7 と -1）あるのでしょう？ 7 だけ答えると、どんな場合を見落としていますか？",
+      ja: "お子さんに聞いてみましょう：(x - 3)² = 16 を解くと、なぜ答えが 2 つ（7 と -1）あるのでしょうか？ 7 だけ答えると、どんな場合を見落としていますか？",
       ko: "아이에게 물어보세요: (x - 3)² = 16을 풀면 왜 답이 두 개(7과 -1)일까요? 7만 답하면 어떤 경우를 빠뜨린 걸까요?",
       ms: "Tanya anak anda: Apabila menyelesaikan (x - 3)² = 16, mengapakah terdapat DUA jawapan (7 dan -1) dan bukan 7 sahaja?",
     },
@@ -998,7 +998,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Selesaikan x² - 6x + 5 = 0: x² - 6x = -5 ⇒ tambah (-3)² = 9 pada kedua-dua belah: (x - 3)² = 4 ⇒ x - 3 = ±2 ⇒ x₁ = 5, x₂ = 1.",
         },
         checkQuestion: {
-          ja: "方程式 (x - 2)² = 9 の 2 つの実数解を求めなさい（コンマで区切って答えなさい）。",
+          ja: "方程式 (x - 2)² = 9 の 2 つの実数解を求めましょう（コンマで区切って答えましょう）。",
           ko: "방정식 (x - 2)² = 9의 두 실근을 구하세요. (쉼표로 구분하세요)",
           ms: "Cari kedua-dua penyelesaian bagi (x - 2)² = 9 (pisahkan dengan koma).",
         },
@@ -1061,12 +1061,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Jadikan Sebutan Kuasa Dua Sifar untuk Mencari h",
         },
         body: {
-          ja: "y = 2(x + 3)² - 4 では、x + 3 = 0 から h = -3。よって頂点は (-3, -4) で、グラフは下に凸なので最小値は -4 です。",
+          ja: "y = 2(x + 3)² - 4 では、x + 3 = 0 から h = -3 となります。よって頂点は (-3, -4) で、グラフは下に凸なので最小値は -4 です。",
           ko: "y = 2(x + 3)² - 4에서 x + 3 = 0이면 h = -3이므로 꼭짓점은 (-3, -4)이고, 아래로 볼록하므로 최솟값은 -4예요.",
           ms: "Dalam y = 2(x + 3)² - 4, menetapkan x + 3 = 0 memberikan h = -3, maka verteks ialah (-3, -4); graf terbuka ke atas dengan nilai minimum -4.",
         },
         checkQuestion: {
-          ja: "二次関数 y = -(x - 4)² + 9 の最大値を求めなさい。",
+          ja: "二次関数 y = -(x - 4)² + 9 の最大値を求めましょう。",
           ko: "이차함수 y = -(x - 4)² + 9의 최댓값을 구하세요.",
           ms: "Apakah nilai maksimum bagi y = -(x - 4)² + 9?",
         },
@@ -1100,7 +1100,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Mentakrifkan nisbah sinus, kosinus dan tangen dalam segi tiga bersudut tegak, mengingati nilai tepat bagi 30°, 45° dan 60°, serta menggunakannya untuk sudut dongak, sudut tunduk dan leraian daya.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：鉄塔から 30 m はなれた地面に立ち、塔のてっぺんを見上げた角（仰角）が 45° のとき、塔にのぼらずに高さをすぐに知るには？",
+      ja: "お子さんに聞いてみましょう：鉄塔から 30 m はなれた地面に立ち、塔のてっぺんを見上げた角（仰角）が 45° のとき、塔にのぼらずに高さをすぐに知るにはどうすればよいでしょうか？",
       ko: "아이에게 물어보세요: 철탑에서 30 m 떨어진 땅에 서서 탑 꼭대기를 올려본각이 45°라면, 탑에 오르지 않고 높이를 바로 알 수 있는 방법은?",
       ms: "Tanya anak anda: Berdiri 30 m dari sebuah menara dan mendongak pada sudut 45°, bagaimanakah anda boleh mengetahui ketinggian menara itu dengan serta-merta tanpa memanjatnya?",
     },
@@ -1134,7 +1134,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Pada satah condong bersudut θ, daya graviti mg dileraikan kepada mg·sin θ (selari dengan satah) dan mg·kos θ (normal kepada satah).",
         },
         checkQuestion: {
-          ja: "∠C = 90° の直角三角形 ABC で、斜辺 AB = 10、∠A = 30° のとき、対辺 BC の長さを求めなさい。",
+          ja: "∠C = 90° の直角三角形 ABC で、斜辺 AB = 10、∠A = 30° のとき、対辺 BC の長さを求めましょう。",
           ko: "∠C = 90°인 직각삼각형 ABC에서 빗변 AB = 10, ∠A = 30°일 때, 변 BC의 길이를 구하세요.",
           ms: "Dalam segi tiga bersudut tegak △ABC (∠C = 90°), hipotenus AB = 10 dan ∠A = 30°. Cari sisi bertentangan BC.",
         },
@@ -1168,7 +1168,7 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
       ms: "Mentafsir terbitan f'(x₀) sebagai kecerunan tangen (had bagi kecerunan sekan Δy/Δx), membezakan polinomial menggunakan petua kuasa, dan mencari nilai ekstremum setempat apabila f'(x) = 0.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：車のスピードメーターが示す「時速 80 km」と、全体の道のりを全体の時間でわって求めた速さとでは、本質的に何がちがうでしょう？",
+      ja: "お子さんに聞いてみましょう：車のスピードメーターが示す「時速 80 km」と、全体の道のりを全体の時間でわって求めた速さとでは、本質的に何がちがうでしょうか？",
       ko: "아이에게 물어보세요: 자동차 계기판이 가리키는 ‘시속 80 km’와 전체 거리를 전체 시간으로 나누어 구한 속력은 본질적으로 무엇이 다를까요?",
       ms: "Tanya anak anda: Apakah perbezaan antara bacaan meter laju kereta 80 km/j pada satu ketika dengan jumlah jarak dibahagi jumlah masa perjalanan?",
     },
@@ -1197,12 +1197,12 @@ export const TOPIC_CONTENT_I18N_MATH: TopicContentOverlay = {
           ms: "Turunkan Kuasa, Tolak 1, Pemalar Lenyap",
         },
         body: {
-          ja: "f(x) = x³ - 3x + 2 を微分すると f'(x) = 3x² - 3。x = 2 における接線の傾きは 3(4) - 3 = 9 です。",
+          ja: "f(x) = x³ - 3x + 2 を微分すると f'(x) = 3x² - 3 になります。x = 2 における接線の傾きは 3(4) - 3 = 9 です。",
           ko: "f(x) = x³ - 3x + 2를 미분하면 f'(x) = 3x² - 3이고, x = 2에서 접선의 기울기는 3(4) - 3 = 9예요.",
           ms: "Bagi f(x) = x³ - 3x + 2, f'(x) = 3x² - 3; pada x = 2, kecerunan tangen ialah 3(4) - 3 = 9.",
         },
         checkQuestion: {
-          ja: "関数 f(x) = x² - 4x + 7 の x = 3 における接線の傾き f'(3) を求めなさい。",
+          ja: "関数 f(x) = x² - 4x + 7 の x = 3 における接線の傾き f'(3) を求めましょう。",
           ko: "함수 f(x) = x² - 4x + 7의 x = 3에서의 접선의 기울기 f'(3)을 구하세요.",
           ms: "Cari kecerunan tangen f'(3) bagi f(x) = x² - 4x + 7.",
         },

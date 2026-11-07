@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { InteractiveWidgetConfig } from "@/types/taxonomy";
 import { usePlatform } from "./PlatformProvider";
 import { localizeWidgetCaption } from "@/lib/i18n";
@@ -17,6 +17,18 @@ export function InteractiveWidget({
 }: InteractiveWidgetProps) {
   const { locale, pick } = usePlatform();
   const [val, setVal] = useState<number>(config.initialValue);
+
+  useEffect(() => {
+    setVal(config.initialValue);
+  }, [
+    config.kind,
+    config.initialValue,
+    config.min,
+    config.max,
+    config.fixedParamA,
+    config.fixedParamB,
+    config.fixedParamC,
+  ]);
 
   const caption = localizeWidgetCaption(config, locale);
 
@@ -89,23 +101,16 @@ export function InteractiveWidget({
           onChange={(e) => handleChange(Number(e.target.value))}
           className="w-full accent-amber-500 cursor-pointer"
         />
-        {onSelectValue && (
-          <button
-            type="button"
-            onClick={() => onSelectValue(String(rEq))}
-            className="rounded-lg bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30"
-          >
-            {WIDGET_COPY.ohmFillBtn(rEq, locale)}
-          </button>
-        )}
       </div>
     );
   }
 
-  // function_probe: y = a(x - h)^2 + k explorer
+  // function_probe: y = a(x - h)^2 + k explorer (supports leading coefficient `a = fixedParamC ?? 1`)
   const hFixed = config.fixedParamA ?? 3;
   const kFixed = config.fixedParamB ?? -2;
-  const yAtVal = (val - hFixed) * (val - hFixed) + kFixed;
+  const aFixed = config.fixedParamC ?? 1;
+  const yAtVal =
+    Math.round((aFixed * (val - hFixed) * (val - hFixed) + kFixed) * 100) / 100;
   return (
     <div className="rounded-xl border border-violet-500/30 bg-slate-950/80 p-4 space-y-2.5 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -126,7 +131,7 @@ export function InteractiveWidget({
         onChange={(e) => handleChange(Number(e.target.value))}
         className="w-full accent-violet-500 cursor-pointer"
       />
-      {onSelectValue && (
+      {config.bindToAnswer && onSelectValue && (
         <button
           type="button"
           onClick={() => onSelectValue(String(val))}

@@ -42,8 +42,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Seragamkan Unit Sebelum Membahagi",
         },
         body: {
-          ja: "質量 54 g、体積 20 cm³ の金属のかたまり：ρ = 54 / 20 = 2.7 g/cm³ = 2700 kg/m³（アルミニウム）。",
-          ko: "질량 54 g, 부피 20 cm³인 금속 덩어리: ρ = 54 / 20 = 2.7 g/cm³ = 2700 kg/m³ (알루미늄).",
+          ja: "質量 54 g、体積 20 cm³ の金属のかたまりでは、ρ = 54 / 20 = 2.7 g/cm³ = 2700 kg/m³（アルミニウム）です。",
+          ko: "질량 54 g, 부피 20 cm³인 금속 덩어리는 ρ = 54 / 20 = 2.7 g/cm³ = 2700 kg/m³(알루미늄)예요.",
           ms: "Bagi bongkah logam berjisim m = 54 g dan berisi padu V = 20 cm³: ρ = 54 / 20 = 2.7 g/cm³ = 2700 kg/m³ (aluminium).",
         },
         checkQuestion: {
@@ -81,7 +81,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Mengira laju purata keseluruhan perjalanan sebagai jumlah jarak dibahagi jumlah masa, serta mentafsir kecerunan graf s-t dan luas di bawah graf v-t.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：坂道を秒速 2 m で上り、同じ道を秒速 6 m で走って下りました。往復の平均の速さが (2+6)÷2 = 4 m/s ではなく 3 m/s になるのはなぜでしょう？",
+      ja: "お子さんに聞いてみましょう：坂道を秒速 2 m で上り、同じ道を秒速 6 m で走って下りました。往復の平均の速さが (2+6)÷2 = 4 m/s ではなく 3 m/s になるのはなぜでしょうか？",
       ko: "아이에게 물어보세요: 언덕길을 2 m/s로 걸어 올라가고 같은 길을 6 m/s로 뛰어 내려왔어요. 왕복 평균 속력이 (2+6)÷2 = 4 m/s가 아니라 3 m/s인 이유는 무엇일까요?",
       ms: "Tanya anak: Berjalan mendaki bukit pada 2 m/s dan berlari turun melalui laluan yang sama pada 6 m/s—mengapakah laju purata pergi-balik ialah 3 m/s dan bukan (2+6)÷2 = 4 m/s?",
     },
@@ -110,8 +110,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Semak Label Paksi Dahulu: Kecerunan s-t vs. Luas v-t",
         },
         body: {
-          ja: "片道を 12 m とすると、上りは 12/2 = 6 s、下りは 12/6 = 2 s ⇒ 全体の v = 24 / (6 + 2) = 3 m/s。",
-          ko: "편도 거리를 12 m로 두면 올라갈 때 12/2 = 6 s, 내려올 때 12/6 = 2 s ⇒ 전체 v = 24 / (6 + 2) = 3 m/s.",
+          ja: "片道を 12 m とすると、上りは 12/2 = 6 s、下りは 12/6 = 2 s となり、全体の v = 24 / (6 + 2) = 3 m/s です。",
+          ko: "편도 거리를 12 m로 두면 올라갈 때 12/2 = 6 s, 내려올 때 12/6 = 2 s ⇒ 전체 v = 24 / (6 + 2) = 3 m/s예요.",
           ms: "Andaikan jarak sehala = 12 m: mendaki mengambil 12/2 = 6 s, menurun 12/6 = 2 s ⇒ v keseluruhan = 24 / (6 + 2) = 3 m/s.",
         },
         checkQuestion: {
@@ -149,7 +149,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Melukis gambar rajah jasad bebas, mengenal pasti daya paduan sifar pada halaju malar, dan menggunakan F_net = ma bagi gerakan berpecutan.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：カーリングのストーンが手を離れたあと、まだ前向きに押している力はありますか？押す力がないのに、なぜすべり続けるのでしょう？",
+      ja: "お子さんに聞いてみましょう：カーリングのストーンが手を離れたあと、まだ前向きに押している力はありますか？押す力がないのに、なぜすべり続けるのでしょうか？",
       ko: "아이에게 물어보세요: 컬링 스톤이 선수의 손을 떠난 뒤에도 앞으로 미는 힘이 있을까요? 미는 힘이 없는데 왜 계속 미끄러져 나갈까요?",
       ms: "Tanya anak: Selepas batu curling dilepaskan dari tangan pemain, adakah masih ada daya yang menolaknya ke hadapan? Mengapakah ia terus menggelongsor?",
     },
@@ -178,8 +178,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Tolak Daya Geseran yang Menentang Dahulu untuk Mendapatkan Daya Paduan",
         },
         body: {
-          ja: "質量 2 kg の物体に右向き 10 N の引く力と左向き 4 N の摩擦力：F_net = 10 - 4 = 6 N ⇒ a = 6 / 2 = 3 m/s²。",
-          ko: "질량 2 kg인 물체에 오른쪽으로 10 N의 당기는 힘과 왼쪽으로 4 N의 마찰력이 작용할 때: F_net = 10 - 4 = 6 N ⇒ a = 6 / 2 = 3 m/s².",
+          ja: "質量 2 kg の物体に右向き 10 N の引く力と左向き 4 N の摩擦力がはたらくとき、F_net = 10 - 4 = 6 N ⇒ a = 6 / 2 = 3 m/s² です。",
+          ko: "질량 2 kg인 물체에 오른쪽으로 10 N의 당기는 힘과 왼쪽으로 4 N의 마찰력이 작용할 때 F_net = 10 - 4 = 6 N ⇒ a = 6 / 2 = 3 m/s²이에요.",
           ms: "Bagi m = 2 kg dengan daya tarikan 10 N ke kanan dan geseran 4 N ke kiri: F_net = 10 - 4 = 6 N ⇒ a = 6/2 = 3 m/s².",
         },
         checkQuestion: {
@@ -314,8 +314,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Gunakan V = I·R pada Komponen yang Sama",
         },
         body: {
-          ja: "R₁ = 4Ω と R₂ = 6Ω を直列にして 10V の電源につなぐ：R_eq = 10Ω ⇒ I = 10/10 = 1A ⇒ V₁ = 1×4 = 4V、V₂ = 6V。",
-          ko: "R₁ = 4Ω과 R₂ = 6Ω을 직렬로 10V 전원에 연결: R_eq = 10Ω ⇒ I = 10/10 = 1A ⇒ V₁ = 1×4 = 4V, V₂ = 6V.",
+          ja: "R₁ = 4Ω と R₂ = 6Ω を直列にして 10V の電源につなぐと、R_eq = 10Ω ⇒ I = 10/10 = 1A ⇒ V₁ = 1×4 = 4V、V₂ = 6V になります。",
+          ko: "R₁ = 4Ω과 R₂ = 6Ω을 직렬로 10V 전원에 연결하면 R_eq = 10Ω ⇒ I = 10/10 = 1A ⇒ V₁ = 1×4 = 4V, V₂ = 6V예요.",
           ms: "Perintang 4Ω dan 6Ω disambung secara bersiri pada bekalan 10V: R_eq = 10Ω ⇒ I = 1A ⇒ V₁ = 4V, V₂ = 6V.",
         },
         checkQuestion: {
@@ -338,7 +338,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Menjawab 9 Ω atau 0.5 Ω dan bukannya menyongsangkan 1/2 untuk mendapat 2 Ω",
         },
         remediationTip: {
-          ja: "検算のコツ：並列の合成抵抗は、いちばん小さい枝の抵抗よりも必ず小さくなります（2 Ω < 3 Ω）！",
+          ja: "検算のコツ：並列の合成抵抗は、いちばん小さい枝の抵抗（2 Ω < 3 Ω）よりも必ず小さくなります！",
           ko: "검산 요령: 병렬 합성 저항은 반드시 가장 작은 갈래의 저항보다 작아요(2 Ω < 3 Ω)!",
           ms: "Semakan pantas: rintangan selari MESTI lebih kecil daripada rintangan cabang yang terkecil (2 Ω < 3 Ω)!",
         },
@@ -350,10 +350,10 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
     description: {
       ja: "仕事 W = F·d·cos θ を計算し、摩擦のない場合に mgh₁ + ½mv₁² = mgh₂ + ½mv₂²（力学的エネルギー保存）を用いて速さや高さを求めます。",
       ko: "일 W = F·d·cos θ를 계산하고, 마찰이 없는 계에서 mgh₁ + ½mv₁² = mgh₂ + ½mv₂²(역학적 에너지 보존)를 이용해 속력과 높이를 구해요.",
-      ms: "Mengira kerja mekanik W = F·d·cos θ dan menggunakan mgh₁ + ½mv₁² = mgh₂ + ½mv₂² dalam sistem tanpa geseran untuk mencari laju dan ketinggian.",
+      ms: "Mengira kerja mekanik W = F·d·kos θ dan menggunakan mgh₁ + ½mv₁² = mgh₂ + ½mv₂² dalam sistem tanpa geseran untuk mencari laju dan ketinggian.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：高速道路で速さが 60 km/h から 120 km/h へと2倍になると、急ブレーキの制動距離が2倍ではなく4倍になるのはなぜでしょう？",
+      ja: "お子さんに聞いてみましょう：高速道路で速さが 60 km/h から 120 km/h へと2倍になると、急ブレーキの制動距離が2倍ではなく4倍になるのはなぜでしょうか？",
       ko: "아이에게 물어보세요: 고속도로에서 속력이 60 km/h에서 120 km/h로 2배가 되면, 급제동 거리가 2배가 아니라 4배로 늘어나는 이유는 무엇일까요?",
       ms: "Tanya anak: Apabila laju di lebuh raya berganda daripada 60 kepada 120 km/h, mengapakah jarak brek kecemasan menjadi empat kali ganda (4×) dan bukan dua kali ganda?",
     },
@@ -422,7 +422,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Mengimbangkan persamaan kimia menggunakan pekali stoikiometri tanpa mengubah subskrip dalam formula molekul, berdasarkan prinsip bahawa jenis dan bilangan atom tidak berubah sebelum dan selepas tindak balas.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：まきが燃えると軽い灰が少し残るだけです。質量が消えてしまったのでしょうか？残りの質量はどこへ行ったのでしょう？",
+      ja: "お子さんに聞いてみましょう：まきが燃えると軽い灰が少し残るだけです。質量が消えてしまったのでしょうか？残りの質量はどこへ行ったのでしょうか？",
       ko: "아이에게 물어보세요: 장작이 다 타면 가벼운 재만 조금 남아요. 질량이 사라진 걸까요? 나머지 질량은 어디로 갔을까요?",
       ms: "Tanya anak: Kayu api yang terbakar hanya meninggalkan sedikit abu yang ringan—adakah jisim telah hilang, atau ke manakah perginya baki jisim itu?",
     },
@@ -446,8 +446,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Imbangkan Molekul Kompleks Dahulu, Unsur Tulen Terakhir",
         },
         body: {
-          ja: "Fe₂O₃ + CO → Fe + CO₂ の係数を合わせる：3個の CO が酸素を3個うばって3個の CO₂ になるので、係数は順に 1, 3, 2, 3 ⇒ Fe₂O₃ + 3CO → 2Fe + 3CO₂。",
-          ko: "Fe₂O₃ + CO → Fe + CO₂ 맞추기: CO 3개가 산소 3개를 빼앗아 CO₂ 3개가 되므로 계수는 차례로 1, 3, 2, 3 ⇒ Fe₂O₃ + 3CO → 2Fe + 3CO₂.",
+          ja: "Fe₂O₃ + CO → Fe + CO₂ の係数を合わせます。3個の CO が酸素を3個うばって3個の CO₂ になるので、係数は順に 1, 3, 2, 3 となり、Fe₂O₃ + 3CO → 2Fe + 3CO₂ です。",
+          ko: "Fe₂O₃ + CO → Fe + CO₂ 맞추기: CO 3개가 산소 3개를 빼앗아 CO₂ 3개가 되므로 계수는 차례로 1, 3, 2, 3 ⇒ Fe₂O₃ + 3CO → 2Fe + 3CO₂예요.",
           ms: "Imbangkan Fe₂O₃ + CO → Fe + CO₂: 3 CO mengambil 3 atom oksigen untuk membentuk 3 CO₂, jadi pekalinya 1, 3, 2, 3 ⇒ Fe₂O₃ + 3CO → 2Fe + 3CO₂.",
         },
         checkQuestion: {
@@ -481,12 +481,12 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
   // ==================== BIOLOGY ====================
   mt_bio_mendelian_genetics: {
     description: {
-      ja: "遺伝子型（AA/Aa/aa）と表現型を区別し、配偶子の分離とパネットの方形（かけ合わせの表）を使って子に形質が現れる確率を求めます。",
+      ja: "遺伝子型（AA/Aa/aa）と表現型を区別し、配偶子の分離とパネットの方形（交配表）を使って子に形質が現れる確率を求めます。",
       ko: "유전자형(AA/Aa/aa)과 표현형을 구별하고, 생식세포의 분리와 퍼넷 사각형을 이용해 자손에게 형질이 나타날 확률을 계산해요.",
       ms: "Membezakan genotip (AA/Aa/aa) daripada fenotip dan mengira kebarangkalian ciri pada anak menggunakan pemisahan gamet dan segi empat Punnett.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：茶色い目で潜性遺伝子をもつ両親（Aa）から、青い目（aa）の子が生まれる確率が 25% になるのはなぜでしょう？また、1人目の子が青い目だと、2人目の確率は変わりますか？",
+      ja: "お子さんに聞いてみましょう：茶色い目で潜性遺伝子をもつ両親（Aa）から、青い目（aa）の子が生まれる確率が 25% になるのはなぜでしょうか？また、1人目の子が青い目だと、2人目の確率は変わりますか？",
       ko: "아이에게 물어보세요: 갈색 눈이면서 열성 유전자를 가진 부모(Aa)에게서 파란 눈(aa)의 아이가 태어날 확률이 25%인 이유는 무엇일까요? 또 첫째 아이가 파란 눈이면 둘째의 확률이 달라질까요?",
       ms: "Tanya anak: Bagaimanakah dua ibu bapa bermata perang yang membawa gen resesif (Aa) boleh mempunyai 25% peluang mendapat anak bermata biru (aa), dan adakah kelahiran pertama mempengaruhi kelahiran kedua?",
     },
@@ -505,17 +505,17 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
     steps: [
       {
         title: {
-          ja: "2×2 のマス目に配偶子の組み合わせを書く",
+          ja: "パネットの方形（交配表）に配偶子の組み合わせを書く",
           ko: "2×2 생식세포 표 그리기",
           ms: "Lukis Grid Gamet 2×2",
         },
         body: {
-          ja: "Aa × aa のかけ合わせ：配偶子 (A, a) × (a, a) → 子は Aa（顕性）が 50%、aa（潜性）が 50%。",
-          ko: "Aa × aa 교배: 생식세포 (A, a) × (a, a) → 자손은 Aa(우성) 50%, aa(열성) 50%.",
+          ja: "Aa × aa の交配では、配偶子 (A, a) × (a, a) より、子は Aa（顕性）が 50%、aa（潜性）が 50% になります。",
+          ko: "Aa × aa 교배: 생식세포 (A, a) × (a, a) → 자손은 Aa(우성) 50%, aa(열성) 50%예요.",
           ms: "Kacukan Aa × aa: gamet (A, a) × (a, a) → anak 50% Aa (dominan) dan 50% aa (resesif).",
         },
         checkQuestion: {
-          ja: "遺伝子型がどちらも Aa の親どうしをかけ合わせたとき、潜性形質（aa）を示す子の割合は何 % ですか？（数字のみ）",
+          ja: "遺伝子型がどちらも Aa の親どうしをかけ合わせたとき、潜性形質（aa）を示す子の割合は何 % ですか（数字のみ答えましょう）？",
           ko: "유전자형이 모두 Aa인 부모를 교배했을 때, 열성 형질(aa)을 나타내는 자손의 비율은 몇 %일까요? (숫자만 쓰세요)",
           ms: "Dalam kacukan Aa × Aa, berapakah peratusan anak yang menunjukkan fenotip resesif (aa)? (nombor sahaja)",
         },
@@ -550,7 +550,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Memilih kata ganti nama relatif atau adverba relatif dengan menganalisis unsur sintaksis yang hilang dalam klausa relatif (subjek/objek → which/that/who, keterangan → where/when, milikan → whose).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：'the museum ___ we visited' と 'the museum ___ we worked' を比べると、同じ博物館なのに、なぜ一方は which、もう一方は where が入るのでしょう？",
+      ja: "お子さんに聞いてみましょう：'the museum ___ we visited' と 'the museum ___ we worked' を比べると、同じ博物館なのに、なぜ一方は which、もう一方は where が入るのでしょうか？",
       ko: "아이에게 물어보세요: 'the museum ___ we visited'와 'the museum ___ we worked'를 비교해 보면, 같은 박물관인데 왜 하나는 which, 다른 하나는 where가 들어갈까요?",
       ms: "Tanya anak: Bandingkan 'the museum ___ we visited' dengan 'the museum ___ we worked'—mengapakah satu menggunakan 'which' dan satu lagi 'where'?",
     },
@@ -562,7 +562,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       },
     ],
     intuition: {
-      ja: "先行詞が場所や時を表すかどうかだけで判断せず、先行詞を節の中に戻してみましょう！visit the museum（他動詞の目的語 → which）、work in the museum（前置詞句で副詞のはたらき → where）。",
+      ja: "先行詞が場所や時を表すかどうかだけで判断せず、先行詞を節の中に戻してみましょう！visit the museum なら他動詞の目的語なので which、work in the museum なら前置詞句で副詞のはたらきなので where を使います。",
       ko: "선행사가 장소나 시간인지만 보지 말고, 선행사를 관계절 안에 다시 넣어 보세요! visit the museum(타동사의 목적어 → which), work in the museum(전치사구로 부사 역할 → where).",
       ms: "Masukkan semula anteseden ke dalam klausa: 'visit [the museum]' memerlukan kata ganti nama 'which' (objek), manakala 'work [in the museum]' memerlukan adverba 'where' (keterangan).",
     },
@@ -579,7 +579,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Bandingkan I still remember the day (which/that) we spent together. ('spent [the day]', objek hilang → which/that) dengan the day when we met. ('met [on the day]', keterangan masa → when).",
         },
         checkQuestion: {
-          ja: "which か where を入れましょう：This is the factory ___ produces electric cars.",
+          ja: "This is the factory ___ produces electric cars. の空欄には which と where のどちらが入りますか？",
           ko: "which와 where 중 알맞은 것을 쓰세요: This is the factory ___ produces electric cars.",
           ms: "Isikan 'which' atau 'where': This is the factory ___ produces electric cars.",
         },
@@ -614,7 +614,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Menukar antara nombor perduaan dan perpuluhan menggunakan kuasa 2 (1, 2, 4, 8, 16, 32…) dan menilai ungkapan Boolean majmuk (AND / OR / NOT).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：片手の指は5本しかないのに、指を立てる・曲げるだけで、どうして 0 から 31 までの 32 通りの数を表せるのでしょう？",
+      ja: "お子さんに聞いてみましょう：片手の指は5本しかないのに、指を立てる・曲げるだけで、どうして 0 から 31 までの 32 通りの数を表せるのでしょうか？",
       ko: "아이에게 물어보세요: 한 손의 손가락은 5개뿐인데, 손가락을 펴고 접는 것만으로 어떻게 0부터 31까지 32개의 수를 나타낼 수 있을까요?",
       ms: "Tanya anak: Dengan hanya 5 jari pada sebelah tangan (diangkat atau dilipat), bagaimanakah saintis komputer boleh membilang dari 0 hingga 31?",
     },
@@ -638,8 +638,8 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
           ms: "Labelkan 8-4-2-1 di Atas Bit dan Jumlahkan Bit 1",
         },
         body: {
-          ja: "2進数 1101₂ = 1×8 + 1×4 + 0×2 + 1×1 = 13。",
-          ko: "이진수 1101₂ = 1×8 + 1×4 + 0×2 + 1×1 = 13.",
+          ja: "2進数 1101₂ は 1×8 + 1×4 + 0×2 + 1×1 = 13 になります。",
+          ko: "이진수 1101₂는 1×8 + 1×4 + 0×2 + 1×1 = 13이에요.",
           ms: "Nombor perduaan 1101₂ = 1×8 + 1×4 + 0×2 + 1×1 = 13.",
         },
         checkQuestion: {
@@ -673,12 +673,12 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
   // ==================== GEOGRAPHY ====================
   mt_geo_map_scale_timezones: {
     description: {
-      ja: "地図の縮尺から実際の距離を求め（1 km = 100,000 cm）、経度の差から時差を計算します（経度 15° = 1時間、東ほど時刻が進む）。",
+      ja: "地図の縮尺から実際の距離を求め（1 km = 100,000 cm）、経度の差（経度 15° = 1時間、東ほど時刻が進む）から時差を計算します。",
       ko: "지도의 축척으로 실제 거리를 구하고(1 km = 100,000 cm), 경도 차이로 시차를 계산해요(경도 15° = 1시간, 동쪽일수록 시각이 빠름).",
       ms: "Mengira jarak sebenar daripada skala peta (1 km = 100,000 cm) dan perbezaan waktu merentasi longitud (15° = 1 jam; timur tambah, barat tolak).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：ロンドン（UTC+0）で午後1時（13:00）に始まるサッカーの試合は、シンガポール・北京（UTC+8）では何時でしょう？",
+      ja: "お子さんに聞いてみましょう：ロンドン（UTC+0）で午後1時（13:00）に始まるサッカーの試合は、シンガポール・北京（UTC+8）では何時でしょうか？",
       ko: "아이에게 물어보세요: 런던(UTC+0)에서 오후 1시(13:00)에 시작하는 축구 경기는 싱가포르·베이징(UTC+8)에서는 몇 시일까요?",
       ms: "Tanya anak: Jika sesuatu perlawanan bermula pada 13:00 di London (UTC+0), pukul berapakah waktu di Singapura/Beijing (UTC+8)?",
     },
@@ -742,7 +742,7 @@ export const TOPIC_CONTENT_I18N_STEM: TopicContentOverlay = {
       ms: "Mengira tempoh masa merentasi SM/M dengan tepat dengan mengambil kira ketiadaan Tahun 0 (A + B - 1), serta membezakan sumber primer (bahan sezaman) daripada sumber sekunder (kajian kemudian) untuk menilai kebolehpercayaan sumber.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：紀元前1年に生まれた赤ちゃんは、紀元後1年の同じ日に何歳になるでしょう？1歳？2歳？（ヒント：紀元0年はありません！）",
+      ja: "お子さんに聞いてみましょう：紀元前1年に生まれた赤ちゃんは、紀元後1年の同じ日に何歳になるでしょうか？1歳ですか、2歳ですか？（ヒント：紀元0年はありません！）",
       ko: "아이에게 물어보세요: 기원전 1년에 태어난 아기는 기원후 1년의 같은 날에 만 몇 살이 될까요? 1살일까요, 2살일까요? (힌트: 0년은 없어요!)",
       ms: "Tanya anak: Seorang bayi yang lahir pada 1 SM menyambut hari jadi yang keberapa pada tarikh yang sama dalam tahun 1 M—pertama atau kedua? (Petunjuk: tiada Tahun 0!)",
     },

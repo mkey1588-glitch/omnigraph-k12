@@ -66,7 +66,7 @@ export const REGIONS_DATA: RegionMetadata[] = [
     gradeLabels: {
       1: "國小一年級", 2: "國小二年級", 3: "國小三年級", 4: "國小四年級", 5: "國小五年級", 6: "國小六年級",
       7: "國中七年級", 8: "國中八年級", 9: "國中九年級",
-      10: "高一（共同必修）", 11: "高二（數A/數B）", 12: "高三（加深加廣）",
+      10: "高一", 11: "高二", 12: "高三",
     },
     notation: {
       currencySymbol: "NT$",
@@ -90,8 +90,8 @@ export const REGIONS_DATA: RegionMetadata[] = [
     privacyRegulation: "Singapore PDPA",
     gradeLabels: {
       1: "Primary 1 (P1)", 2: "Primary 2 (P2)", 3: "Primary 3 (P3)", 4: "Primary 4 (P4)", 5: "Primary 5 (P5)", 6: "Primary 6 (PSLE)",
-      7: "Sec 1 (G3)", 8: "Sec 2 (G3)", 9: "Sec 3 (E/A-Math)", 10: "Sec 4 (O-Level)",
-      11: "JC 1 (H2)", 12: "JC 2 (A-Level)",
+      7: "Sec 1 (G3)", 8: "Sec 2 (G3)", 9: "Sec 3 (Upper Sec)", 10: "Sec 4 (O-Level)",
+      11: "JC 1 (Pre-U)", 12: "JC 2 (A-Level)",
     },
     notation: {
       currencySymbol: "S$",
@@ -142,7 +142,7 @@ export const REGIONS_DATA: RegionMetadata[] = [
     gradeLabels: {
       1: "小1", 2: "小2", 3: "小3", 4: "小4", 5: "小5", 6: "小6",
       7: "中1", 8: "中2", 9: "中3",
-      10: "高1（数I・A）", 11: "高2（数II・B）", 12: "高3（数III・C）",
+      10: "高1", 11: "高2", 12: "高3",
     },
     notation: {
       currencySymbol: "¥",
@@ -167,7 +167,7 @@ export const REGIONS_DATA: RegionMetadata[] = [
     gradeLabels: {
       1: "초1", 2: "초2", 3: "초3", 4: "초4", 5: "초5", 6: "초6",
       7: "중1", 8: "중2", 9: "중3",
-      10: "고1（공통수학）", 11: "고2（대수/미적분I）", 12: "고3（수능 대비）",
+      10: "고1", 11: "고2", 12: "고3",
     },
     notation: {
       currencySymbol: "₩",
@@ -214,8 +214,8 @@ export const REGIONS_DATA: RegionMetadata[] = [
     privacyRegulation: "COPPA & FERPA (Verifiable Parental Consent <13)",
     gradeLabels: {
       1: "Grade 1", 2: "Grade 2", 3: "Grade 3", 4: "Grade 4", 5: "Grade 5", 6: "Grade 6",
-      7: "Grade 7", 8: "Grade 8", 9: "Grade 9 (Algebra 1)",
-      10: "Grade 10 (Geometry/Alg 2)", 11: "Grade 11 (Precalculus)", 12: "Grade 12 (AP Calc/Phys)",
+      7: "Grade 7", 8: "Grade 8", 9: "Grade 9 (HS Freshman)",
+      10: "Grade 10 (HS Sophomore)", 11: "Grade 11 (HS Junior)", 12: "Grade 12 (HS Senior / AP)",
     },
     notation: {
       currencySymbol: "$",

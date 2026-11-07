@@ -30,11 +30,11 @@ export const NAV_COPY = {
     parent: c("👨‍👧 家长端", "👨‍👧 Parent", "👨‍👧 保護者", "👨‍👧 학부모", "👨‍👧 Ibu Bapa"),
   } satisfies Record<UserRole, UiCopy>,
   tabs: {
-    overview: c("个人总览", "Overview", "マイページ", "학습 개요", "Gambaran"),
+    overview: c("个人总览", "Overview", "マイページ", "학습 개요", "Ringkasan"),
     explore: c("知识图谱星海", "Knowledge Map", "知識グラフ探索", "지식그래프 탐색", "Peta Ilmu"),
-    diagnose: c("靶向回溯诊断", "Adaptive Diagnose", "遡及アダプティブ診断", "역추적 적응형 진단", "Diagnosis Adaptif"),
+    diagnose: c("靶向回溯诊断", "Adaptive Diagnose", "さかのぼり診断", "역추적 적응형 진단", "Diagnosis Adaptif"),
     capture: c("AI智能录错题", "AI Capture", "AI誤答キャプチャ", "AI 오답 캡처", "Rakaman AI"),
-    wrongBook: c("FSRS 错题清零", "FSRS Clearance", "FSRS 誤答クリア", "FSRS 오답 클리어", "Buku Salah FSRS"),
+    wrongBook: c("FSRS 错题清零", "FSRS Clearance", "FSRS 誤答クリア", "FSRS 오답 클리어", "Buku Kesilapan FSRS"),
     teacher: c("教师教研台", "Teacher Hub", "教員ダッシュボード", "교사 연구실", "Hab Guru"),
     paperBuilder: c("9地组AB卷", "A/B Exam Builder", "A/B 試験作成", "A/B 시험지 빌더", "Pembina Kertas A/B"),
     studio: c("校本工坊/IRT", "School Studio / IRT", "校内工房 / IRT", "학교 스튜디오 / IRT", "Studio / IRT"),
@@ -148,7 +148,7 @@ export const WIDGET_COPY = {
         `当 x = ${x} 时，y = ${y}`,
         `At x = ${x}, y = ${y}`,
         `x = ${x} のとき y = ${y}`,
-        `x = ${x} 일 때, y = ${y}`,
+        `x = ${x}일 때, y = ${y}`,
         `Apabila x = ${x}, y = ${y}`
       )
     ),
@@ -170,8 +170,8 @@ export const CANVAS_COPY = {
   legendMastered: c("已掌握/豁免", "Mastered / Exempt", "習得済/免除", "마스터/면제", "Dikuasai / Dikecuali"),
   legendShaky: c("滑档待稳", "Shaky", "要定着", "불안정", "Tidak Stabil"),
   legendWeak: c("薄弱/根因", "Weak / Root Cause", "弱点/根本原因", "취약/근본원인", "Lemah / Punca"),
-  legendHard: c("── 强先修", "── Hard Prereq", "── 必須前提", "── 필수 선수", "── Prasyarat Keras"),
-  legendSoft: c("- - 弱先修", "- - Soft Prereq", "- - 推奨前提", "- - 권장 선수", "- - Prasyarat Lembut"),
+  legendHard: c("── 强先修", "── Hard Prereq", "── 必須前提", "── 필수 선수", "── Prasyarat Wajib"),
+  legendSoft: c("- - 弱先修", "- - Soft Prereq", "- - 推奨前提", "- - 권장 선수", "- - Prasyarat Cadangan"),
   legendCross: c("━━ 跨科桥", "━━ Cross-Subject Bridge", "━━ 教科横断ブリッジ", "━━ 교과 간 브리지", "━━ Jambatan Rentas Subjek"),
   zoomOut: c("缩小画布", "Zoom out", "縮小", "축소", "Zum keluar"),
   zoomIn: c("放大画布", "Zoom in", "拡大", "확대", "Zum masuk"),
@@ -198,7 +198,7 @@ const DIFFICULTY_LABELS: Record<DifficultyTier, UiCopy> = {
 };
 
 const RELATION_LABELS: Record<EdgeRelationType, UiCopy> = {
-  hard: c("强先修依赖", "Hard Prerequisite", "必須前提", "필수 선수", "Prasyarat Keras"),
+  hard: c("强先修依赖", "Hard Prerequisite", "必須前提", "필수 선수", "Prasyarat Wajib"),
   soft: c("弱先修建议", "Recommended Prereq", "推奨前提", "권장 선수", "Prasyarat Cadangan"),
   cross_subject: c("跨学科桥接", "Cross-Subject Bridge", "教科横断ブリッジ", "교과 간 브리지", "Jambatan Rentas Subjek"),
 };
@@ -215,12 +215,12 @@ const SUBJECT_SHORT_BADGE: Record<SubjectId, UiCopy> = {
   math: c("📐 数学", "📐 Math", "📐 数学", "📐 수학", "📐 Mat"),
   physics: c("⚡ 物理", "⚡ Phys", "⚡ 物理", "⚡ 물리", "⚡ Fiz"),
   chemistry: c("🧪 化学", "🧪 Chem", "🧪 化学", "🧪 화학", "🧪 Kim"),
-  biology: c("🧬 生物", "🧬 Bio", "🧬 生物", "🧬 생물", "🧬 Bio"),
+  biology: c("🧬 生物", "🧬 Bio", "🧬 生物", "🧬 생명", "🧬 Bio"),
   english: c("🔤 英语", "🔤 Eng", "🔤 英語", "🔤 영어", "🔤 BI"),
   computing: c("💻 信息", "💻 CS", "💻 情報", "💻 정보", "💻 SK"),
   geography: c("🌍 地理", "🌍 Geog", "🌍 地理", "🌍 지리", "🌍 Geo"),
   history: c("🏛️ 历史", "🏛️ Hist", "🏛️ 歴史", "🏛️ 역사", "🏛️ Sej"),
-  literacy: c("📚 阅读", "📚 Lit", "📚 読解", "📚 독해", "📚 Baca"),
+  literacy: c("📚 阅读", "📚 Lit", "📚 読解", "📚 독해", "📚 Bacaan"),
 };
 
 export function getMasteryStatusLabel(status: MasteryStatus, locale: LocaleCode): string {

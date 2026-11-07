@@ -282,28 +282,29 @@ export async function generateSocraticTutorReply(
     const lastRaw = scaffolds[scaffolds.length - 1];
     const lastLoc = lastRaw ? localizeScaffold(lastRaw, locale) : null;
     const lastEn = lastRaw ? localizeScaffold(lastRaw, "en") : null;
-    const formula = topic?.microLesson.coreFormula ?? "";
+    const rawFormula = topic?.microLesson.coreFormula ?? "";
+    const formula = rawFormula.includes("$") ? rawFormula : rawFormula ? `\`${rawFormula}\`` : "";
     primaryReply = uiPick(
       locale,
       c(
-        `思路已经非常接近终点啦！回顾核心关系式 \`${formula}\`：\n${
-          lastLoc ? `• 关键中间提示：${lastLoc.prompt}（线索：\`${lastLoc.hint}\`）\n` : ""
+        `思路已经非常接近终点啦！回顾核心关系式 ${formula}：\n${
+          lastLoc ? `• 关键中间提示：${lastLoc.prompt}（线索：${lastLoc.hint}）\n` : ""
         }把你算出的数值填进作答框提交验证吧——如果某一步正负号或单位不确定，把你的算式发给我，我帮你逐行诊断！`,
-        `You're right at the finish line! Review the core relation \`${formula}\`:\n${
-          lastLoc ? `• Key clue: ${lastLoc.prompt} (\`${lastLoc.hint}\`)\n` : ""
+        `You're right at the finish line! Review the core relation ${formula}:\n${
+          lastLoc ? `• Key clue: ${lastLoc.prompt} (${lastLoc.hint})\n` : ""
         }Enter your result in the answer box to verify — or share your working if you'd like me to check your signs and units!`,
-        `ゴールまであと少しです！基本式 \`${formula}\` を確認しましょう：\n${
-          lastLoc ? `• ヒント：${lastLoc.prompt}（手がかり：\`${lastLoc.hint}\`）\n` : ""
-        }計算結果を解答欄に入力して確認してみましょう。途中式を送ってくれれば符号や単位もチェックします！`,
-        `거의 다 왔어요! 핵심 관계식 \`${formula}\`을 다시 확인해 보세요:\n${
-          lastLoc ? `• 핵심 단서: ${lastLoc.prompt} (힌트: \`${lastLoc.hint}\`)\n` : ""
+        `ゴールまであと少しです！基本式 ${formula} を確認しましょう：\n${
+          lastLoc ? `• ヒント：${lastLoc.prompt}（手がかり：${lastLoc.hint}）\n` : ""
+        }計算結果を解答欄に入力して確認してみましょう。途中式を送っていただければ符号や単位もチェックします！`,
+        `거의 다 왔어요! 핵심 관계식 ${formula}을(를) 다시 확인해 보세요:\n${
+          lastLoc ? `• 핵심 단서: ${lastLoc.prompt} (힌트: ${lastLoc.hint})\n` : ""
         }계산한 값을 답안란에 입력해 제출해 보세요. 부호나 단위가 헷갈리면 풀이 과정을 보내주세요!`,
-        `Anda hampir sampai ke jawapan akhir! Semak hubungan teras \`${formula}\`:\n${
-          lastLoc ? `• Petunjuk utama: ${lastLoc.prompt} (\`${lastLoc.hint}\`)\n` : ""
+        `Anda hampir sampai ke jawapan akhir! Semak hubungan teras ${formula}:\n${
+          lastLoc ? `• Petunjuk utama: ${lastLoc.prompt} (${lastLoc.hint})\n` : ""
         }Masukkan jawapan anda untuk pengesahan, atau kongsikan jalan kerja anda untuk semakan tanda dan unit!`
       )
     );
-    englishCompanion = `You're right at the finish line! Apply \`${formula}\` ${
+    englishCompanion = `You're right at the finish line! Apply ${formula} ${
       lastEn ? `(Hint: ${lastEn.hint})` : ""
     } and submit your answer!`;
   }

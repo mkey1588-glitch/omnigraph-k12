@@ -171,16 +171,38 @@ const HAS_CJK_RE = /[\u3400-\u9FFF]/;
 const HAS_KANA_RE = /[\u3040-\u30FF]/;
 const HAS_HANGUL_RE = /[\uAC00-\uD7AF]/;
 
-function hasForeignScriptForLocale(str: string, locale: LocaleCode): boolean {
+function hasForeignScriptForLocale(
+  str: string,
+  locale: LocaleCode,
+  sourceRegion?: RegionCode
+): boolean {
   if (!str) return false;
   if (locale === "en" || locale === "ms") {
     return HAS_CJK_RE.test(str) || HAS_KANA_RE.test(str) || HAS_HANGUL_RE.test(str);
   }
   if (locale === "ja") {
+    // For non-JP regions (CN, HK, TW, KR), ANY CJK or Hangul in chapter/edition is Chinese or Korean — must localize!
+    if (sourceRegion && sourceRegion !== "JP") {
+      return HAS_CJK_RE.test(str) || HAS_HANGUL_RE.test(str);
+    }
     return HAS_HANGUL_RE.test(str) || findSimplifiedOnlyChars(str).length > 0;
   }
   if (locale === "ko") {
     return HAS_CJK_RE.test(str) || HAS_KANA_RE.test(str);
+  }
+  if (locale === "zh-CN") {
+    // Reject Japanese Kana, Korean Hangul, and JP/KR region native strings
+    if (sourceRegion === "JP" || sourceRegion === "KR") {
+      return HAS_CJK_RE.test(str) || HAS_KANA_RE.test(str) || HAS_HANGUL_RE.test(str);
+    }
+    return HAS_KANA_RE.test(str) || HAS_HANGUL_RE.test(str);
+  }
+  if (locale === "zh-TW") {
+    // Never run s2tw on Japanese or Korean strings!
+    if (sourceRegion === "JP" || sourceRegion === "KR") {
+      return HAS_CJK_RE.test(str) || HAS_KANA_RE.test(str) || HAS_HANGUL_RE.test(str);
+    }
+    return HAS_KANA_RE.test(str) || HAS_HANGUL_RE.test(str);
   }
   return false;
 }
@@ -192,9 +214,23 @@ export function localizeAlignment(
   locale: LocaleCode
 ): RegionalAlignmentRecord | undefined {
   if (!aln) return undefined;
-  if (locale === "zh-CN") return aln;
 
-  if (locale === "zh-TW") {
+  // Native passthrough ONLY when UI locale matches the region's native script
+  if (locale === "zh-CN" && aln.regionCode === "CN") return aln;
+  if (locale === "zh-TW" && (aln.regionCode === "TW" || aln.regionCode === "HK")) {
+    return {
+      ...aln,
+      localStageLabel: toTraditionalChinese(aln.localStageLabel),
+      textbookEdition: toTraditionalChinese(aln.textbookEdition),
+      localChapterTitle: toTraditionalChinese(aln.localChapterTitle),
+      regionalNote: aln.regionalNote ? toTraditionalChinese(aln.regionalNote) : undefined,
+    };
+  }
+  if (locale === "ja" && aln.regionCode === "JP") return aln;
+  if (locale === "ko" && aln.regionCode === "KR") return aln;
+
+  // Cross-Chinese clean conversion: CN -> zh-TW
+  if (locale === "zh-TW" && aln.regionCode === "CN") {
     return {
       ...aln,
       localStageLabel: toTraditionalChinese(aln.localStageLabel),
@@ -204,29 +240,45 @@ export function localizeAlignment(
     };
   }
 
-  // Native JP / KR passthrough when matching locale
-  if (locale === "ja" && aln.regionCode === "JP") return aln;
-  if (locale === "ko" && aln.regionCode === "KR") return aln;
+  // HK / TW viewed under Simplified Chinese (`zh-CN`): use clean Simplified labels
+  if (locale === "zh-CN" && (aln.regionCode === "HK" || aln.regionCode === "TW")) {
+    const prof = reg ? getLocalizedRegionProfile(reg, "zh-CN", toTraditionalChinese) : undefined;
+    return {
+      ...aln,
+      localStageLabel: getLocalizedGradeLabel(reg, aln.localGrade, "zh-CN", toTraditionalChinese),
+      textbookEdition: prof ? prof.curriculumName : aln.standardCode,
+      localChapterTitle: topic ? topic.title["zh-CN"] : aln.standardCode,
+      regionalNote: undefined,
+    };
+  }
 
-  const cleanStage = hasForeignScriptForLocale(aln.localStageLabel, locale)
-    ? getLocalizedGradeLabel(reg, aln.localGrade, locale, toTraditionalChinese)
-    : aln.localStageLabel;
+  const cleanStage = getLocalizedGradeLabel(reg, aln.localGrade, locale, toTraditionalChinese);
 
-  const cleanEdition = hasForeignScriptForLocale(aln.textbookEdition, locale)
+  const rawEdition = locale === "zh-TW" && !hasForeignScriptForLocale(aln.textbookEdition, locale, aln.regionCode)
+    ? toTraditionalChinese(aln.textbookEdition)
+    : aln.textbookEdition;
+
+  const cleanEdition = hasForeignScriptForLocale(aln.textbookEdition, locale, aln.regionCode)
     ? reg
       ? getLocalizedRegionProfile(reg, locale, toTraditionalChinese).curriculumName
       : aln.standardCode
-    : aln.textbookEdition;
+    : rawEdition;
 
-  const cleanChapter = hasForeignScriptForLocale(aln.localChapterTitle, locale)
+  const rawChapter = locale === "zh-TW" && !hasForeignScriptForLocale(aln.localChapterTitle, locale, aln.regionCode)
+    ? toTraditionalChinese(aln.localChapterTitle)
+    : aln.localChapterTitle;
+
+  const cleanChapter = hasForeignScriptForLocale(aln.localChapterTitle, locale, aln.regionCode)
     ? topic
       ? localizeText(topic.title, locale, false)
       : aln.standardCode
-    : aln.localChapterTitle;
+    : rawChapter;
 
   const cleanNote =
-    aln.regionalNote && !hasForeignScriptForLocale(aln.regionalNote, locale)
-      ? aln.regionalNote
+    aln.regionalNote && !hasForeignScriptForLocale(aln.regionalNote, locale, aln.regionCode)
+      ? locale === "zh-TW"
+        ? toTraditionalChinese(aln.regionalNote)
+        : aln.regionalNote
       : undefined;
 
   return {

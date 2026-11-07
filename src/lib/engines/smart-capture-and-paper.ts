@@ -145,27 +145,49 @@ export function analyzeCapturedWrongQuestion(params: {
       score += 4;
     }
 
-    for (const val of Object.values(topic.title)) {
+    // Match canonical topic titles across all 6 locales (including auto-converted zh-TW)
+    const titleVariants = [
+      ...Object.values(topic.title),
+      toTraditionalChinese(topic.title["zh-CN"]),
+    ];
+    for (const val of titleVariants) {
       if (val && qLower.includes(val.toLowerCase())) score += 12;
     }
 
     const keywords = TOPIC_SIGNAL_LEXICON[topic.id] ?? [];
     for (const kw of keywords) {
-      if (qLower.includes(kw.toLowerCase())) {
+      const kwTw = toTraditionalChinese(kw);
+      if (qLower.includes(kw.toLowerCase()) || (kwTw !== kw && qLower.includes(kwTw.toLowerCase()))) {
         score += 8;
       }
     }
 
-    // Token overlap against description & misconceptions
-    const descZh = topic.description["zh-CN"];
-    for (let i = 0; i < descZh.length - 1; i++) {
-      const bi = descZh.slice(i, i + 2);
-      if (/[\u4e00-\u9fa5]{2}/.test(bi) && qLower.includes(bi)) {
+    // Token overlap against description & misconceptions across zh-CN, zh-TW, en, ja, ko, ms
+    const cjkPool = [
+      topic.description["zh-CN"],
+      toTraditionalChinese(topic.description["zh-CN"]),
+      topic.description.ja ?? "",
+    ].join(" ");
+    for (let i = 0; i < cjkPool.length - 1; i++) {
+      const bi = cjkPool.slice(i, i + 2);
+      if (/[\u3040-\u30ff\u3400-\u9fff]{2}/.test(bi) && qLower.includes(bi.toLowerCase())) {
         score += 0.6;
       }
     }
-    const descEnWords = topic.description.en.toLowerCase().split(/\W+/).filter((w) => w.length >= 5);
-    for (const w of descEnWords) {
+
+    // Korean Hangul 2-syllable stem overlap
+    const koPool = `${topic.title.ko ?? ""} ${topic.description.ko ?? ""}`;
+    for (let i = 0; i < koPool.length - 1; i++) {
+      const bi = koPool.slice(i, i + 2);
+      if (/[\uac00-\ud7a3]{2}/.test(bi) && qLower.includes(bi)) {
+        score += 1.0;
+      }
+    }
+
+    // Latin (English & Malay) word overlap
+    const latinPool = `${topic.description.en} ${topic.description.ms ?? ""}`;
+    const latinWords = latinPool.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+    for (const w of latinWords) {
       if (qLower.includes(w)) score += 1.2;
     }
 

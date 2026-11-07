@@ -89,6 +89,8 @@ function walkTsxFiles(dir: string): string[] {
   return out;
 }
 
+const BAD_ZH_TW_POLYSEMY_RE = /皇後|乾路|乾擾|題乾|主乾|合並|竪|沈澱/;
+
 function assertCleanForLocale(text: string, locale: LocaleCode, context: string): void {
   if (!text) return;
   if (locale === "en" || locale === "ms") {
@@ -97,12 +99,28 @@ function assertCleanForLocale(text: string, locale: LocaleCode, context: string)
       false,
       `[${locale}] Foreign CJK/Kana/Hangul leaked in ${context}: "${text.slice(0, 120)}"`
     );
+  } else if (locale === "zh-CN") {
+    assert.equal(
+      KANA_RE.test(text) || HANGUL_RE.test(text),
+      false,
+      `[zh-CN] Foreign Kana/Hangul leaked in ${context}: "${text.slice(0, 120)}"`
+    );
   } else if (locale === "zh-TW") {
+    assert.equal(
+      KANA_RE.test(text) || HANGUL_RE.test(text),
+      false,
+      `[zh-TW] Foreign Kana/Hangul leaked in ${context}: "${text.slice(0, 120)}"`
+    );
     const simp = findSimplifiedOnlyChars(text);
     assert.equal(
       simp.length,
       0,
       `[zh-TW] Simplified-only chars [${simp.join("")}] leaked in ${context}: "${text.slice(0, 120)}"`
+    );
+    assert.equal(
+      BAD_ZH_TW_POLYSEMY_RE.test(text),
+      false,
+      `[zh-TW] Polysemy typo matched in ${context}: "${text.slice(0, 120)}"`
     );
   } else if (locale === "ko") {
     assert.equal(
@@ -112,10 +130,11 @@ function assertCleanForLocale(text: string, locale: LocaleCode, context: string)
     );
   } else if (locale === "ja") {
     const cnOnly = Array.from(new Set(text.match(CN_ONLY_NON_JP_RE) ?? []));
+    const twHkLeak = /國中|國小|課綱|香港中學/.test(text);
     assert.equal(
-      cnOnly.length === 0 && !HANGUL_RE.test(text),
+      cnOnly.length === 0 && !HANGUL_RE.test(text) && !twHkLeak,
       true,
-      `[ja] Mainland-only Simplified Chinese [${cnOnly.join("")}] or Hangul leaked in ${context}: "${text.slice(0, 120)}"`
+      `[ja] Chinese/Hangul leaked in ${context}: "${text.slice(0, 120)}"`
     );
   }
 }

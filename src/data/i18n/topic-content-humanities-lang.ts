@@ -42,8 +42,8 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "Dalam `The quality [of these sensors] ___ (is / are) reliable.`, ketepikan `[of these sensors]`: subjek teras `quality` ialah kata nama tak boleh dikira (tunggal), maka isikan `is`.",
         },
         checkQuestion: {
-          ja: "空所に入る語を選びましょう：`The results of the experiment ___ (show / shows) a clear trend.`",
-          ko: "빈칸을 채우세요: `The results of the experiment ___ (show / shows) a clear trend.`",
+          ja: "`The results of the experiment ___ (show / shows) a clear trend.` の空所に入る語を選びましょう。",
+          ko: "빈칸에 알맞은 단어를 고르세요: `The results of the experiment ___ (show / shows) a clear trend.`",
           ms: "Isi tempat kosong: `The results of the experiment ___ (show / shows) a clear trend.`",
         },
       },
@@ -76,7 +76,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       ms: "Kenal pasti subjek logik bagi partisipel (subjek ayat utama atau kata nama yang diterangkan), kemudian pilih `-ing` jika subjek itu pelaku (aktif) atau partisipel lepas jika subjek itu penerima perbuatan (pasif).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：「Seeing from the hilltop, the city looked tiny.」という文は、なぜ「街が自分の目で見ている」という意味になってしまうのでしょう？",
+      ja: "お子さんに聞いてみましょう：「Seeing from the hilltop, the city looked tiny.」という文は、なぜ「街が自分の目で見ている」という意味になってしまうのでしょうか？",
       ko: "아이에게 물어보세요: 'Seeing from the hilltop, the city looked tiny.'라는 문장은 왜 '도시가 직접 눈으로 본다'는 뜻이 되어 버릴까요?",
       ms: "Tanya anak: Mengapakah ayat 'Seeing from the hilltop, the city looked tiny.' secara tidak sengaja menyatakan bahawa bandar itu mempunyai mata?",
     },
@@ -105,8 +105,8 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "Dalam `______ (Build / Built) in 1920, the bridge still stands.`, subjek logiknya ialah `the bridge` (jambatan itu dibina), maka isikan partisipel lepas `Built`.",
         },
         checkQuestion: {
-          ja: "空所に入る語を選びましょう：`______ (Writing / Written) in clear English, the manual is easy to follow.`",
-          ko: "빈칸을 채우세요: `______ (Writing / Written) in clear English, the manual is easy to follow.`",
+          ja: "`______ (Writing / Written) in clear English, the manual is easy to follow.` の空所に入る語を選びましょう。",
+          ko: "빈칸에 알맞은 단어를 고르세요: `______ (Writing / Written) in clear English, the manual is easy to follow.`",
           ms: "Isi tempat kosong: `______ (Writing / Written) in clear English, the manual is easy to follow.`",
         },
       },
@@ -139,7 +139,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       ms: "Pasangkan `If + past perfect (had + p.p.)` dalam klausa syarat dengan `would/could have + p.p.` dalam klausa hasil untuk andaian yang bertentangan dengan fakta lampau.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：「If I would have studied, I would have passed.」は、なぜ正式な（アカデミックな）英語では誤りとされるのでしょう？",
+      ja: "お子さんに聞いてみましょう：「If I would have studied, I would have passed.」は、なぜ正式な（アカデミックな）英語では誤りとされるのでしょうか？",
       ko: "아이에게 물어보세요: 'If I would have studied, I would have passed.'는 왜 격식 있는 학술 영어에서 바르지 않은 표현일까요?",
       ms: "Tanya anak: Mengapakah ayat 'If I would have studied, I would have passed' dianggap tidak standard dalam bahasa Inggeris akademik?",
     },
@@ -151,8 +151,8 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       },
     ],
     intuition: {
-      ja: "過去に実現しなかったことを表すには、時制をさらに一段階過去へずらします：`If + had done` → `would have done`。",
-      ko: "과거에 일어나지 않은 일을 가정할 때는 시제를 한 단계 더 과거로 옮겨요: `If + had done` → `would have done`.",
+      ja: "過去に実現しなかったことを表すには、`If + had done` → `would have done` のように時制をさらに一段階過去へずらします。",
+      ko: "과거에 일어나지 않은 일을 가정할 때는 `If + had done` → `would have done`처럼 시제를 한 단계 더 과거로 옮겨요.",
       ms: "Untuk menyatakan andaian lampau yang tidak berlaku, anjakkan kala selangkah lagi ke belakang: `If + had done` → `would have done`.",
     },
     steps: [
@@ -168,9 +168,9 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "Apabila klausa hasil mengandungi `would have arrived`, klausa `if` mesti menggunakan `had left` (bukan `left` atau `would have left`).",
         },
         checkQuestion: {
-          ja: "動詞 check を使い、英語2語で完成させましょう：`If the team ______ the sensor yesterday, the launch would have succeeded.`",
-          ko: "동사 check를 사용해 영어 두 단어로 완성하세요: `If the team ______ the sensor yesterday, the launch would have succeeded.`",
-          ms: "Lengkapkan dengan dua perkataan bahasa Inggeris (gunakan kata kerja check): `If the team ______ the sensor yesterday, the launch would have succeeded.`",
+          ja: "`If the team ______ (check) the sensor yesterday, the launch would have succeeded.` の空所を、動詞 `check` を適切な形（英語2語）にして完成させましょう。",
+          ko: "동사 'check'를 알맞은 형태(영어 두 단어)로 바꾸어 빈칸을 완성하세요: `If the team ______ (check) the sensor yesterday, the launch would have succeeded.`",
+          ms: "Lengkapkan menggunakan kata kerja 'check': `If the team ______ (check) the sensor yesterday, the launch would have succeeded.`",
         },
       },
     ],
@@ -200,10 +200,10 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
     description: {
       ja: "等高線から標高差 Δh を読み取り、対流圏では標高が 100 m 上がるごとに気温が約 0.6°C 下がる（6°C/km）ことを使って、山頂や盆地の気温を推定します。",
       ko: "등고선에서 해발 고도 차 Δh를 읽고, 대류권에서 고도가 100 m 높아질 때마다 기온이 약 0.6°C 낮아진다는 사실(6°C/km)을 이용해 산꼭대기나 분지의 기온을 추정해요.",
-      ms: "Tentukan beza ketinggian Δh daripada peta kontur dan gunakan kadar tukaran suhu troposfera, iaitu suhu turun kira-kira 0.6°C bagi setiap kenaikan 100 m (6°C/km), untuk menganggar suhu di puncak gunung atau lembangan.",
+      ms: "Tentukan beza ketinggian Δh daripada peta kontur dan gunakan kadar susut suhu troposfera, iaitu suhu turun kira-kira 0.6°C bagi setiap kenaikan 100 m (6°C/km), untuk menganggar suhu di puncak gunung atau lembangan.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：夏、山のふもとが 30°C で暑いとき、ふもとより 2000 m 高い山頂の気温はおよそ何度でしょう？上着は必要かな？",
+      ja: "お子さんに聞いてみましょう：夏、山のふもとが 30°C で暑いとき、ふもとより 2000 m 高い山頂の気温はおよそ何度でしょうか？上着は必要ですか？",
       ko: "아이에게 물어보세요: 여름에 산기슭이 30°C로 더울 때, 산기슭보다 2000 m 높은 산꼭대기의 기온은 대략 몇 도일까요? 겉옷을 챙겨야 할까요?",
       ms: "Tanya anak: Jika suhu di kaki gunung ialah 30°C, kira-kira berapakah suhu di puncak yang 2000 m lebih tinggi? Perlukah membawa jaket?",
     },
@@ -266,7 +266,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       ms: "Kira sudut ketinggian matahari tengah hari H = 90° - |latitud - latitud matahari tegak| pada ekuinoks dan solstis (tolak latitud jika dalam hemisfera yang sama, tambah jika berlainan hemisfera).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：冬至の日には太陽が南回帰線（南緯 23.5°）の真上にきます。なぜ北半球にいる私たちの正午の影は、1年でいちばん長くなるのでしょう？",
+      ja: "お子さんに聞いてみましょう：冬至の日には太陽が南回帰線（南緯 23.5°）の真上にきます。なぜ北半球にいる私たちの正午の影は、1年でいちばん長くなるのでしょうか？",
       ko: "아이에게 물어보세요: 동짓날에는 태양이 남회귀선(남위 23.5°)을 수직으로 비춰요. 왜 북반구에 사는 우리의 정오 그림자는 1년 중 가장 길어질까요?",
       ms: "Tanya anak: Pada solstis Disember, matahari berada tegak di atas Garisan Jadi (23.5°S). Mengapakah bayang-bayang pada waktu tengah hari paling panjang di Hemisfera Utara?",
     },
@@ -290,8 +290,8 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "Tetapkan U = +, S = - dan Kira |φ - δ|",
         },
         body: {
-          ja: "春分の日（太陽は赤道の真上、δ = 0°）の北緯 40° の南中高度：H = 90° - |40° - 0°| = 50°。",
-          ko: "춘분(태양이 적도를 수직으로 비춤, δ = 0°)에 북위 40°의 남중 고도: H = 90° - |40° - 0°| = 50°.",
+          ja: "春分の日（太陽は赤道の真上、δ = 0°）の北緯 40° における南中高度は、H = 90° - |40° - 0°| = 50° です。",
+          ko: "춘분(태양이 적도를 수직으로 비춤, δ = 0°)에 북위 40°의 남중 고도는 H = 90° - |40° - 0°| = 50°예요.",
           ms: "Pada 40°U semasa ekuinoks (matahari tegak di atas khatulistiwa, δ = 0°): H = 90° - |40° - 0°| = 50°.",
         },
         checkQuestion: {
@@ -389,24 +389,24 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
   mt_his_industrial_modern: {
     description: {
       ja: "第一次産業革命（石炭・改良された蒸気機関・鉄道・工場制）と第二次産業革命（電力・内燃機関・石油化学・科学と技術の結びつき）を正確に区別し、歴史の「根本的な原因」と「直接のきっかけ」を見分けます。",
-      ko: "제1차 산업 혁명(석탄·개량된 증기 기관·철도·공장제)과 제2차 산업 혁명(전기·내연 기관·석유 화학·과학과 기술의 긴밀한 결합)을 정확히 구별하고, 역사의 '근본 원인'과 '직접적 계기'를 구분해요.",
+      ko: "제1차 산업혁명(석탄·개량된 증기 기관·철도·공장제)과 제2차 산업혁명(전기·내연 기관·석유 화학·과학과 기술의 긴밀한 결합)을 정확히 구별하고, 역사의 '근본 원인'과 '직접적 계기'를 구분해요.",
       ms: "Bezakan Revolusi Perindustrian Pertama (arang batu, enjin wap yang diperbaiki, kereta api, sistem kilang) dengan Revolusi Perindustrian Kedua (elektrik, enjin pembakaran dalam, petrokimia, penyelidikan berasaskan sains), serta bezakan 'sebab utama' dengan 'pencetus langsung'.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：1820 年のロンドンを舞台にした映画に、蒸気機関車と電球の両方が出てきたら、時代に合わない（時代錯誤の）ものはどちらでしょう？",
+      ja: "お子さんに聞いてみましょう：1820 年のロンドンを舞台にした映画に、蒸気機関車と電球の両方が出てきたら、時代に合わない（時代錯誤の）ものはどちらでしょうか？",
       ko: "아이에게 물어보세요: 1820년 런던을 배경으로 한 영화에 증기 기관차와 전구가 모두 나온다면, 시대에 맞지 않는(시대착오적인) 것은 어느 쪽일까요?",
       ms: "Tanya anak: Dalam filem berlatarkan London pada tahun 1820, jika anda nampak kereta api wap dan mentol lampu elektrik, yang manakah merupakan anakronisme sejarah?",
     },
     masteryCriteria: [
       {
         ja: "内燃機関・電灯・飛行機など第二次産業革命の成果を第一次産業革命に入れてしまう時代錯誤（アナクロニズム）を避けられる",
-        ko: "내연 기관·전등·비행기 같은 제2차 산업 혁명의 성과를 제1차 산업 혁명에 넣는 시대착오(아나크로니즘)를 피할 수 있어요",
+        ko: "내연 기관·전등·비행기 같은 제2차 산업혁명의 성과를 제1차 산업혁명에 넣는 시대착오(아나크로니즘)를 피할 수 있어요",
         ms: "Mengelakkan anakronisme antara era wap abad ke-18 dengan era elektrik dan minyak lewat abad ke-19 (cth. meletakkan enjin pembakaran dalam atau lampu elektrik dalam Revolusi Perindustrian Pertama)",
       },
     ],
     intuition: {
-      ja: "第一次産業革命（約 1760–1840 年）＝石炭＋蒸気機関＋綿工業の機械化、第二次産業革命（約 1870–1914 年）＝電力＋石油＋内燃機関。第一次は職人の経験から、第二次は電磁気学や熱力学など実験室の科学から生まれました！",
-      ko: "제1차 산업 혁명(약 1760–1840년) = 석탄 + 증기 기관 + 면직물 생산의 기계화, 제2차 산업 혁명(약 1870–1914년) = 전기 + 석유 + 내연 기관. 제1차는 장인의 경험에서, 제2차는 전자기학·열역학 같은 실험실 과학에서 비롯되었어요!",
+      ja: "第一次産業革命（約 1760–1840 年）は石炭・蒸気機関・綿工業の機械化、第二次産業革命（約 1870–1914 年）は電力・石油・内燃機関が中心です。第一次は職人の経験から、第二次は電磁気学や熱力学など実験室の科学から生まれました！",
+      ko: "제1차 산업혁명(약 1760–1840년)은 석탄·증기 기관·면직물 생산의 기계화, 제2차 산업혁명(약 1870–1914년)은 전기·석유·내연 기관이 중심이에요. 제1차는 장인의 경험에서, 제2차는 전자기학·열역학 같은 실험실 과학에서 비롯되었어요!",
       ms: "Revolusi Perindustrian Pertama (~1760–1840) = Arang Batu + Wap + Tekstil Berjentera; Revolusi Perindustrian Kedua (~1870–1914) = Elektrik + Minyak + Enjin Pembakaran Dalam.",
     },
     steps: [
@@ -418,8 +418,13 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
         },
         body: {
           ja: "ワットが改良した蒸気機関（1780 年代）やスチーブンソンの蒸気機関車（1814/1825）は第一次、発電機・内燃機関の自動車・電話は第二次産業革命に属します。",
-          ko: "와트가 개량한 증기 기관(1780년대)과 스티븐슨의 증기 기관차(1814/1825)는 제1차, 발전기·내연 기관 자동차·전화는 제2차 산업 혁명에 속해요.",
+          ko: "와트가 개량한 증기 기관(1780년대)과 스티븐슨의 증기 기관차(1814/1825)는 제1차, 발전기·내연 기관 자동차·전화는 제2차 산업혁명에 속해요.",
           ms: "Enjin wap yang diperbaiki oleh James Watt (1780-an) dan lokomotif wap George Stephenson (1814/1825) tergolong dalam Revolusi Perindustrian Pertama; dinamo, kereta berenjin pembakaran dalam dan telefon tergolong dalam Revolusi Perindustrian Kedua.",
+        },
+        checkQuestion: {
+          ja: "内燃機関の自動車と電球は、第一次産業革命（1）と第二次産業革命（2）のどちらの代表的な成果ですか（1 または 2 で答えましょう）？",
+          ko: "내연 기관 자동차와 백열전구는 제1차 산업혁명(1)과 제2차 산업혁명(2) 중 어느 시기의 대표 성과일까요? (1 또는 2를 입력하세요)",
+          ms: "Adakah kereta berenjin pembakaran dalam dan mentol lampu elektrik tergolong dalam Revolusi Perindustrian Pertama (1) atau Kedua (2)? (Masukkan 1 atau 2)",
         },
       },
     ],
@@ -427,7 +432,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       misc_his_ir_anachronism: {
         label: {
           ja: "時代錯誤（アナクロニズム）：内燃機関や電力の利用を第一次産業革命に入れてしまう",
-          ko: "시대착오(아나크로니즘): 내연 기관이나 전력 이용을 제1차 산업 혁명에 넣어요",
+          ko: "시대착오(아나크로니즘): 내연 기관이나 전력 이용을 제1차 산업혁명에 넣어요",
           ms: "Anakronisme: meletakkan enjin pembakaran dalam atau grid elektrik dalam Revolusi Perindustrian Pertama",
         },
         wrongPattern: {
@@ -476,9 +481,14 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "3 Langkah Mengenal Pasti Tesis",
         },
         body: {
-          ja: "① 逆接・転換の語（しかし／実際には／However）に丸をつける。② 「例えば～」の具体例をカッコでくくって外す。③ 残った中心文をまとめている選択肢を選ぶ。",
-          ko: "① 역접·전환 표지(그러나/사실은/However)에 동그라미 치기 ② '예를 들어…'의 구체적 사례를 괄호로 묶어 빼기 ③ 남은 핵심 문장을 아우르는 선택지 고르기",
+          ja: "① 逆接・転換の語（しかし／実際には／However）に丸をつけます。② 「例えば～」の具体例をカッコでくくって外します。③ 残った中心文をまとめている選択肢を選びます。",
+          ko: "① 역접·전환 표지(그러나/사실은/However)에 동그라미를 쳐요. ② '예를 들어…'의 구체적 사례를 괄호로 묶어 빼요. ③ 남은 핵심 문장을 아우르는 선택지를 골라요.",
           ms: "1. Bulatkan penanda pertentangan (namun/sebenarnya/However); 2. Kurungkan contoh 'Contohnya...'; 3. Padankan dengan pilihan yang merumuskan dakwaan menyeluruh.",
+        },
+        checkQuestion: {
+          ja: "「夜ふかしをすれば勉強時間が増えると考える人は多い。しかし、睡眠不足は記憶の定着を大きく妨げる。」筆者の中心的な主張は「しかし」の前（1）と後ろ（2）のどちらにありますか？",
+          ko: "'밤을 새우면 공부 시간이 늘어난다고 생각하는 사람이 많다. 그러나 수면 부족은 기억 공고화 효율을 크게 떨어뜨린다.' 글쓴이의 핵심 주장은 '그러나'의 앞(1)과 뒤(2) 중 어디에 있을까요?",
+          ms: "Dalam 'Ramai menyangka berjaga malam menambah masa belajar; namun, kurang tidur menjejaskan pengukuhan ingatan,' adakah tesis utama terletak sebelum (1) atau selepas (2) 'namun'?",
         },
       },
     ],
@@ -510,7 +520,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       ms: "Buat inferens yang sah berdasarkan bukti teks dan tolak lompatan mutlak yang melampau ('sentiasa', 'hanya', 'sepenuhnya').",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：本文に「毎日ジョギングをすると睡眠の改善に役立つ」とあるとき、「毎日ジョギングさえすれば絶対に不眠にならない」という選択肢は、どの言葉が言い過ぎなのでしょう？",
+      ja: "お子さんに聞いてみましょう：本文に「毎日ジョギングをすると睡眠の改善に役立つ」とあるとき、「毎日ジョギングさえすれば絶対に不眠にならない」という選択肢は、どの言葉が言い過ぎなのでしょうか？",
       ko: "아이에게 물어보세요: 본문에 '매일 조깅하면 수면 개선에 도움이 된다'고 했는데, 선택지가 '매일 조깅만 하면 절대 불면증에 걸리지 않는다'라면 어떤 말이 너무 지나친 걸까요?",
       ms: "Tanya anak: Jika petikan menyatakan 'Berjoging setiap hari membantu memperbaiki tidur', mengapakah pilihan 'Berjoging setiap hari pasti menyembuhkan semua masalah insomnia' merupakan inferens yang tidak sah?",
     },
@@ -537,6 +547,11 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ja: "選択肢の数量を表す語（すべて／大部分／一部）と、可能性・必然性を表す語（必ず／たぶん／唯一）を、本文と一語ずつ照らし合わせましょう。",
           ko: "선택지의 수량 표현(모두/대부분/일부)과 양태 표현(반드시/아마/유일한)을 본문과 한 단어씩 대조해 보세요.",
           ms: "Semak kata bilangan (semua/kebanyakan/sebahagian) dan kata modal (mesti/boleh/mungkin) terus dengan ayat asal dalam petikan.",
+        },
+        checkQuestion: {
+          ja: "本文：「定期的なジョギングは不安を和らげるのに役立つ。」根拠に合う推論は 1（ジョギングは不安を和らげる有効な方法の一つである）と 2（ジョギングさえすれば絶対に不安にならない）のどちらですか？",
+          ko: "본문: '규칙적인 조깅은 불안을 완화하는 데 도움이 된다.' 타당한 추론은 어느 쪽일까요? 1: 조깅은 불안을 줄이는 방법 중 하나이다 / 2: 조깅만 하면 절대 불안해지지 않는다 (1 또는 2를 입력하세요)",
+          ms: "Teks: 'Berjoging secara berkala membantu melegakan keresahan.' Inferens manakah yang sah? (1) Berjoging ialah salah satu cara membantu mengurangkan keresahan; (2) Sesiapa yang berjoging tidak akan berasa resah sama sekali. (Masukkan 1 atau 2)",
         },
       },
     ],
@@ -565,10 +580,10 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
     description: {
       ja: "論証の中の「同時に起こる・前後して起こる ≠ 因果関係（アイスクリームの売上と水難事故はどちらも夏の暑さの影響を受ける）」、「生存者バイアス」、「P ならば Q から Q ならば P を導く誤り（逆の誤謬）」を見抜きます。",
       ko: "논증 속에서 '함께 변하거나 앞뒤로 일어남 ≠ 인과 관계(아이스크림 판매량과 물놀이 사고는 모두 여름 더위의 영향을 받음)', '생존자 편향', 'P이면 Q에서 Q이면 P로 잘못 추론하기(역의 오류)'를 찾아내요.",
-      ms: "Kenal pasti pemboleh ubah ketiga yang mengelirukan dalam korelasi palsu (jualan aiskrim dan kes lemas sama-sama dipengaruhi cuaca panas), bias kemandirian, dan kesilapan logik mengiakan akibat (jika P maka Q → jika Q maka P).",
+      ms: "Kenal pasti pemboleh ubah pengeliru dalam korelasi palsu (jualan aiskrim dan kes lemas sama-sama dipengaruhi cuaca panas), bias kemandirian, dan kesilapan logik mengiakan akibat (jika P maka Q → jika Q maka P).",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：第二次世界大戦で無事に帰還した飛行機を調べると、弾痕の多くは翼にあり、エンジンにはほとんどありませんでした。統計学者エイブラハム・ウォールドは、なぜ翼ではなく弾痕のないエンジンこそ装甲を厚くすべきだと考えたのでしょう？",
+      ja: "お子さんに聞いてみましょう：第二次世界大戦で無事に帰還した飛行機を調べると、弾痕の多くは翼にあり、エンジンにはほとんどありませんでした。統計学者エイブラハム・ウォールドは、なぜ翼ではなく弾痕のないエンジンこそ装甲を厚くすべきだと考えたのでしょうか？",
       ko: "아이에게 물어보세요: 제2차 세계 대전 때 무사히 돌아온 비행기를 조사해 보니 총알 자국이 대부분 날개에 있고 엔진에는 거의 없었어요. 통계학자 에이브러햄 왈드는 왜 날개가 아니라 총알 자국이 없는 엔진의 장갑을 강화해야 한다고 했을까요?",
       ms: "Tanya anak: Kapal terbang yang pulang semasa Perang Dunia Kedua mempunyai kesan tembakan pada sayap tetapi hampir tiada pada enjin. Mengapakah ahli statistik Abraham Wald mencadangkan supaya enjin, bukan sayap, diperkukuh dengan perisai?",
     },
@@ -576,13 +591,13 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       {
         ja: "相関するデータの背後にある共通の第三の変数（交絡因子）を指摘でき、見かけ上の同時増減にまどわされない",
         ko: "상관관계 데이터 뒤에 숨은 공통의 제3 변수(교란 변수)를 짚어 내고, 겉으로 보이는 동시 증감에 속지 않아요",
-        ms: "Mengenal pasti pemboleh ubah pengganggu tersembunyi di sebalik trend yang berkorelasi tanpa terpedaya oleh perubahan serentak yang kelihatan",
+        ms: "Mengenal pasti pemboleh ubah pengeliru tersembunyi di sebalik trend yang berkorelasi tanpa terpedaya oleh perubahan serentak yang kelihatan",
       },
     ],
     intuition: {
       ja: "エンジンに被弾した飛行機は、そもそも帰還できずに統計に含まれなかったのです（生存者バイアス）！同じように、冷たい飲み物がよく売れる時期には熱中症も増えますが、冷たい飲み物が熱中症を起こすのではなく、第三の変数「暑さ」が両方を押し上げているのです。",
       ko: "엔진에 맞은 비행기는 아예 돌아오지 못해 통계에 포함되지 않았어요(생존자 편향)! 마찬가지로 여름에 찬 음료가 많이 팔릴 때 열사병도 늘지만, 찬 음료가 열사병을 일으키는 것이 아니라 제3 변수인 '더위'가 둘 다 끌어올리는 거예요.",
-      ms: "Kapal terbang yang terkena tembakan pada enjin tidak pulang untuk dikira (bias kemandirian)! Begitu juga, apabila jualan minuman sejuk meningkat, kes strok haba turut meningkat. Bukan minuman sejuk yang menyebabkannya, tetapi pemboleh ubah ketiga, iaitu cuaca panas. Sentiasa tanya: kes atau pemboleh ubah ketiga apakah yang tidak kelihatan?",
+      ms: "Kapal terbang yang terkena tembakan pada enjin tidak pulang untuk dikira (bias kemandirian)! Begitu juga, apabila jualan minuman sejuk meningkat, kes strok haba turut meningkat. Bukan minuman sejuk yang menyebabkannya, tetapi pemboleh ubah pengeliru, iaitu cuaca panas. Sentiasa tanya: kes atau pemboleh ubah pengeliru apakah yang tidak kelihatan?",
     },
     steps: [
       {
@@ -592,9 +607,14 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ms: "Audit Kesilapan Logik dengan 3 Soalan",
         },
         body: {
-          ja: "① サンプルから、表に出てこない失敗例が抜け落ちていないか？ ② A と B が一緒に変化するのは、共通の背後要因 C のせいではないか？ ③ 十分条件を必要条件と取り違えていないか（P→Q を Q→P にひっくり返していないか）？",
+          ja: "① サンプルから、表に出てこない失敗例が抜け落ちていませんか？ ② A と B が一緒に変化するのは、共通の背後要因 C のせいではありませんか？ ③ 十分条件を必要条件と取り違えていませんか（P→Q を Q→P にひっくり返していませんか）？",
           ko: "① 표본에서 드러나지 않은 실패 사례가 빠지지 않았나요? ② A와 B가 함께 변하는 것이 공통의 숨은 요인 C 때문은 아닌가요? ③ 충분조건을 필요조건으로 착각하지 않았나요(P→Q를 Q→P로 뒤집지 않았나요)?",
-          ms: "1. Adakah sampel yang gagal tertinggal? 2. Adakah pemboleh ubah ketiga C mempengaruhi kedua-dua A dan B? 3. Adakah P→Q diterbalikkan menjadi Q→P (syarat cukup disangka syarat perlu)?",
+          ms: "1. Adakah sampel yang gagal tertinggal? 2. Adakah pemboleh ubah pengeliru C mempengaruhi kedua-dua A dan B? 3. Adakah P→Q diterbalikkan menjadi Q→P (syarat cukup disangka syarat perlu)?",
+        },
+        checkQuestion: {
+          ja: "「夏はアイスクリームの売上も水難事故も増えるから、アイスを食べると溺れる。」この推論は正しい因果関係（1）ですか、それとも共通要因「暑さ」を見落とした疑似相関の誤謬（2）ですか？",
+          ko: "'여름에는 아이스크림 판매량과 물놀이 사고가 함께 늘어나므로 아이스크림을 먹으면 물에 빠진다.' 이 추론은 타당한 인과 관계(1)일까요, 아니면 공통 원인인 '더위'를 놓친 인과 오류(2)일까요?",
+          ms: "'Jualan aiskrim dan kes lemas kedua-duanya meningkat pada musim panas, maka makan aiskrim menyebabkan lemas.' Adakah ini sebab-akibat yang sah (1) atau falasi pemboleh ubah pengeliru yang mengabaikan cuaca panas (2)?",
         },
       },
     ],
@@ -613,7 +633,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
         remediationTip: {
           ja: "相関はあくまで手がかりです。背後にある交絡因子（家庭の読書習慣など）を確かめて、はじめて厳密な論証になります。",
           ko: "상관관계는 단서일 뿐이에요. 그 뒤의 교란 변수(예: 가정의 독서 분위기)를 점검해야 엄밀한 논증이 돼요.",
-          ms: "Cari mekanisme sebenar atau faktor pengganggu (cth. budaya membaca dalam keluarga) sebelum mendakwa wujudnya sebab-akibat.",
+          ms: "Cari mekanisme sebenar atau pemboleh ubah pengeliru (cth. budaya membaca dalam keluarga) sebelum mendakwa wujudnya sebab-akibat.",
         },
       },
     },
@@ -626,7 +646,7 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
       ms: "Sintesiskan peraturan dalam teks dengan jadual data berbilang lajur untuk mengesahkan dakwaan dan membuat keputusan yang memenuhi pelbagai kekangan.",
     },
     homeCheckPrompt: {
-      ja: "お子さんに聞いてみましょう：「身長 1.2 m 以上かつ 1.5 m 未満は半額」のような文章の規則と料金表を組み合わせるとき、表の数字だけを見て「かつ」や「ただし～を除く」といった注意書きを見落とすと、なぜ間違えやすいのでしょう？",
+      ja: "お子さんに聞いてみましょう：「身長 1.2 m 以上かつ 1.5 m 未満は半額」のような文章の規則と料金表を組み合わせるとき、表の数字だけを見て「かつ」や「ただし～を除く」といった注意書きを見落とすと、なぜ間違えやすいのでしょうか？",
       ko: "아이에게 물어보세요: '키 1.2 m 이상 그리고 1.5 m 미만은 반값'처럼 글로 된 규칙과 요금표를 함께 볼 때, 표의 숫자만 보고 '그리고'나 '단, ~ 제외' 같은 단서를 놓치면 왜 틀리기 쉬울까요?",
       ms: "Tanya anak: Apabila menggabungkan peraturan bertulis (cth. 'tinggi 1.2 m ke atas DAN kurang daripada 1.5 m mendapat separuh harga') dengan jadual harga, mengapakah kebanyakan kesilapan berlaku kerana terlepas satu nota kaki 'DAN / KECUALI'?",
     },
@@ -653,6 +673,11 @@ export const TOPIC_CONTENT_I18N_HUMANITIES_LANG: TopicContentOverlay = {
           ja: "規則：補助金を受けるには ① グリーン電力の割合 ≥ 60% かつ ② 単位当たりのエネルギー消費量 ≤ 45 の両方を満たす必要があります。表を1行ずつ見て、どちらか一つでも基準を満たさない案を除外します。",
           ko: "규칙: 보조금을 받으려면 ① 친환경 전력 비율 ≥ 60% 그리고 ② 단위당 에너지 소비량 ≤ 45를 모두 만족해야 해요. 표를 한 줄씩 보며 하나라도 기준에 못 미치는 안을 제외하세요.",
           ms: "Peraturan: subsidi hanya diberi jika memenuhi ① peratus tenaga hijau ≥ 60% DAN ② penggunaan tenaga per unit ≤ 45. Tapis calon dalam jadual baris demi baris dan singkirkan mana-mana yang gagal satu syarat.",
+        },
+        checkQuestion: {
+          ja: "補助金の条件は「①グリーン電力の割合 ≥ 60% かつ ②単位当たりのエネルギー消費量 ≤ 45」の両方を満たすことです。A工場（65%、40）とB工場（75%、50）のうち、条件を満たすのはA（1）とB（2）のどちらですか？",
+          ko: "보조금 조건이 '① 친환경 전력 비율 ≥ 60% 그리고 ② 단위당 에너지 소비량 ≤ 45'를 모두 만족하는 것일 때, A공장(65%, 40)과 B공장(75%, 50) 중 조건을 충족하는 곳은 A(1)와 B(2) 중 어디일까요?",
+          ms: "Syarat subsidi memerlukan KEDUA-DUA: (1) tenaga hijau ≥ 60% DAN (2) penggunaan tenaga ≤ 45. Antara Loji A (65%, 40) dengan Loji B (75%, 50), manakah yang layak? (Masukkan 1 untuk A, 2 untuk B)",
         },
       },
     ],

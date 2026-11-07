@@ -588,26 +588,35 @@ function DiagnoseStudioContent() {
                         .slice(0, revealedScaffolds)
                         .map((sc, idx) => {
                           const locSc = localizeScaffold(sc, locale);
+                          const isFinalStep =
+                            idx === currentPrompt.instance.scaffolds.length - 1;
                           return (
                             <div
                               key={idx}
                               className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 text-xs space-y-1"
                             >
                               <div className="font-semibold text-amber-300">
-                                {DIAGNOSE_COPY.scaffoldStepTitle(
-                                  idx + 1,
-                                  locSc.prompt,
-                                  locale
-                                )}
+                                <MathText
+                                  text={DIAGNOSE_COPY.scaffoldStepTitle(
+                                    idx + 1,
+                                    locSc.prompt,
+                                    locale
+                                  )}
+                                />
                               </div>
                               <div className="text-slate-400">
                                 {pick(DIAGNOSE_COPY.scaffoldHintPrefix)}
-                                {locSc.hint} (
-                                {pick(DIAGNOSE_COPY.scaffoldRefPrefix)}
-                                <code className="text-emerald-300 font-mono">
-                                  {locSc.expected}
-                                </code>
-                                )
+                                <MathText text={locSc.hint} />
+                                {!isFinalStep && locSc.expected && (
+                                  <>
+                                    {" ("}
+                                    {pick(DIAGNOSE_COPY.scaffoldRefPrefix)}
+                                    <code className="text-emerald-300 font-mono">
+                                      <MathText text={locSc.expected} />
+                                    </code>
+                                    {")"}
+                                  </>
+                                )}
                               </div>
                             </div>
                           );
@@ -769,13 +778,13 @@ function DiagnoseStudioContent() {
                   tutorMessages.map((m, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-xl p-3 text-xs leading-relaxed whitespace-pre-line ${
+                      className={`rounded-xl p-3 text-xs leading-relaxed ${
                         m.role === "user"
                           ? "ml-6 bg-indigo-600 text-white"
                           : "mr-4 border border-slate-800 bg-slate-950/90 text-slate-200"
                       }`}
                     >
-                      {m.content}
+                      <MathText text={m.content} />
                     </div>
                   ))
                 )}

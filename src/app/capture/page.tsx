@@ -508,7 +508,7 @@ export default function SmartCapturePage() {
                   </div>
                   <p className="text-slate-300">
                     {pick(CAPTURE_COPY.remediationTipPrefix)}
-                    {result.detectedMisconception.remediationTip}
+                    <MathText text={result.detectedMisconception.remediationTip} />
                   </p>
                 </div>
 

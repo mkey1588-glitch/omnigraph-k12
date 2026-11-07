@@ -103,7 +103,7 @@ export const TEACHER_COPY = {
     " 存在薄弱断层！建议优先安排 15 分钟微专题补基后再讲评新课。",
     " — schedule a 15-minute targeted micro-review before introducing new material.",
     " の弱点が見られます。新単元の解説前に15分間の基礎補強ミニ演習を推奨します。",
-    " 에서 취약 단절을 보입니다. 새 진도 수업 전 15분 집중 보강을 권장합니다.",
+    "에서 취약 단절을 보입니다. 새 진도 수업 전 15분 집중 보강을 권장합니다.",
     " — jadualkan ulang kaji mikro 15 minit sebelum meneruskan topik baharu."
   ),
   affectedStudentsPrefix: c(
@@ -872,7 +872,7 @@ export const STUDIO_COPY = {
   sampleQExplain: c(
     "配方得 $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$，解得 $x_1 = 7,\\; x_2 = 1$。",
     "Completing the square gives $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$, so $x_1 = 7,\\; x_2 = 1$.",
-    "平方完成より $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$ となり、$x_1 = 7,\\; x_2 = 1$ を得る。",
+    "平方完成より $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$ となり、$x_1 = 7,\\; x_2 = 1$ が得られます。",
     "완전제곱식으로 변형하면 $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$이므로 $x_1 = 7,\\; x_2 = 1$입니다.",
     "Penyempurnaan kuasa dua memberikan $(x - 4)^2 = 9 \\Rightarrow x - 4 = \\pm 3$, maka $x_1 = 7,\\; x_2 = 1$."
   ),
@@ -996,7 +996,7 @@ export const STUDIO_COPY = {
   trajectoryDesc: c(
     "每次在「靶向诊断」或「错题孪生变式」作答后，系统以零 PII 匿名令牌实时记录并更新潜在能力估计 θ。",
     "After every Adaptive Diagnostic or Twin-Variant attempt, latent ability θ is updated in real time under a zero-PII anonymous token.",
-    "「遡及診断」や「双子類題」に解答するたび、PII ゼロの匿名トークンで潜在能力推定値 θ がリアルタイム更新されます。",
+    "「さかのぼり診断」や「ペア類題」に解答するたび、PII ゼロの匿名トークンで潜在能力推定値 θ がリアルタイム更新されます。",
     "역추적 진단이나 쌍둥이 변형문제를 풀 때마다 개인식별정보 없는 익명 토큰으로 잠재능력 추정치 θ가 실시간 갱신됩니다.",
     "Setiap kali menjawab Diagnosis Adaptif atau Variasi Kembar, anggaran keupayaan θ dikemas kini secara masa nyata melalui token tanpa PII."
   ),
@@ -1016,7 +1016,7 @@ export const STUDIO_COPY = {
   emptyTrajectory: c(
     "当前学生暂无历史轨迹，前往「靶向回溯诊断」作答 1 题即可实时点亮成长曲线！",
     "No attempt trajectory yet for this student — answer 1 item in Adaptive Diagnose to light up the live θ growth curve!",
-    "この生徒の履歴ログはまだありません。「遡及アダプティブ診断」で1問解答すると成長曲線が点灯します！",
+    "この生徒の履歴ログはまだありません。「さかのぼり診断」で1問解答すると成長曲線が点灯します！",
     "현재 학생의 풀이 이력이 아직 없습니다. 역추적 적응형 진단에서 1문항을 풀면 성장 곡선이 즉시 활성화됩니다!",
     "Tiada rekod cubaan lagi untuk pelajar ini — jawab 1 soalan dalam Diagnosis Adaptif untuk mengaktifkan lengkung pertumbuhan θ!"
   ),
@@ -1060,14 +1060,14 @@ export const PARENT_COPY = {
   exportPrintCta: c(
     "导出 A4 防背题重练打印卷",
     "Export A4 Twin-Variant Redo Worksheet",
-    "A4 双子類題リトライ印刷シートを出力",
+    "A4 ペア類題リトライ印刷シートを出力",
     "A4 쌍둥이 변형 복습 인쇄지 내보내기",
     "Eksport Lembaran Kerja A4 Variasi Kembar"
   ),
   weeklyInsightTitle: c(
     "本周白话版学情解读（为什么孩子新课某几题总卡壳？）",
     "Plain-Language Weekly Insight (Why do certain new problems feel sticky?)",
-    "今週のやさしい学習解説（なぜ新しい単元の特定の問題で手が止まるのか？）",
+    "今週のやさしい学習解説（なぜ新しい単元の特定の問題で手が止まるのでしょうか？）",
     "이번 주 눈높이 학습 해설 (왜 새 단원의 특정 문제에서 자꾸 막힐까요?)",
     "Ulasan Pembelajaran Mingguan Mudah Faham (Mengapa topik baharu tertentu terasa sukar?)"
   ),
@@ -1353,7 +1353,7 @@ export const PRINT_COPY = {
   loading: c(
     "正在排版 A4 防背题错题重练卷…",
     "Formatting A4 Twin-Variant Redo Worksheet…",
-    "A4 双子類題リトライシートを組版中…",
+    "A4 ペア類題リトライシートを組版中…",
     "A4 쌍둥이 변형 오답 복습지를 조판하는 중…",
     "Memformat Lembaran Kerja A4 Variasi Kembar…"
   ),
@@ -1367,7 +1367,7 @@ export const PRINT_COPY = {
   refreshTwinBtn: c(
     "换一套全新孪生数字",
     "Generate Fresh Twin Numbers",
-    "新しい双子類題数値に切替",
+    "新しいペア類題の数値に切替",
     "새로운 쌍둥이 숫자 세트로 변경",
     "Jana Set Nombor Kembar Baharu"
   ),
@@ -1395,14 +1395,14 @@ export const PRINT_COPY = {
   eyebrow: c(
     "OmniGraph K12 · 个性化孪生变式重练卷",
     "OmniGraph K12 · Personalized Twin-Variant Redo Worksheet",
-    "OmniGraph K12 · 個別最適化 双子類題リトライシート",
+    "OmniGraph K12 · 個別最適化 ペア類題リトライシート",
     "OmniGraph K12 · 맞춤형 쌍둥이 변형 복습 워크시트",
     "OmniGraph K12 · Lembaran Kerja Ulang Kaji Variasi Kembar"
   ),
   sheetTitle: c(
     "靶向错题孪生变式重练卷",
     "Targeted Mistake Twin-Variant Redo Worksheet",
-    "弱点克服・双子類題リトライ演習シート",
+    "弱点克服・類題（ペア問題）リトライ演習シート",
     "취약 오답 맞춤형 쌍둥이 변형 복습지",
     "Lembaran Kerja Ulang Kaji Variasi Kembar Sasaran"
   ),

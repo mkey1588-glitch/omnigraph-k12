@@ -198,6 +198,72 @@ const REGION_NATIVE_OVERRIDES: Partial<
   },
 };
 
+const REGION_ZH_CN_PROFILE: Record<RegionCode, Omit<LocalizedRegionProfile, "name">> = {
+  CN: {
+    labelWithSystem: "中国大陆（六三/五四制）",
+    schoolSystem: "小学6 + 初中3 + 高中3（兼容上海/山东五四制）",
+    curriculumName: "教育部 2022 义务教育课标 & 2017/2020 普通高中课标",
+    flagshipExams: ["中考", "新高考（3+1+2 / 3+3）"],
+    privacyRegulation: "PIPL（《个人信息保护法》未成年人专章）",
+  },
+  HK: {
+    labelWithSystem: "中国香港（HKDSE 中英双语）",
+    schoolSystem: "小学 P1–P6 + 中学 S1–S6（初3 + 高3）",
+    curriculumName: "香港教育局（EDB）课程指引（EMI / CMI 双轨）",
+    flagshipExams: ["小六呈分试", "HKDSE（香港中学文憑试）"],
+    privacyRegulation: "PDPO（香港《个人资料（私隐）条例》）",
+  },
+  TW: {
+    labelWithSystem: "中国台湾（十二年国教 108 课纲）",
+    schoolSystem: "国小6 + 国中3 + 高中3",
+    curriculumName: "十二年国民基本教育课程纲要（108 课纲）",
+    flagshipExams: ["国中教育会考", "大学学测（GSAT）", "分科测验"],
+    privacyRegulation: "PDPA（《个人资料保护法》）",
+  },
+  SG: {
+    labelWithSystem: "新加坡（MOE 国家课标）",
+    schoolSystem: "小学 P1–P6 + 中学 Sec 1–4（SBB 分级）+ 初院 JC 1–2",
+    curriculumName: "新加坡教育部课标（CPA 条形建模 + O/A-Level）",
+    flagshipExams: ["PSLE 小六会考", "GCE O-Level", "新加坡剑桥 GCE A-Level"],
+    privacyRegulation: "新加坡 PDPA（儿童个人数据指引）",
+  },
+  MY: {
+    labelWithSystem: "马来西亚（KSSR / KSSM / 独中统考）",
+    schoolSystem: "小学 1–6 年级 + 中学 Form 1–5（DLP 双语）+ 中六 / 独中",
+    curriculumName: "马来西亚教育部 KSSR & KSSM 课标（DLP 双语）+ 华文独中统考",
+    flagshipExams: ["UASA", "SPM（马来西亚教育文凭）", "STPM / UEC 统考"],
+    privacyRegulation: "马来西亚 PDPA 2010（2024 修订案）",
+  },
+  JP: {
+    labelWithSystem: "日本（文部科学省《学习指导要领》）",
+    schoolSystem: "小学校 1–6 年 + 中学校 1–3 年 + 高等学校 1–3 年",
+    curriculumName: "日本文部科学省《学习指导要领》",
+    flagshipExams: ["中学入试", "高校入试", "大学入学共通测试"],
+    privacyRegulation: "日本 APPI（《个人信息保护法》未成年人规定）",
+  },
+  KR: {
+    labelWithSystem: "韩国（2022 修订教育课程）",
+    schoolSystem: "小学 1–6 年 + 初中 1–3 年 + 高中 1–3 年（高中学分制）",
+    curriculumName: "韩国教育部 2022 修订教育课程成就基准",
+    flagshipExams: ["学校内申评价", "大学修学能力试验（CSAT 高考）"],
+    privacyRegulation: "韩国 PIPA（《个人信息保护法》未满14岁特例）",
+  },
+  UK: {
+    labelWithSystem: "英国（KS1–KS5 / GCSE / A-Level）",
+    schoolSystem: "小学（KS1–KS2, Y1–Y6）+ 中学（KS3–KS4, Y7–Y11）+ 预科（Y12–Y13）",
+    curriculumName: "英格兰国家课程（National Curriculum）& GCSE / A-Level",
+    flagshipExams: ["KS2 SATs", "GCSE / IGCSE", "A-Level"],
+    privacyRegulation: "英国 GDPR 与《适龄设计规范》（Children's Code）",
+  },
+  US: {
+    labelWithSystem: "美国（CCSS / NGSS / AP）",
+    schoolSystem: "小学（K–5）+ 初中（6–8）+ 高中（9–12）",
+    curriculumName: "美国共同核心州立标准（CCSS）+ NGSS 科学标准 + AP 课程",
+    flagshipExams: ["NWEA MAP 成长测评", "SAT / ACT", "AP 大学先修考试"],
+    privacyRegulation: "美国 COPPA 与 FERPA（儿童与学生隐私法）",
+  },
+};
+
 export function getRegionDisplayName(code: RegionCode, locale: LocaleCode): string {
   return REGION_NAME_BY_LOCALE[code]?.[locale] ?? REGION_NAME_BY_LOCALE[code]?.en ?? code;
 }
@@ -214,13 +280,10 @@ export function getLocalizedRegionProfile(
   }
 
   if (locale === "zh-CN") {
+    const zhProf = REGION_ZH_CN_PROFILE[reg.code];
     return {
       name,
-      labelWithSystem: reg.nameLocal,
-      schoolSystem: reg.schoolSystem,
-      curriculumName: reg.curriculumName,
-      flagshipExams: reg.flagshipExams,
-      privacyRegulation: reg.privacyRegulation,
+      ...zhProf,
     };
   }
 
@@ -235,13 +298,14 @@ export function getLocalizedRegionProfile(
         privacyRegulation: reg.privacyRegulation,
       };
     }
+    const zhProf = REGION_ZH_CN_PROFILE[reg.code];
     return {
       name,
-      labelWithSystem: s2tw(reg.nameLocal),
-      schoolSystem: s2tw(reg.schoolSystem),
-      curriculumName: s2tw(reg.curriculumName),
-      flagshipExams: reg.flagshipExams.map(s2tw),
-      privacyRegulation: s2tw(reg.privacyRegulation),
+      labelWithSystem: s2tw(zhProf.labelWithSystem),
+      schoolSystem: s2tw(zhProf.schoolSystem),
+      curriculumName: s2tw(zhProf.curriculumName),
+      flagshipExams: zhProf.flagshipExams.map(s2tw),
+      privacyRegulation: s2tw(zhProf.privacyRegulation),
     };
   }
 
@@ -258,21 +322,67 @@ export function getLocalizedGradeLabel(
   locale: LocaleCode,
   s2tw: (s: string) => string
 ): string {
-  const g = grade ?? 9;
+  const g = Math.max(1, Math.min(12, grade ?? 9));
   if (!reg) return `G${g}`;
   const raw = reg.gradeLabels[g] ?? `Grade ${g}`;
 
-  if (locale === "zh-CN") return raw;
-  if (locale === "zh-TW") return s2tw(raw);
+  // 1. Simplified Chinese UI: never leak Hangul, Kana, or Traditional-only glyphs!
+  if (locale === "zh-CN") {
+    if (reg.code === "CN" || reg.code === "SG" || reg.code === "MY" || reg.code === "UK" || reg.code === "US") {
+      return raw;
+    }
+    if (reg.code === "HK") {
+      return g <= 6 ? `小${g} (P${g})` : `中${g - 6} (S${g - 6})`;
+    }
+    if (reg.code === "TW") {
+      if (g <= 6) return `国小${g}年级`;
+      if (g <= 9) return `国中${g}年级`;
+      return `高${["一", "二", "三"][g - 10] ?? g - 9}`;
+    }
+    if (reg.code === "JP") {
+      if (g <= 6) return `小学${g}年 (JP 小${g})`;
+      if (g <= 9) return `中学${g - 6}年 (JP 中${g - 6})`;
+      return `高校${g - 9}年 (JP 高${g - 9})`;
+    }
+    if (reg.code === "KR") {
+      if (g <= 6) return `韩国小${g} (KR E${g})`;
+      if (g <= 9) return `韩国中${g - 6} (KR M${g - 6})`;
+      return `韩国高${g - 9} (KR H${g - 9})`;
+    }
+    return raw;
+  }
+
+  // 2. Traditional Chinese UI: never corrupt JP Kana/Kanji or leak raw KR Hangul!
+  if (locale === "zh-TW") {
+    if (reg.code === "HK" || reg.code === "TW" || reg.code === "SG" || reg.code === "MY" || reg.code === "UK" || reg.code === "US") {
+      return raw;
+    }
+    if (reg.code === "CN") {
+      return s2tw(raw);
+    }
+    if (reg.code === "JP") {
+      if (g <= 6) return `日本小${g}`;
+      if (g <= 9) return `日本中${g - 6}`;
+      return `日本高${g - 9}`;
+    }
+    if (reg.code === "KR") {
+      if (g <= 6) return `韓國小${g}`;
+      if (g <= 9) return `韓國中${g - 6}`;
+      return `韓國高${g - 9}`;
+    }
+    return s2tw(raw);
+  }
+
+  // 3. Native JP / KR passthrough when viewing own region
   if (locale === "ja" && reg.code === "JP") return raw;
   if (locale === "ko" && reg.code === "KR") return raw;
 
-  // For English, Malay, Japanese (non-JP), Korean (non-KR): ensure zero Chinese chars leak
+  // 4. For English, Malay, Japanese (non-JP), Korean (non-KR): ensure zero Chinese/foreign scripts leak
   if (reg.code === "SG" || reg.code === "UK" || reg.code === "US") {
     return raw;
   }
   if (reg.code === "MY") {
-    if (g <= 6) return `Tahun ${g} (Primary ${g})`;
+    if (g <= 6) return `Tahun ${g} (P${g})`;
     if (g <= 11) return `Form ${g - 6} (Tingkatan ${g - 6})`;
     return "Form 6 (STPM / Pre-U)";
   }
@@ -280,27 +390,29 @@ export function getLocalizedGradeLabel(
     return g <= 6 ? `Primary ${g} (P${g})` : `Secondary ${g - 6} (S${g - 6})`;
   }
   if (reg.code === "TW") {
+    if (locale === "ja") return g <= 6 ? `台湾 小${g}` : g <= 9 ? `台湾 中${g - 6}` : `台湾 高${g - 9}`;
+    if (locale === "ko") return g <= 6 ? `대만 초${g}` : g <= 9 ? `대만 중${g - 6}` : `대만 고${g - 9}`;
     if (g <= 6) return `Elementary G${g}`;
     if (g <= 9) return `Junior High G${g}`;
     return `Senior High G${g}`;
   }
   if (reg.code === "JP") {
-    if (locale === "ja") return raw;
+    if (locale === "ko") return g <= 6 ? `일본 초${g}` : g <= 9 ? `일본 중${g - 6}` : `일본 고${g - 9}`;
     if (g <= 6) return `Elementary ${g} (JP P${g})`;
     if (g <= 9) return `Lower Sec ${g - 6} (JP JHS ${g - 6})`;
     return `Upper Sec ${g - 9} (JP SHS ${g - 9})`;
   }
   if (reg.code === "KR") {
-    if (locale === "ko") return raw;
+    if (locale === "ja") return g <= 6 ? `韓国 小${g}` : g <= 9 ? `韓国 中${g - 6}` : `韓国 高${g - 9}`;
     if (g <= 6) return `Elementary ${g} (KR E${g})`;
     if (g <= 9) return `Middle ${g - 6} (KR M${g - 6})`;
     return `High ${g - 9} (KR H${g - 9})`;
   }
   // CN in non-Chinese locale
-  if (locale === "ja") return `第${g}学年 (G${g})`;
-  if (locale === "ko") return `${g}학년 (G${g})`;
-  if (locale === "ms") return `Gred ${g} (G${g})`;
-  return `Grade ${g}`;
+  if (locale === "ja") return g <= 6 ? `中国 小${g}` : g <= 9 ? `中国 中${g - 6}` : `中国 高${g - 9}`;
+  if (locale === "ko") return g <= 6 ? `중국 초${g}` : g <= 9 ? `중국 중${g - 6}` : `중국 고${g - 9}`;
+  if (locale === "ms") return `Gred ${g} (CN G${g})`;
+  return `Grade ${g} (CN G${g})`;
 }
 
 /**

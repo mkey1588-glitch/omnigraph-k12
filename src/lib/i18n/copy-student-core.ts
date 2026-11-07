@@ -14,27 +14,27 @@ const ROOT_REASON_BY_TOPIC: Record<string, UiCopy> = {
     "小学算术核心地基节点：十进制位值制与加减乘除四则运算互逆关系。",
     "Foundational primary arithmetic node: base-10 place value and inverse relationships across the four operations.",
     "小学校算数の基礎ノード：十進位取り記数法と四則演算の逆関係。",
-    "초등 산수 핵심 기초 노드: 십진법 자릿값과 사칙연산의 역관계.",
+    "초등 수학 핵심 기초 노드: 십진법 자릿값과 사칙연산의 역관계.",
     "Nod asas aritmetik rendah: nilai tempat asas-10 dan hubungan songsang empat operasi."
   ),
   mt_eng_sentence_sva_tense: c(
     "英语核心句法地基：剥离介词短语干扰定位真正核心主语单复数，匹配时态轴。",
     "Core English syntax foundation: isolate true head subjects from prepositional modifiers and align subject-verb agreement with tense.",
-    "英語統語論の基礎：前置詞句を除いて真の主語の単複を特定し、時制軸と一致させる。",
+    "英語統語論の基礎：前置詞句を除いて真の主語の単複を特定し、時制軸と一致させる基礎単元。",
     "영어 핵심 구문 기초: 전치사구 수식을 걷어내고 핵심 주어의 단복수와 시제를 일치시킴.",
     "Asas sintaks Bahasa Inggeris: mengenal pasti subjek utama tanpa gangguan frasa sendi nama serta memadankan kala."
   ),
   mt_lit_main_idea_structure: c(
     "全语种阅读素养地基节点：区分核心论点（Claim）与论据例子（Evidence），识别总分、转折与递进结构。",
     "Cross-lingual reading literacy root: distinguish central claims from supporting evidence and identify rhetorical structures.",
-    "読解リテラシーの基礎ノード：中心主張（Claim）と根拠・具体例（Evidence）を区別し、文章構造を把握する。",
+    "読解リテラシーの基礎ノード：中心主張（Claim）と根拠・具体例（Evidence）の区別および文章構造の把握。",
     "범언어 독해 문해력 기초 노드: 핵심 주장(Claim)과 근거(Evidence)를 구분하고 글의 논리 구조를 파악함.",
     "Nod asas literasi bacaan: membezakan pernyataan utama (Claim) daripada bukti (Evidence) serta struktur wacana."
   ),
   mt_chem_atomic_periodic: c(
     "化学学科微粒观起点：质子数决定元素种类，最外层电子数决定化学性质与得失电子趋势。",
     "Chemistry particulate foundation: proton number defines the element, while valence electrons govern chemical reactivity.",
-    "化学粒子観の出発点：陽子数が元素を決め、最外殻電子数が化学的性質とイオン化傾向を決める。",
+    "化学粒子観の出発点：陽子数による元素の決定と、最外殻電子数による化学的性質・イオン化傾向の理解。",
     "화학 입자관의 출발점: 양성자수가 원소 종류를 결정하고 원자가전자가 화학적 성질을 결정함.",
     "Titik mula zarah kimia: bilangan proton menentukan unsur, manakala elektron valens menentukan kereaktifan kimia."
   ),
@@ -63,7 +63,7 @@ const ROOT_REASON_BY_TOPIC: Record<string, UiCopy> = {
     "生物学定量推理核心节点：等位基因分离与庞氏表（Punnett Square）概率计算（桥接数学分数与概率）。",
     "Quantitative biology node: allele segregation and Punnett Square probability modeling (bridged with math fractions & probability).",
     "生物学的定量推論ノード：対立遺伝子の分離とパネットスクエアによる確率計算（数学の分数・確率と連携）。",
-    "생물학 정량 추론 핵심 노드: 대립유전자 분리와 퍼넷 사각형 확률 계산(수학 분수·확률 연계).",
+    "생명과학 정량 추론 핵심 노드: 대립유전자 분리와 퍼넷 사각형 확률 계산(수학 분수·확률 연계).",
     "Nod penaakulan kuantitatif biologi: pengasingan alel dan kebarangkalian Segi Empat Punnett (jambatan pecahan & kebarangkalian)."
   ),
   mt_eng_relative_clauses: c(
@@ -175,13 +175,13 @@ export const STUDENT_DASHBOARD_COPY = {
     " 实时追踪你的上下游先修掌握度与跨学科数学工具链。",
     ", tracking your upstream prerequisites and cross-subject STEM toolchains in real time.",
     " に基づき、前提単元の習得度と教科横断の数学ツールチェーンをリアルタイムで追跡しています。",
-    " 를 기반으로 상하위 선수 개념 숙달도와 교과 융합 수학 도구 체인을 실시간 추적합니다.",
+    "를 기반으로 상하위 선수 개념 숙달도와 교과 융합 수학 도구 체인을 실시간 추적합니다.",
     " secara masa nyata merentas prasyarat huluan dan jambatan antara subjek."
   ),
   ctaDiagnose: c(
     "启动靶向回溯诊断",
     "Start Adaptive Diagnosis",
-    "遡及アダプティブ診断を開始",
+    "さかのぼり診断を開始",
     "역추적 적응형 진단 시작",
     "Mulakan Diagnosis Adaptif"
   ),
@@ -220,7 +220,7 @@ export const STUDENT_DASHBOARD_COPY = {
   metricShakySub: c(
     "无需深层回溯",
     "No deep backtracking needed",
-    "深層遡及は不要",
+    "深いさかのぼりは不要",
     "심층 역추적 불필요",
     "Tiada jejak balik mendalam"
   ),
@@ -245,7 +245,7 @@ export const STUDENT_DASHBOARD_COPY = {
   metricWrongLabel: c(
     "FSRS 错题待孪生清零",
     "FSRS Twin Clearance Queue",
-    "FSRS 双子類題クリア待ち",
+    "FSRS ペア類題クリア待ち",
     "FSRS 쌍둥이 오답 클리어 대기",
     "Giliran Pembersihan Kembar FSRS"
   ),
@@ -259,7 +259,7 @@ export const STUDENT_DASHBOARD_COPY = {
   rootPrescriptionTitle: c(
     "图谱溯源处方：优先攻克「上游根因」解锁下游多科卡点",
     "Topological Prescription: Fix Upstream Root Causes to Unlock Downstream Subjects",
-    "グラフ遡及処方箋：「上流の根本原因」から攻略し下流の多教科ボトルネックを解放",
+    "グラフさかのぼり処方箋：「上流の根本原因」から攻略し下流の多教科ボトルネックを解消",
     "그래프 역추적 처방: '상위 근본 원인'을 우선 해결하여 하위 다교과 병목 해금",
     "Preskripsi Topologi: Atasi Punca Huluan Dahulu untuk Membuka Sekatan Hiliran"
   ),
@@ -383,19 +383,19 @@ export const STUDENT_DASHBOARD_COPY = {
     "Full Notebook →",
     "誤答ノート一覧 →",
     "전체 오답노트 →",
-    "Semua Buku Salah →"
+    "Semua Buku Kesilapan →"
   ),
   fsrsQueueDesc: c(
     "拒绝死记原题答案！系统每次提取均动态生成「同构不同数」孪生变式题，连续 3 次 Good/Easy 方可彻底清零。",
     "Zero rote memorization: every review dynamically generates isomorphic twin variants with fresh numbers. Achieve a 3x Good/Easy streak to clear.",
-    "丸暗記を防止！復習のたびに数値や文脈を変えた同型「双子類題」を動的生成し、3回連続 Good/Easy で完全クリアとなります。",
+    "丸暗記を防止！復習のたびに数値や文脈を変えた同型の「類題（ペア問題）」を動的生成し、3回連続 Good/Easy で完全クリアとなります。",
     "단순 답 암기 방지! 복습할 때마다 숫자와 맥락이 바뀐 동형 '쌍둥이 변형 문제'가 생성되며, 3회 연속 Good/Easy 달성 시 완전 클리어됩니다.",
     "Elakkan hafalan jawapan! Setiap ulang kaji menjana soalan kembar seiras dengan nombor baharu. Capai 3x Good/Easy berturut-turut untuk selesai."
   ),
   fsrsQueueEmpty: c(
     "今日暂无待清零错题！去「靶向回溯诊断」做一次体检吧。",
     "No pending wrong items today! Run an Adaptive Diagnosis checkup to discover new growth edges.",
-    "本日クリア待ちの誤答はありません！「遡及アダプティブ診断」で実力チェックをしてみましょう。",
+    "本日クリア待ちの誤答はありません！「さかのぼり診断」で実力チェックをしてみましょう。",
     "오늘 클리어할 오답이 없습니다! '역추적 적응형 진단'에서 실력을 점검해 보세요.",
     "Tiada soalan salah tertunggak hari ini! Cuba Diagnosis Adaptif untuk semakan penguasaan."
   ),
@@ -438,7 +438,7 @@ export const STUDENT_DASHBOARD_COPY = {
   practiceTwinBtn: c(
     "练孪生变式",
     "Practice Twin",
-    "双子類題を解く",
+    "ペア類題を解く",
     "쌍둥이 문제 풀기",
     "Latih Kembar"
   ),
@@ -630,7 +630,7 @@ export const EXPLORE_COPY = {
   launchDiagnoseFromNode: c(
     "从该节点启动自适应回溯诊断",
     "Start Adaptive Backtracking Diagnosis Here",
-    "このノードから遡及アダプティブ診断を開始",
+    "このノードからさかのぼり診断を開始",
     "이 노드에서 역추적 적응형 진단 시작",
     "Mulakan Diagnosis Jejak Balik dari Nod Ini"
   ),
@@ -672,7 +672,7 @@ export const EXPLORE_COPY = {
   quickCheckPlaceholder: c(
     "输入口算结果验证...",
     "Enter mental-math answer...",
-    "暗算結果を入力して確認...",
+    "暗算結果を入力して確認してください...",
     "암산 결과를 입력해 확인...",
     "Masukkan jawapan kiraan..."
   ),
@@ -680,14 +680,14 @@ export const EXPLORE_COPY = {
   quickCheckRight: c(
     "🎉 完全正确！你已抓住核心直觉，可直接启动靶向诊断！",
     "🎉 Spot on! You've grasped the core intuition — ready to launch targeted diagnosis!",
-    "🎉 大正解！本質的な直観を掴めました。このまま診断に挑戦しましょう！",
+    "🎉 大正解です！本質的な直観をつかめました。このままさかのぼり診断に挑戦しましょう！",
     "🎉 정답입니다! 핵심 직관을 완벽히 파악했습니다. 바로 타깃 진단을 시작해 보세요!",
     "🎉 Tepat sekali! Anda telah memahami intuisi teras — sedia untuk diagnosis sasaran!"
   ),
   quickCheckWrongPrefix: c(
     "再想一想！参考答案提示：",
     "Think again! Reference answer:",
-    "もう一度考えてみよう！参考解答：",
+    "もう一度考えてみましょう！参考解答：",
     "다시 한번 생각해 보세요! 참고 정답:",
     "Cuba fikir semula! Jawapan rujukan:"
   ),
@@ -728,21 +728,21 @@ export const DIAGNOSE_COPY = {
   loading: c(
     "正在初始化自适应前置回溯诊断引擎...",
     "Initializing Adaptive Prerequisite Backtracking Engine...",
-    "遡及アダプティブ前提診断エンジンを初期化中...",
+    "さかのぼり適応診断エンジンを初期化中...",
     "역추적 적응형 선수 진단 엔진을 초기화하는 중...",
     "Memulakan Enjin Diagnosis Jejak Balik Prasyarat Adaptif..."
   ),
   pageTitle: c(
     "自适应前置回溯诊断舱 & 苏格拉底 AI 伴学导师",
     "Adaptive Backtracking Diagnostic Cockpit & Socratic AI Tutor",
-    "遡及アダプティブ診断コックピット ＆ ソクラテス式 AI チューター",
+    "さかのぼり診断コックピット ＆ ソクラテス式 AI チューター",
     "역추적 적응형 진단 콕핏 & 소크라테스식 AI 튜터",
     "Kokpit Diagnosis Jejak Balik Adaptif & Tutor AI Sokratik"
   ),
   pageSubtitle: c(
     "答对连胜自动剪枝豁免全部先修节点；首题答错降维复测区分「粗心滑档 Shaky」与「概念薄弱 Weak」，并自动跨科回溯源头病灶。",
     "Consecutive correct answers auto-prune all upstream prerequisites; a first miss triggers a stepped-down retest to separate careless slips (Shaky) from true gaps (Weak) and backtracks across subjects.",
-    "連続正解で上流の前提ノードを一括免除。初回不正解時は基礎確認問題で「ケアレスミス（Shaky）」と「本質的弱点（Weak）」を切り分け、教科横断で根本原因へ遡及します。",
+    "連続正解で上流の前提ノードを一括免除します。初回不正解時は基礎確認問題で「ケアレスミス（Shaky）」と「本質的弱点（Weak）」を切り分け、教科横断で根本原因までさかのぼります。",
     "연속 정답 시 상위 선수 노드를 자동 면제하며, 첫 오답 시 기초 재검증으로 '실수(Shaky)'와 '개념 취약(Weak)'을 구분해 교과 간 근본 원인을 역추적합니다.",
     "Jawapan betul berturut-turut mengecualikan prasyarat huluan secara automatik; kesilapan pertama mencetuskan ujian semula asas untuk membezakan kecuaian (Shaky) daripada kelemahan sebenar (Weak)."
   ),
@@ -779,28 +779,28 @@ export const DIAGNOSE_COPY = {
   startDiagnoseBtn: c(
     "立即启动自适应回溯诊断",
     "Launch Adaptive Backtracking Diagnosis",
-    "遡及アダプティブ診断を今すぐ開始",
+    "さかのぼり診断を今すぐ開始",
     "역추적 적응형 진단 지금 시작",
     "Mulakan Diagnosis Jejak Balik Sekarang"
   ),
   demoScriptsLabel: c(
     "🔥 推荐高光演示剧本（一键体验跨科溯源与先修剪枝）：",
     "🔥 Featured Demo Scenarios (One-click cross-subject backtracking & ancestor pruning):",
-    "🔥 おすすめ体験シナリオ（ワンクリックで教科横断遡及と前提免除を体験）：",
+    "🔥 おすすめ体験シナリオ（ワンクリックで教科横断のさかのぼりと前提免除を体験）：",
     "🔥 추천 하이라이트 데모 시나리오 (교과 융합 역추적 및 선수 가지치기 원클릭 체험):",
     "🔥 Senario Demo Pilihan (Satu klik jejak balik rentas subjek & pemangkasan prasyarat):"
   ),
   demoOhmTitle: c(
     "⚡ 跨科回溯展示：物理欧姆定律并联电阻",
     "⚡ Cross-Subject Backtracking: Physics Ohm's Law & Parallel Resistors",
-    "⚡ 教科横断遡及デモ：物理「オームの法則と並列合成抵抗」",
+    "⚡ 教科横断さかのぼりデモ：物理「オームの法則と並列合成抵抗」",
     "⚡ 교과 융합 역추적 데모: 물리 옴의 법칙과 병렬 합성저항",
     "⚡ Jejak Balik Rentas Subjek: Hukum Ohm Fizik & Perintang Selari"
   ),
   demoOhmDesc: c(
     "若连续答错物理并联电阻，观察系统如何自动回溯排查「串并联规律」与跨科数学「分式方程 1/x=1/a+1/b」！",
     "Miss parallel resistance twice and watch the engine trace back to Series/Parallel Circuits and cross-subject Math Rational Equations (1/x = 1/a + 1/b)!",
-    "並列抵抗で連続不正解になると、物理「直並列回路」さらに数学「分数方程式 1/x=1/a+1/b」へ自動遡及する様子を確認できます！",
+    "並列抵抗で連続不正解になると、物理「直並列回路」さらに数学「分数方程式 1/x=1/a+1/b」へ自動でさかのぼる様子を確認できます！",
     "물리 병렬 저항을 연속 틀리면 '직병렬 회로 법칙'과 수학 '분수방정식 1/x=1/a+1/b'으로 자동 역추적하는 과정을 확인하세요!",
     "Jika tersilap perintang selari, lihat bagaimana sistem menjejak balik ke Litar Siri/Selari dan Persamaan Nisbah Matematik (1/x = 1/a + 1/b)!"
   ),
@@ -814,7 +814,7 @@ export const DIAGNOSE_COPY = {
   demoQuadDesc: c(
     "连对 2 题直接豁免上游 12 个小初代数节点；答错则精准回溯配方法、完全平方与勾股根式！",
     "Get 2 right in a row to auto-exempt 12 upstream K-8 algebra nodes — or miss to pinpoint completing the square, factoring, or radicals!",
-    "2問連続正解で上流の小中代数12ノードを一括免除！不正解なら平方完成・因数分解・平方根へ精密に遡及します。",
+    "2問連続正解で上流の小中代数12ノードを一括免除します！不正解なら平方完成・因数分解・平方根へ精密にさかのぼります。",
     "2문항 연속 정답 시 상위 초·중 대수 12개 노드를 즉시 면제하며, 오답 시 완전제곱식·인수분해·제곱근을 정밀 추적합니다!",
     "Jawab 2 betul berturut-turut untuk mengecualikan 12 nod algebra huluan — atau jejak balik penyempurnaan kuasa dua & punca kuasa!"
   ),
@@ -849,21 +849,21 @@ export const DIAGNOSE_COPY = {
   rule2Desc: c(
     "首题答错不会盲目退回低年级，而是立刻出一道同节点基础辨析题：复测答对判为「粗心滑档」，复测仍错才触发先修回溯！",
     "A first miss doesn't blindly drop you to lower grades — it serves a stepped-down basic check on the same node: pass = Shaky, fail again = prerequisite backtracking!",
-    "初回不正解でも即座に低学年へ戻さず、同一ノードの基礎確認問題を出題。再確認で正解なら「要定着（Shaky）」、連続不正解で初めて前提遡及を発動します！",
+    "初回不正解でも即座に低学年へ戻さず、同一ノードの基礎確認問題を出題します。再確認で正解なら「要定着（Shaky）」、連続不正解で初めて前提のさかのぼりを実行します！",
     "첫 문항을 틀려도 무작정 하위 학년으로 내려가지 않고 동일 노드의 기초 확인 문항을 출제합니다. 재검증 정답 시 '실수(Shaky)', 재차 오답 시에만 선수 역추적을 실행합니다!",
     "Kesilapan pertama tidak terus turun ke gred rendah — sistem memberi soalan asas pada nod sama: lulus = Shaky, gagal lagi = jejak balik prasyarat!"
   ),
   rule3Title: c(
     "3. 强先修与跨科数学桥优先回溯 + 自动入错题本",
     "3. Hard Prereq & Cross-Subject Priority + Auto FSRS Logging",
-    "3. 必須前提・教科横断ブリッジ優先遡及 ＋ FSRS 自動登録",
+    "3. 必須前提・教科横断ブリッジ優先さかのぼり ＋ FSRS 自動登録",
     "3. 필수 선수·교과 브리지 우선 역추적 + FSRS 오답노트 자동 수록",
-    "3. Keutamaan Prasyarat Keras & Jambatan Subjek + Log Automatik FSRS"
+    "3. Keutamaan Prasyarat Wajib & Jambatan Subjek + Log Automatik FSRS"
   ),
   rule3Desc: c(
     "任何错题连同识别出的「认知迷思标签」实时写入 SQLite FSRS 错题账本，按遗忘曲线安排孪生变式清零。",
     "Every missed item and its detected misconception tag are persisted immediately to the SQLite FSRS ledger for spaced twin-variant clearance.",
-    "すべての誤答と検出された「誤概念タグ」は即座に SQLite FSRS 誤答台帳へ記録され、忘却曲線に沿って双子類題でクリアします。",
+    "すべての誤答と検出された「誤概念タグ」は即座に SQLite FSRS 誤答台帳へ記録され、忘却曲線に沿って類題（ペア問題）でクリアします。",
     "모든 오답과 감지된 '오개념 태그'는 즉시 SQLite FSRS 오답 장부에 기록되어 망각곡선에 따라 쌍둥이 변형 문제로 클리어됩니다.",
     "Setiap jawapan salah bersama tag salah konsep direkodkan terus ke lejar SQLite FSRS untuk pembersihan soalan kembar mengikut jadual ulang kaji."
   ),
@@ -966,7 +966,7 @@ export const DIAGNOSE_COPY = {
         `Not quite (Expected: ${expected}) · Logged to FSRS Wrong-Question Book`,
         `不正解（正解：${expected}）・ FSRS 誤答ノートに自動記録しました`,
         `오답 (정답: ${expected}) · FSRS 오답노트에 자동 수록됨`,
-        `Kurang tepat (Jawapan: ${expected}) · Direkodkan ke Buku Salah FSRS`
+        `Kurang tepat (Jawapan: ${expected}) · Direkodkan ke Buku Kesilapan FSRS`
       )
     ),
   prunedBannerTitle: c(
@@ -990,7 +990,7 @@ export const DIAGNOSE_COPY = {
   pushedBannerTitle: c(
     "触发 DAG 先修/跨科回溯：",
     "DAG Prerequisite / Cross-Subject Backtracking Triggered: ",
-    "DAG 前提・教科横断遡及を発動：",
+    "DAG 前提・教科横断さかのぼりを実行：",
     "DAG 선수/교과 융합 역추적 발동: ",
     "Jejak Balik Prasyarat / Rentas Subjek DAG Dicetuskan: "
   ),
@@ -1086,7 +1086,7 @@ export const DIAGNOSE_COPY = {
       c(
         "这道题第一步该从哪里切入？",
         "Where should I start on Step 1?",
-        "この問題の最初のステップはどこから手をつければいい？",
+        "この問題の最初のステップはどこから考えればよいですか？",
         "이 문제의 첫 단계는 어디서부터 시작해야 하나요?",
         "Dari mana saya patut mulakan langkah pertama?"
       )
@@ -1096,7 +1096,7 @@ export const DIAGNOSE_COPY = {
       c(
         "本题最容易踩的陷阱是什么？",
         "What is the most common pitfall here?",
-        "この問題で一番陥りやすい罠は何ですか？",
+        "この問題で一番気をつけるべき落とし穴は何ですか？",
         "이 문제에서 가장 빠지기 쉬운 함정은 무엇인가요?",
         "Apakah perangkap paling kerap dalam soalan ini?"
       )
@@ -1106,7 +1106,7 @@ export const DIAGNOSE_COPY = {
       c(
         "需要用到哪个上游先修公式？",
         "Which upstream prerequisite formula applies here?",
-        "どの上流前提の公式を使えばよいですか？",
+        "どの前提単元の公式を使えばよいですか？",
         "어떤 상위 선수 공식을 활용해야 하나요?",
         "Formula prasyarat huluan manakah yang perlu digunakan?"
       )
@@ -1139,7 +1139,7 @@ export const DIAGNOSE_COPY = {
       c(
         `DAG 靶向溯源诊断报告（共作答 ${answeredCount} 题 · 正确率 ${accuracyPct}%）`,
         `DAG Root-Cause Diagnostic Report (${answeredCount} Items Answered · ${accuracyPct}% Accuracy)`,
-        `DAG 遡及診断レポート（全 ${answeredCount} 問解答 ・ 正答率 ${accuracyPct}%）`,
+        `DAG さかのぼり診断レポート（全 ${answeredCount} 問解答 ・ 正答率 ${accuracyPct}%）`,
         `DAG 역추적 진단 리포트 (총 ${answeredCount}문항 응답 · 정답률 ${accuracyPct}%)`,
         `Laporan Diagnosis Punca DAG (${answeredCount} Soalan Dijawab · Ketepatan ${accuracyPct}%)`
       )
@@ -1147,9 +1147,9 @@ export const DIAGNOSE_COPY = {
   reportGoWrongBook: c(
     "前往 FSRS 错题本练孪生变式 →",
     "Practice Twin Variants in FSRS Book →",
-    "FSRS 誤答ノートで双子類題を演習 →",
+    "FSRS 誤答ノートでペア類題を演習 →",
     "FSRS 오답노트에서 쌍둥이 문제 연습 →",
-    "Latih Soalan Kembar dalam Buku FSRS →"
+    "Latih Soalan Kembar dalam Buku Kesilapan FSRS →"
   ),
   reportGoExplore: c(
     "在星图中查看掌握度染色",
@@ -1213,7 +1213,7 @@ export const DIAGNOSE_COPY = {
     "通过连对确认与传递闭包，共为你节省了",
     "Streak verification and transitive closure saved you",
     "連続正解確認と推移閉包により、低学年の冗長な基礎テスト",
-    "연속 정답 확인과 추이 폐포를 통해 불필요한 기초 확인 문항",
+    "연속 정답 확인과 추이 폐포를 통해 불필요한 저학년 기초 점검",
     "Pengesahan berturut-turut dan penutupan transitif menjimatkan"
   ),
   reportSavedSuffix: c(

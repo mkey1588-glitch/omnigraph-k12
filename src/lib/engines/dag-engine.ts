@@ -328,12 +328,12 @@ export function getNextDiagnosticQuestion(
       whyAskedI18n = isCross
         ? {
             ja: `【教科横断の根本原因さかのぼり】「${tj(originTopic)}」でつまずいたため、前提となる数学ツール「${tj(topic)}」を確認します`,
-            ko: `【교과 횡단 근본 원인 역추적】 「${tk(originTopic)}」에서 막혀 선수 수학 도구 「${tk(topic)}」을(를) 점검합니다`,
+            ko: `[교과 간 근본 원인 역추적] '${tk(originTopic)}'에서 막혀 선수 수학 도구 '${tk(topic)}' 단원을 점검합니다`,
             ms: `[Jejak Balik Rentas Subjek] Dicetuskan oleh kesukaran dalam "${tm(originTopic)}" → menyemak alat matematik prasyarat "${tm(topic)}"`,
           }
         : {
             ja: `【前提単元さかのぼり】「${tj(originTopic)}」でつまずいたため、上流の基礎「${tj(topic)}」を確認します`,
-            ko: `【선수 개념 역추적】 「${tk(originTopic)}」에서 막혀 상위 기초 「${tk(topic)}」을(를) 점검합니다`,
+            ko: `[선수 개념 역추적] '${tk(originTopic)}'에서 막혀 상위 기초 '${tk(topic)}' 단원을 점검합니다`,
             ms: `[Jejak Balik Prasyarat] Dicetuskan oleh "${tm(originTopic)}" → menyemak asas huluan "${tm(topic)}"`,
           };
     } else {
@@ -341,7 +341,7 @@ export function getNextDiagnosticQuestion(
       whyAskedEn = `[Target Check] Assessing standard mastery on "${topic.title.en}"`;
       whyAskedI18n = {
         ja: `【ターゲット初回チェック】目標スキル「${tj(topic)}」の標準的な習熟度を確認しています`,
-        ko: `【타깃 첫 점검】 목표 마이크로 스킬 「${tk(topic)}」의 표준 숙달도를 확인합니다`,
+        ko: `[타깃 첫 점검] 목표 마이크로 스킬 '${tk(topic)}'의 표준 숙달도를 확인합니다`,
         ms: `[Semakan Sasaran] Menilai penguasaan standard bagi "${tm(topic)}"`,
       };
     }
@@ -351,7 +351,7 @@ export function getNextDiagnosticQuestion(
     whyAskedEn = `[Mastery Confirmation] First item correct! Answering this variant confirms mastery and prunes all upstream prerequisites`;
     whyAskedI18n = {
       ja: `【習熟の確認】1問目正解！この類題にも正解すると「${tj(topic)}」の習熟が確定し、上流の前提単元はすべて自動的に免除されます`,
-      ko: `【숙달 확인】 첫 문항 정답! 이 변형 문항도 맞히면 「${tk(topic)}」 숙달이 확정되고 상위 선수 개념은 모두 자동 면제됩니다`,
+      ko: `[숙달 확인] 첫 문항 정답! 이 변형 문항도 맞히면 '${tk(topic)}' 숙달이 확정되고 상위 선수 개념은 모두 자동 면제됩니다`,
       ms: `[Pengesahan Penguasaan] Soalan pertama betul! Jawab variasi ini dengan betul untuk mengesahkan penguasaan dan melangkau semua prasyarat huluan`,
     };
   } else if (attempts.length === 1 && !attempts[0].isCorrect) {
@@ -360,7 +360,7 @@ export function getNextDiagnosticQuestion(
     whyAskedEn = `[Diagnostic Confirmation] Dropping to a foundational check to distinguish a careless slip (Shaky) from a true gap (Weak)`;
     whyAskedI18n = {
       ja: `【基礎レベルで再確認】1問目でつまずいたため基礎問題に切り替え、「うっかりミス（Shaky）」か「概念の理解不足（Weak）」かを見分けます`,
-      ko: `【기초 수준 재확인】 첫 문항에서 막혀 기초 문항으로 전환하여 「단순 실수(Shaky)」와 「개념 결손(Weak)」을 구별합니다`,
+      ko: `[기초 수준 재확인] 첫 문항에서 막혀 기초 문항으로 전환하여 '단순 실수(Shaky)'와 '개념 결손(Weak)'을 구별합니다`,
       ms: `[Pengesahan Diagnostik] Beralih ke semakan asas untuk membezakan kesilapan cuai (Shaky) daripada jurang sebenar (Weak)`,
     };
   } else {
@@ -369,7 +369,7 @@ export function getNextDiagnosticQuestion(
     whyAskedEn = `[Tie-Breaker] Resolving mastery status for "${topic.title.en}"`;
     whyAskedI18n = {
       ja: `【決定問題】正解1・不正解1のため、3問目で「${tj(topic)}」の最終的な状態を確定します`,
-      ko: `【결정 문항】 정답 1·오답 1이므로 3번째 문항으로 「${tk(topic)}」의 최종 상태를 확정합니다`,
+      ko: `[결정 문항] 정답 1·오답 1이므로 3번째 문항으로 '${tk(topic)}'의 최종 상태를 확정합니다`,
       ms: `[Penentu] Menentukan status penguasaan akhir bagi "${tm(topic)}"`,
     };
   }

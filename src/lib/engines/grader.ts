@@ -1,4 +1,5 @@
 import type { GeneratedQuestionInstance } from "@/types/taxonomy";
+import { toTraditionalChinese } from "@/lib/i18n/s2tw";
 
 export interface RationalValue {
   num: bigint;
@@ -26,7 +27,7 @@ export function reduceRational(num: bigint, den: bigint): RationalValue | null {
 }
 
 /**
- * Canonical Unicode & symbol normalization (NFKC + math operators)
+ * Canonical Unicode & symbol normalization (NFKC + math operators + KSSM kos->cos)
  */
 export function normalizeAnswerText(raw: string): string {
   return raw
@@ -36,19 +37,29 @@ export function normalizeAnswerText(raw: string): string {
     .replace(/×/g, "*")
     .replace(/÷/g, "/")
     .replace(/，/g, ",")
+    .replace(/、/g, ",")
     .replace(/；/g, ";")
     .replace(/：/g, ":")
     .replace(/％/g, "%")
     .replace(/²/g, "^2")
     .replace(/³/g, "^3")
+    .replace(/\bkos\b/gi, "cos")
     .replace(/\s+/g, " ");
 }
 
 /**
- * Strip optional trailing physical/math unit if present (e.g. "2700 kg/m^3" -> "2700")
+ * Strip optional leading currency symbol (`HK$`, `NT$`, `S$`, `US$`, `RM`, `$`, `¥`, `₩`, `£`, `€`)
+ * and trailing physical/math unit if present (e.g. "$51" -> "51", "2700 kg/m^3" -> "2700").
  */
 function stripKnownUnit(input: string, expectedUnit?: string): string {
   let s = input.trim();
+
+  // Strip leading regional currency prefixes before numeric answers
+  s = s.replace(
+    /^(?:HK\$|NT\$|S\$|US\$|RM|MYR|SGD|HKD|TWD|USD|CNY|JPY|KRW|GBP|[$¥￥₩£€])\s*(?=[+-]?\d)/i,
+    ""
+  ).trim();
+
   if (expectedUnit) {
     const normUnit = normalizeAnswerText(expectedUnit);
     if (normUnit && s.toLowerCase().endsWith(normUnit.toLowerCase())) {
@@ -57,20 +68,30 @@ function stripKnownUnit(input: string, expectedUnit?: string): string {
   }
   // Also strip common trailing units if preceded by a number
   s = s.replace(
-    /^([+-]?\d+(?:[./]\d+)?)\s*(?:cm\^2|cm\^3|m\^2|m\^3|kg\/m\^3|g\/cm\^3|m\/s\^2|m\/s|km\/h|km|cm|mm|kg|g|n|j|w|v|a|Ω|ohm|°|deg)$/i,
+    /^([+-]?\d+(?:[./]\d+)?)\s*(?:cm\^2|cm\^3|m\^2|m\^3|kg\/m\^3|g\/cm\^3|mol\/l|m\/s\^2|m\/s|km\/h|km|cm|mm|kg|mg|g|mol|n|j|kj|w|kw|v|a|ma|Ω|ohm|°c|°|deg|元|円|원|万银元)$/i,
     "$1"
   );
   return s.trim();
 }
 
 /**
+ * Checks whether a raw fraction string like "14/24" or "-6/10" is NOT in lowest terms (`gcd(|p|, |q|) > 1`).
+ */
+export function isUnreducedFractionInput(raw: string): boolean {
+  let s = normalizeAnswerText(raw);
+  s = s.replace(/^[a-zA-Z]\s*=\s*/, "").trim();
+  const m = s.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
+  if (!m) return false;
+  const p = BigInt(m[1]);
+  const q = BigInt(m[2]);
+  if (q === 0n) return false;
+  if (q < 0n) return true; // negative sign left in denominator
+  if (q === 1n) return true; // e.g. "5/1" instead of "5"
+  return gcdBigInt(p, q) > 1n;
+}
+
+/**
  * Parse exact rational number from integer, decimal, percentage, fraction, mixed fraction, or ratio.
- * Examples:
- *   "0.5" -> 1/2
- *   "50%" -> 1/2
- *   "2/4" -> 1/2
- *   "1 1/2" -> 3/2
- *   "1/3" -> 1/3 (NOT equal to "0.333" = 333/1000!)
  */
 export function parseRational(raw: string): RationalValue | null {
   let s = normalizeAnswerText(raw);
@@ -130,7 +151,7 @@ export function areRationalsEqual(a: RationalValue | null, b: RationalValue | nu
   return a.num === b.num && a.den === b.den;
 }
 
-// ==================== SAFE ALGEBRAIC EXPRESSION EVALUATOR ====================
+// ==================== SAFE ALGEBRAIC EXPRESSION EVALUATOR & STRUCTURAL CHECK ====================
 
 type Token =
   | { type: "num"; value: number }
@@ -312,19 +333,122 @@ export function areAlgebraicExpressionsEquivalent(exprA: string, exprB: string):
   return validComparisons >= 3;
 }
 
+/**
+ * Verifies that a student's polynomial answer is genuinely expanded and simplified
+ * when the canonical expected answer is an expanded polynomial without parentheses.
+ * Prevents copy-pasting the unexpanded prompt `(x + 6)^2` or uncombined `4x + 3 - 4x + 2`!
+ */
+export function isExpandedAndSimplifiedLikeExpected(
+  userExpr: string,
+  expectedExpr: string
+): boolean {
+  const u = normalizeAnswerText(userExpr).replace(/^[a-zA-Z]\s*=\s*/, "").trim();
+  const e = normalizeAnswerText(expectedExpr).replace(/^[a-zA-Z]\s*=\s*/, "").trim();
+
+  // If expected has no brackets, user must expand all brackets too
+  if (!/[()[\]]/.test(e) && /[()[\]]/.test(u)) {
+    return false;
+  }
+
+  // Reject unsimplified artifacts: "+ -", "- -", "0x", "0*x", standalone "1x" / "-1x", "x*x" instead of x^2
+  if (/[+-]\s*[+-]/.test(u)) return false;
+  if (/(?:^|[^\d.])0\s*\*?\s*[a-zA-Z]/.test(u)) return false;
+  if (/(?:^|[+\-*/\s])1\s*\*?\s*[a-zA-Z]/.test(u)) return false;
+  if (/\b([a-zA-Z])\s*\*\s*\1\b/i.test(u)) return false;
+
+  // Check top-level additive terms: no two additive terms may have the same variable signature (uncombined like terms!)
+  if (!/[()[\]/]/.test(u)) {
+    const compact = u.replace(/\s+/g, "");
+    const signedTerms = compact.replace(/(?=[+-])/g, "|").split("|").filter(Boolean);
+    const signatures = new Set<string>();
+    for (const term of signedTerms) {
+      const body = term.replace(/^[+-]/, "");
+      if (!body) continue;
+      // Extract variable powers in this monomial (e.g. "12x^2" -> "x^2", "6x" -> "x^1", "9" -> "const")
+      const varMatches = [...body.matchAll(/([a-zA-Z])(?:\^(\d+))?/g)];
+      const sig =
+        varMatches.length === 0
+          ? "const"
+          : varMatches
+              .map((m) => `${m[1].toLowerCase()}^${m[2] ?? "1"}`)
+              .sort()
+              .join("*");
+      if (signatures.has(sig)) {
+        // Duplicate monomial degree means like terms were NOT combined (e.g. "x^2 + 6x + 6x + 36" or "3 + 2")!
+        return false;
+      }
+      signatures.add(sig);
+    }
+  }
+
+  return true;
+}
+
 export interface GradeResult {
   isCorrect: boolean;
   normalizedAnswer: string;
   detectedMisconception?: string;
 }
 
-function splitUnorderedParts(s: string): string[] {
-  return s
-    .replace(/\b(?:or|and)\b/gi, ",")
-    .replace(/或|和/g, ",")
+export function splitUnorderedParts(s: string): string[] {
+  return normalizeAnswerText(s)
+    .replace(/\b(?:or|and|atau|dan)\b/gi, ",")
+    .replace(/または|および|또는|및|或|和|與|与/g, ",")
+    .replace(/(?<=\d)\s*と\s*(?=[+-]?\d)/g, ",")
     .split(/[,;]/)
     .map((p) => p.replace(/^[a-zA-Z]\d?\s*=\s*/, "").trim())
     .filter(Boolean);
+}
+
+/**
+ * Lightweight flexible grader for Micro-Lesson Quick Checks in `/explore`:
+ * Handles whitespace, case, signed oxidation states (`+6` === `6`), unordered multi-roots (`-1, 5` === `5、-1`),
+ * and exact rational equality.
+ */
+export function gradeQuickCheckAnswer(expectedRaw: string, userRaw: string): boolean {
+  const expNorm = stripKnownUnit(normalizeAnswerText(expectedRaw));
+  const usrNorm = stripKnownUnit(normalizeAnswerText(userRaw));
+  if (!expNorm || !usrNorm) return false;
+
+  if (expNorm.toLowerCase() === usrNorm.toLowerCase()) return true;
+
+  // Multi-part unordered check if expected contains comma/semicolon
+  if (expNorm.includes(",") || expNorm.includes(";")) {
+    const expParts = splitUnorderedParts(expNorm);
+    const usrParts = splitUnorderedParts(usrNorm);
+    if (expParts.length > 1 && expParts.length === usrParts.length) {
+      const used = new Set<number>();
+      let ok = true;
+      for (const up of usrParts) {
+        const upRat = parseRational(up);
+        const idx = expParts.findIndex((ep, i) => {
+          if (used.has(i)) return false;
+          const epRat = parseRational(ep);
+          if (upRat && epRat) return areRationalsEqual(upRat, epRat);
+          return ep.toLowerCase() === up.toLowerCase();
+        });
+        if (idx === -1) {
+          ok = false;
+          break;
+        }
+        used.add(idx);
+      }
+      if (ok) return true;
+    }
+  }
+
+  // Exact rational check (handles `+6` vs `6`, `2.0` vs `2`)
+  const expRat = parseRational(expNorm);
+  const usrRat = parseRational(usrNorm);
+  if (expRat && usrRat && areRationalsEqual(expRat, usrRat)) {
+    // If expected is an explicit reduced fraction like "3/5", still require reduced fraction
+    if (expNorm.includes("/") && isUnreducedFractionInput(usrNorm)) {
+      return false;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -339,15 +463,24 @@ export function gradeQuestionResponse(
     return { isCorrect: false, normalizedAnswer: "" };
   }
 
-  // 1. Multiple Choice
+  // 1. Multiple Choice (matches key A-D OR choice text in zh-CN, zh-TW, en, ja, ko, ms)
   if (instance.itemType === "choice" && instance.choices) {
     const upper = normalized.toUpperCase();
-    const matchedChoice = instance.choices.find(
-      (c) =>
-        c.key === upper ||
-        normalizeAnswerText(c.text).toLowerCase() === normalized.toLowerCase() ||
-        (c.textEn && normalizeAnswerText(c.textEn).toLowerCase() === normalized.toLowerCase())
-    );
+    const normLower = normalized.toLowerCase();
+    const matchedChoice = instance.choices.find((c) => {
+      if (c.key === upper) return true;
+      const variants = [
+        c.text,
+        toTraditionalChinese(c.text),
+        c.textEn,
+        c.textI18n?.ja,
+        c.textI18n?.ko,
+        c.textI18n?.ms,
+      ];
+      return variants.some(
+        (v) => v && normalizeAnswerText(v).toLowerCase() === normLower
+      );
+    });
     const isCorrect =
       matchedChoice?.key === instance.answer.toUpperCase() ||
       upper === instance.answer.toUpperCase();
@@ -380,7 +513,7 @@ export function gradeQuestionResponse(
     return undefined;
   };
 
-  // 2. Unordered multi-root answers (e.g., quadratic roots "5, -1" === "-1, 5")
+  // 2. Unordered multi-root answers (e.g., quadratic roots "5, -1" === "-1, 5" === "5、-1")
   if (instance.unorderedMulti) {
     const expectedParts = splitUnorderedParts(instance.answer);
     const userParts = splitUnorderedParts(stripped);
@@ -414,23 +547,44 @@ export function gradeQuestionResponse(
     };
   }
 
-  // 3. Exact Rational / Numeric comparison + acceptedEquivalents
+  // 3. Exact Rational / Numeric / Algebraic Expression comparison
   const candidates = [instance.answer, ...(instance.acceptedEquivalents ?? [])];
   const userRat = parseRational(stripped);
+  const enforceReduced =
+    instance.requireSimplifiedFraction ??
+    (instance.itemType === "numeric" && /^\s*[+-]?\d+\s*\/\s*\d+\s*$/.test(instance.answer));
 
   for (const exp of candidates) {
     const expClean = stripKnownUnit(normalizeAnswerText(exp), instance.unit);
+
+    // For algebraic expression items, enforce expanded & simplified polynomial structure!
+    if (instance.itemType === "expression") {
+      if (areAlgebraicExpressionsEquivalent(stripped, expClean)) {
+        if (!isExpandedAndSimplifiedLikeExpected(stripped, expClean)) {
+          return {
+            isCorrect: false,
+            normalizedAnswer: stripped,
+            detectedMisconception: "misc_unsimplified_expression",
+          };
+        }
+        return { isCorrect: true, normalizedAnswer: stripped };
+      }
+      continue;
+    }
+
     if (expClean.toLowerCase() === stripped.toLowerCase()) {
       return { isCorrect: true, normalizedAnswer: stripped };
     }
+
     const expRat = parseRational(expClean);
     if (userRat && expRat && areRationalsEqual(userRat, expRat)) {
-      return { isCorrect: true, normalizedAnswer: stripped };
-    }
-    if (
-      instance.itemType === "expression" &&
-      areAlgebraicExpressionsEquivalent(stripped, expClean)
-    ) {
+      if (enforceReduced && isUnreducedFractionInput(stripped)) {
+        return {
+          isCorrect: false,
+          normalizedAnswer: stripped,
+          detectedMisconception: "misc_unsimplified_fraction",
+        };
+      }
       return { isCorrect: true, normalizedAnswer: stripped };
     }
   }

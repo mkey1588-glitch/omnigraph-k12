@@ -70,7 +70,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "除法不是孤立口诀，而是“平均分组后清点剩余”的逆过程；余数一旦够再分一轮，商就该加 1。",
         en: "Division reverses equal grouping; if leftovers can form another group, the quotient increases by 1.",
       },
-      coreFormula: "N = d × q + r  (0 ≤ r < d)",
+      coreFormula: "$N = d \\times q + r \\quad (0 \\le r < d)$",
       visualType: "bar_model",
       steps: [
         {
@@ -91,7 +91,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_place_value_ops",
     regionalCodeOverrides: {
-      CN: { grade: 3, code: "cms-2022:2.NA.02", chapter: "三下 第二单元 除数是一位数的除法 / 四下 四则运算", edition: "人教版 2025 修订" },
+      CN: { grade: 3, code: "cms-2022:2.NA.02", chapter: "三下 第二单元 除数是一位数的除法 / 四下 四则运算", edition: "人教版 2022课标新教材" },
       HK: { grade: 3, code: "HK-EDB-KS1-N4", chapter: "P3 四則混合計算與餘數", edition: "EDB 小學數學" },
       TW: { grade: 3, code: "108-Math:N-3-5", chapter: "國小三下 除法與兩步驟問題", edition: "108課綱 翰林/康軒" },
       SG: { grade: 3, code: "SG-MOE-P3-N1.4", chapter: "P3 Whole Numbers & Word Problems (Bar Model)", edition: "MOE Primary Syllabus" },
@@ -135,7 +135,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "通分的本质是“统一测量刻度”——每一份切细 k 倍，拿的份数也同步乘 k 倍，总量丝毫未变。",
         en: "Finding a common denominator means choosing a finer ruler so both fractions use the exact same unit size.",
       },
-      coreFormula: "a / b = (a × k) / (b × k)  (k ≠ 0)",
+      coreFormula: "$\\frac{a}{b} = \\frac{a \\times k}{b \\times k} \\quad (k \\ne 0)$",
       visualType: "bar_model",
       steps: [
         {
@@ -156,7 +156,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_frac_equiv",
     regionalCodeOverrides: {
-      CN: { grade: 5, code: "cms-2022:3.NA.03", chapter: "五下 第四单元 分数的意义和性质（约分与通分）", edition: "人教版 2026 春" },
+      CN: { grade: 5, code: "cms-2022:3.NA.03", chapter: "五下 第四单元 分数的意义和性质（约分与通分）", edition: "人教版 2022课标新教材" },
       HK: { grade: 4, code: "HK-EDB-KS2-N3", chapter: "P4 擴分、約分與分數比較", edition: "EDB 小學數學" },
       TW: { grade: 5, code: "108-Math:N-5-3", chapter: "國小五上 公因數、公倍數與約分通分", edition: "108課綱" },
       SG: { grade: 4, code: "SG-MOE-P4-F1.1", chapter: "P4 Equivalent Fractions & Comparing Fractions", edition: "MOE Syllabus" },
@@ -200,7 +200,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "1 个苹果加 1 个西瓜不能叫“2 个苹瓜”——1/2 和 1/3 的分数单位不同，必须先切分成同样大小的 1/6 才能合并计数。",
         en: "You cannot add halves and thirds until both are sliced into sixths—the same unit size.",
       },
-      coreFormula: "a/b + c/d = (ad + bc) / bd",
+      coreFormula: "$\\frac{a}{b} + \\frac{c}{d} = \\frac{ad + bc}{bd}$",
       visualType: "bar_model",
       steps: [
         {
@@ -221,7 +221,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_frac_add_sub",
     regionalCodeOverrides: {
-      CN: { grade: 5, code: "cms-2022:3.NA.05", chapter: "五下 第六单元 分数的加法和减法", edition: "人教版 2026 春" },
+      CN: { grade: 5, code: "cms-2022:3.NA.05", chapter: "五下 第六单元 分数的加法和减法", edition: "人教版 2022课标新教材" },
       HK: { grade: 5, code: "HK-EDB-KS2-N5", chapter: "P5 異分母分數加減", edition: "EDB 小學數學" },
       TW: { grade: 5, code: "108-Math:N-5-4", chapter: "國小五上 異分母分數的加減", edition: "108課綱" },
       SG: { grade: 5, code: "SG-MOE-P5-F1.2", chapter: "P5 Addition & Subtraction of Unlike Fractions (CPA Bar Model)", edition: "MOE Primary" },
@@ -265,7 +265,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "除以 1/b 就是问“包含多少个 1/b”——每 1 个单位里都藏着 b 个 1/b，所以总数必然放大 b 倍！",
         en: "Dividing by 1/b asks how many 1/b pieces fit inside; since b pieces fit in each 1, you multiply by b.",
       },
-      coreFormula: "(a/b) ÷ (c/d) = (a/b) × (d/c)",
+      coreFormula: "$\\frac{a}{b} \\div \\frac{c}{d} = \\frac{a}{b} \\times \\frac{d}{c}$",
       visualType: "bar_model",
       steps: [
         {
@@ -286,7 +286,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_frac_mul_div",
     regionalCodeOverrides: {
-      CN: { grade: 6, code: "cms-2022:3.NA.06", chapter: "六上 第二、三单元 分数乘法与分数除法", edition: "人教版 2026 秋" },
+      CN: { grade: 6, code: "cms-2022:3.NA.06", chapter: "六上 第二、三单元 分数乘法与分数除法", edition: "人教版 2022课标新教材" },
       HK: { grade: 5, code: "HK-EDB-KS2-N6", chapter: "P5–P6 分數乘法與分數除法", edition: "EDB 小學數學" },
       TW: { grade: 6, code: "108-Math:N-6-3", chapter: "國小六上 分數的除法", edition: "108課綱" },
       SG: { grade: 6, code: "SG-MOE-P6-F1.1", chapter: "P6 Dividing a Fraction by a Proper Fraction (PSLE Core)", edition: "MOE Primary" },
@@ -330,7 +330,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "百分数永远绑定一个“基准单位 1”：涨 20% 是在 100 上涨 20 变 120；再降 20% 是在 120 上降 24 变 96！",
         en: "Every percentage acts on a specific base: +20% of 100 gives 120, then -20% of 120 subtracts 24 to leave 96!",
       },
-      coreFormula: "Change% = ((New - Old) / Old) × 100%",
+      coreFormula: "$\\text{Change}\\% = \\frac{\\text{New} - \\text{Old}}{\\text{Old}} \\times 100\\%$",
       visualType: "bar_model",
       steps: [
         {
@@ -351,7 +351,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_ratio_percent",
     regionalCodeOverrides: {
-      CN: { grade: 6, code: "cms-2022:3.NA.08", chapter: "六上 第五单元 百分数 / 六下 第四单元 比例", edition: "人教版 2026 秋" },
+      CN: { grade: 6, code: "cms-2022:3.NA.08", chapter: "六上 第五单元 百分数 / 六下 第四单元 比例", edition: "人教版 2022课标新教材" },
       HK: { grade: 6, code: "HK-EDB-KS2-N7", chapter: "P6 百分數應用與中一百分變化", edition: "EDB 數學" },
       TW: { grade: 6, code: "108-Math:N-6-6", chapter: "國小六下 比與比值、基準量與比較量", edition: "108課綱" },
       SG: { grade: 6, code: "SG-MOE-P6-R1.2", chapter: "P6 Ratio & Percentage Change Heuristics (PSLE)", edition: "MOE Primary" },
@@ -395,7 +395,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "两个完全一样的三角形总能拼成一个等底等高的平行四边形，所以三角形面积必然要除以 2；拉歪木框高变矮了，面积随之缩小。",
         en: "Two identical triangles form a parallelogram of the same base and perpendicular height, explaining the ÷2.",
       },
-      coreFormula: "S_△ = (1/2) · b · h,   S_trap = (1/2) · (a + b) · h",
+      coreFormula: "$S_{\\triangle} = \\frac{1}{2} b h, \\quad S_{\\text{trap}} = \\frac{1}{2}(a + b)h$",
       visualType: "right_triangle",
       steps: [
         {
@@ -416,7 +416,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_polygon_area",
     regionalCodeOverrides: {
-      CN: { grade: 5, code: "cms-2022:3.GG.04", chapter: "五上 第六单元 多边形的面积", edition: "人教版 2026 秋" },
+      CN: { grade: 5, code: "cms-2022:3.GG.04", chapter: "五上 第六单元 多边形的面积", edition: "人教版 2022课标新教材" },
       HK: { grade: 5, code: "HK-EDB-KS2-M4", chapter: "P5 平行四邊形、三角形及梯形面積", edition: "EDB 小學數學" },
       TW: { grade: 5, code: "108-Math:S-5-2", chapter: "國小五上 三角形與四邊形的面積", edition: "108課綱" },
       SG: { grade: 5, code: "SG-MOE-P5-MG1.1", chapter: "P5 Area of Triangle & Composite Figures", edition: "MOE Primary" },
@@ -460,7 +460,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "指数 2 只管紧挨着它的左边那个整体：有括号 (-3)² 连负号一起平方得 +9；没括号 -3² 先算 3² 再添负号得 -9！",
         en: "An exponent binds tightly only to what is immediately to its left: parentheses include the minus sign; without them, square first then negate.",
       },
-      coreFormula: "(-a)² = +a²,   -a² = -(a²)",
+      coreFormula: "$(-a)^2 = +a^2, \\quad -a^2 = -(a^2)$",
       visualType: "number_line",
       steps: [
         {
@@ -525,7 +525,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "括号前的负号代表“整体取反”——减去“支出 3 元（-3）”，等价于净增 3 元（+3）。最常见失分就是第二项漏变号！",
         en: "A minus sign in front of parentheses negates EVERY term inside—subtracting a debt of 3 adds +3.",
       },
-      coreFormula: "a - (b - c) = a - b + c",
+      coreFormula: "$a - (b - c) = a - b + c$",
       steps: [
         {
           title: { "zh-CN": "把系数连同正负号一起乘进每一项", en: "Distribute the Signed Factor to Every Term" },
@@ -589,7 +589,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "等式就像天平：左边托盘放了两件物品，把整个左边放大 2 倍时，每一件物品都必须乘 2，天平才不会倾斜！",
         en: "An equation is a balance scale: doubling one side requires doubling EVERY item sitting on that pan.",
       },
-      coreFormula: "(x - a)/b - k = c  ⇒  (x - a) - b·k = b·c",
+      coreFormula: "$\\frac{x - a}{b} - k = c \\implies (x - a) - b \\cdot k = b \\cdot c$",
       visualType: "balance_scale",
       steps: [
         {
@@ -654,7 +654,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "对比两张购物小票找差价，就是“加减消元法”的直觉原型：相同的部分抵消掉，剩下的差价只由单一未知量产生。",
         en: "Comparing two receipts with identical tea counts cancels out tea, isolating the cake price—pure elimination.",
       },
-      coreFormula: "{ a₁x + b₁y = c₁,  a₂x + b₂y = c₂ }",
+      coreFormula: "$\\{ a_1 x + b_1 y = c_1, \\; a_2 x + b_2 y = c_2 \\}$",
       steps: [
         {
           title: { "zh-CN": "同号相减、异号相加", en: "Same Sign Subtract, Opposite Sign Add" },
@@ -681,7 +681,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
       MY: { grade: 7, code: "MY-KSSM-T1-6.3", chapter: "Form 1 Persamaan Linear Serentak", edition: "DSKP KSSM" },
       JP: { grade: 8, code: "JP-MEXT-835028A2", chapter: "中2 連立二元一次方程式", edition: "学習指導要領" },
       KR: { grade: 8, code: "KR-2022:[9수02-08]", chapter: "중2 연립일차방정식", edition: "2022 개정 교육과정" },
-      UK: { grade: 9, code: "UK-NC-KS3-A7", chapter: "Year 9 / GCSE Simultaneous Equations", edition: "England NC / GCSE" },
+      UK: { grade: 9, code: "UK-NC-KS3-A7", chapter: "Year 9 (KS3) Simultaneous Linear Equations", edition: "England NC KS3" },
       US: { grade: 8, code: "CCSS.MATH.8.EE.C.8", chapter: "Grade 8 / Algebra 1 Linear Systems", edition: "Common Core" },
     },
   },
@@ -718,7 +718,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "斜率 k 是“每向右走 1 步，高度变化多少步（Δy/Δx）”；k > 0 爬坡，k < 0 下坡，b 是 x = 0 时的初始高度。",
         en: "Slope k is vertical rise per unit horizontal step (Δy/Δx); b is where the line crosses the vertical axis at x = 0.",
       },
-      coreFormula: "k = (y₂ - y₁) / (x₂ - x₁),   y = kx + b",
+      coreFormula: "$k = \\frac{y_2 - y_1}{x_2 - x_1}, \\quad y = kx + b$",
       visualType: "parabola",
       steps: [
         {
@@ -739,14 +739,14 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_linear_func",
     regionalCodeOverrides: {
-      CN: { grade: 8, code: "cms-2022:4.NA.11", chapter: "八下 第二十章 一次函数", edition: "人教版 2024 审定" },
+      CN: { grade: 8, code: "cms-2022:4.NA.11", chapter: "八下 第二十二章 函数与一次函数", edition: "人教版 2024 审定" },
       HK: { grade: 8, code: "HK-EDB-KS3-MG3", chapter: "S2–S3 Coordinate Geometry of Straight Lines", edition: "EDB 初中數學" },
       TW: { grade: 7, code: "108-Math:A-7-6", chapter: "國中七下 二元一次方程式的圖形 / 八下 線型函數", edition: "108課綱" },
       SG: { grade: 8, code: "SG-MOE-S2-A3.1", chapter: "Sec 2 Linear Functions, Graphs & Gradient", edition: "MOE G3 Math" },
       MY: { grade: 8, code: "MY-KSSM-T2-9.1", chapter: "Form 2–3 Garis Lurus (Gradient & y = mx + c)", edition: "DSKP KSSM" },
       JP: { grade: 8, code: "JP-MEXT-835028C1", chapter: "中2 一次関数（変化の割合・傾きと切片）", edition: "学習指導要領" },
-      KR: { grade: 8, code: "KR-2022:[9수03-02]", chapter: "중2 일차함수와 그 그래프", edition: "2022 개정 교육과정" },
-      UK: { grade: 8, code: "UK-NC-KS3-A9", chapter: "KS3/GCSE y = mx + c, Gradient & Intercepts", edition: "England NC / GCSE" },
+      KR: { grade: 8, code: "KR-2022:[9수02-10]", chapter: "중2 일차함수와 그 그래프", edition: "2022 개정 교육과정" },
+      UK: { grade: 8, code: "UK-NC-KS3-A9", chapter: "Year 8 (KS3) y = mx + c, Gradient & Intercepts", edition: "England NC KS3" },
       US: { grade: 8, code: "CCSS.MATH.8.F.B.4", chapter: "Grade 8 Linear Functions & Rate of Change", edition: "Common Core" },
     },
   },
@@ -783,7 +783,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "几何面积图一眼破除头号迷思：边长 (a+b) 的正方形分成四格：a²、b² 以及两个长为 a 宽为 b 的长方形，中间项 2ab 永远跑不掉！",
         en: "An (a+b)×(a+b) square partitions into four regions: a², b², and TWO a×b rectangles—making 2ab unforgettable.",
       },
-      coreFormula: "(a ± b)² = a² ± 2ab + b²,   a² - b² = (a + b)(a - b)",
+      coreFormula: "$(a \\pm b)^2 = a^2 \\pm 2ab + b^2, \\quad a^2 - b^2 = (a + b)(a - b)$",
       steps: [
         {
           title: { "zh-CN": "首平方、尾平方，首尾两倍放中央", en: "First Squared, Last Squared, Twice the Product in the Middle" },
@@ -810,7 +810,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
       MY: { grade: 8, code: "MY-KSSM-T2-2.1", chapter: "Form 2 Pemfaktoran dan Pecahan Algebra", edition: "DSKP KSSM" },
       JP: { grade: 9, code: "JP-MEXT-835029A1", chapter: "中3 多項式の展開と因数分解", edition: "学習指導要領" },
       KR: { grade: 9, code: "KR-2022:[9수02-11]", chapter: "중3 다항식의 곱셈과 인수분해", edition: "2022 개정 교육과정" },
-      UK: { grade: 9, code: "UK-NC-KS4-A4", chapter: "KS3/GCSE Expanding Quadratics & Factorising", edition: "England NC / GCSE" },
+      UK: { grade: 9, code: "UK-NC-KS3-A4", chapter: "Year 9 (KS3) Expanding Quadratics & Factorising", edition: "England NC KS3" },
       US: { grade: 9, code: "CCSS.MATH.HSA.SSE.A.2", chapter: "Algebra 1 Factoring & Structure in Expressions", edition: "Common Core" },
     },
   },
@@ -847,7 +847,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "两边同乘 (x - 2) 去分母时，若恰巧 x = 2，相当于两边同乘了 0（0 乘任何数都相等），这会凭空造出使原分母爆炸的“假解（增根）”！",
         en: "Multiplying by (x - 2) is invalid if x = 2 because multiplying by zero destroys equivalence and creates extraneous roots.",
       },
-      coreFormula: "P(x) / Q(x) = k  ⇒  P(x) = k·Q(x)  AND  Q(x) ≠ 0",
+      coreFormula: "$\\frac{P(x)}{Q(x)} = k \\implies P(x) = k \\cdot Q(x) \\quad (Q(x) \\ne 0)$",
       steps: [
         {
           title: { "zh-CN": "一化整式、二求解、三验分母不为零", en: "Clear LCD → Solve → Check Denominator ≠ 0" },
@@ -869,12 +869,12 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     regionalCodeOverrides: {
       CN: { grade: 8, code: "cms-2022:4.NA.08", chapter: "八上 第十八章 分式与分式方程", edition: "人教版 2024 审定" },
       HK: { grade: 8, code: "HK-EDB-KS3-NA6", chapter: "S2 Algebraic Fractions & Change of Subject of Formula", edition: "EDB 初中數學" },
-      TW: { grade: 8, code: "108-Math:A-8-5", chapter: "國中八上 分式運算與公式移項", edition: "108課綱補充" },
+      TW: { grade: 8, code: "108-Math:A-8-3 / A-10-2", chapter: "國中八上 多項式四則與高一分式運算", edition: "108課綱" },
       SG: { grade: 8, code: "SG-MOE-S2-A1.4", chapter: "Sec 2 Algebraic Fractions & Changing the Subject of a Formula", edition: "MOE G3 Math" },
       MY: { grade: 8, code: "MY-KSSM-T2-3.1", chapter: "Form 2 Rumus Algebra (Algebraic Formulae)", edition: "DSKP KSSM" },
       JP: { grade: 8, code: "JP-MEXT-835028A1", chapter: "中2 等式の変形 / 高1 分数式", edition: "学習指導要領" },
-      KR: { grade: 10, code: "KR-2022:[10공수2-04]", chapter: "중2 등식의 변형 / 고1 유리식", edition: "2022 개정 교육과정" },
-      UK: { grade: 9, code: "UK-NC-KS4-A5", chapter: "GCSE Rearranging Formulae & Algebraic Fractions", edition: "England NC / GCSE" },
+      KR: { grade: 8, code: "KR-2022:[9수02-06]", chapter: "중2 등식의 변형 / 고1 유리식", edition: "2022 개정 교육과정" },
+      UK: { grade: 9, code: "UK-NC-KS3-A5", chapter: "Year 9 (KS3) Rearranging Formulae & Algebraic Fractions", edition: "England NC KS3" },
       US: { grade: 9, code: "CCSS.MATH.HSA.REI.A.2", chapter: "Algebra 1 & 2 Rational Equations & Extraneous Solutions", edition: "Common Core" },
     },
   },
@@ -911,7 +911,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "勾股定理不是随便三条边平方相加，而是“两条直角边上的正方形面积之和，恰好铺满斜边上的大正方形”。",
         en: "Squares built on the two perpendicular legs have areas summing exactly to the square built on the hypotenuse.",
       },
-      coreFormula: "a² + b² = c²   (∠C = 90°)",
+      coreFormula: "$a^2 + b^2 = c^2 \\quad (\\angle C = 90^\\circ)$",
       visualType: "right_triangle",
       steps: [
         {
@@ -932,14 +932,14 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_pythagoras",
     regionalCodeOverrides: {
-      CN: { grade: 8, code: "cms-2022:4.GG.14", chapter: "八下 第十九章 二次根式与勾股定理", edition: "人教版 2024 审定" },
+      CN: { grade: 8, code: "cms-2022:4.GG.14", chapter: "八下 第十九章 二次根式 / 第二十章 勾股定理", edition: "人教版 2024 审定" },
       HK: { grade: 8, code: "HK-EDB-KS3-MG2", chapter: "S2 Pythagoras' Theorem & Surds (畢氏定理與根式)", edition: "EDB 初中數學" },
       TW: { grade: 8, code: "108-Math:S-8-6", chapter: "國中八上 平方根與畢氏定理", edition: "108課綱" },
       SG: { grade: 8, code: "SG-MOE-S2-G2.1", chapter: "Sec 2 Pythagoras' Theorem", edition: "MOE G3 Math" },
       MY: { grade: 7, code: "MY-KSSM-T1-13.1", chapter: "Form 1 Teorem Pythagoras", edition: "DSKP KSSM" },
       JP: { grade: 9, code: "JP-MEXT-835029B3", chapter: "中3 平方根と三平方の定理", edition: "学習指導要領" },
-      KR: { grade: 8, code: "KR-2022:[9수03-08]", chapter: "중2 피타고라스 정리 / 중3 제곱근", edition: "2022 개정 교육과정" },
-      UK: { grade: 9, code: "UK-NC-KS3-G6", chapter: "Year 9 / GCSE Pythagoras' Theorem & Surds", edition: "England NC / GCSE" },
+      KR: { grade: 8, code: "KR-2022:[9수02-16]", chapter: "중2 피타고라스 정리 / 중3 제곱근", edition: "2022 개정 교육과정" },
+      UK: { grade: 9, code: "UK-NC-KS3-G6", chapter: "Year 9 (KS3) Pythagoras' Theorem & Roots", edition: "England NC KS3" },
       US: { grade: 8, code: "CCSS.MATH.8.G.B.7", chapter: "Grade 8 Apply the Pythagorean Theorem", edition: "Common Core" },
     },
   },
@@ -976,7 +976,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "一元二次方程难在 x² 和 bx 混在一起无法直接移项；“配方法”通过补全 (b/2)² 把它们打包进同一个平方括号 (x + b/2)²，瞬间降为一元一次！",
         en: "Completing the square packs x² and bx into a single squared binomial (x + b/2)², letting a square root reduce degree 2 to degree 1.",
       },
-      coreFormula: "x² + bx + (b/2)² = (x + b/2)²,   Δ = b² - 4ac",
+      coreFormula: "$x^2 + bx + \\left(\\frac{b}{2}\\right)^2 = \\left(x + \\frac{b}{2}\\right)^2, \\quad \\Delta = b^2 - 4ac$",
       steps: [
         {
           title: { "zh-CN": "移常数、配一半平方、开方取正负", en: "Move Constant → Add (b/2)² → Take ±√" },
@@ -996,7 +996,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_quad_complete_sq",
     regionalCodeOverrides: {
-      CN: { grade: 9, code: "cms-2022:4.NA.09", chapter: "九上 第二十五章 一元二次方程（25.2 配方法与公式法）", edition: "人教版 2024 审定" },
+      CN: { grade: 9, code: "cms-2022:4.NA.09", chapter: "九上 第二十三章 一元二次方程（配方法与公式法）", edition: "人教版 2024 审定" },
       HK: { grade: 10, code: "HK-DSE-Comp-NA2", chapter: "S4 Quadratic Equations in One Unknown (配方法與判別式)", edition: "HKDSE Compulsory" },
       TW: { grade: 8, code: "108-Math:A-8-7", chapter: "國中八上 一元二次方程式（配方法與公式解）", edition: "108課綱" },
       SG: { grade: 9, code: "SG-MOE-S3-A1.1", chapter: "Sec 3 Solving Quadratic Equations by Completing the Square (O-Level 4052)", edition: "MOE E/A-Math" },
@@ -1040,7 +1040,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "因为平方项 (x - h)² ≥ 0 永远非负：当 x = h 时平方项归零，函数刚好取到顶点极值 k！这就是为什么括号里是减号时顶点横坐标是 +h。",
         en: "Since (x - h)² ≥ 0 vanishes precisely at x = h, the vertex sits at (+h, k), not (-h, k)!",
       },
-      coreFormula: "y = a(x - h)² + k   ⇒   Vertex (h, k),  Axis x = h",
+      coreFormula: "$y = a(x - h)^2 + k \\implies \\text{Vertex } (h, k), \\; x = h$",
       visualType: "parabola",
       steps: [
         {
@@ -1061,13 +1061,13 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_quad_parabola",
     regionalCodeOverrides: {
-      CN: { grade: 9, code: "cms-2022:4.NA.12", chapter: "九上 第二十六章 二次函数", edition: "人教版 2024 审定" },
+      CN: { grade: 9, code: "cms-2022:4.NA.12", chapter: "九上 第二十四章 二次函数", edition: "人教版 2024 审定" },
       HK: { grade: 10, code: "HK-DSE-Comp-NA4", chapter: "S4 Functions and Graphs (二次函數頂點與極值)", edition: "HKDSE Compulsory" },
       TW: { grade: 9, code: "108-Math:F-9-1", chapter: "國中九下 二次函數的圖形與極值", edition: "108課綱" },
       SG: { grade: 9, code: "SG-MOE-S3-A3.2", chapter: "Sec 3 Quadratic Functions & Sketching Graphs via Completing the Square", edition: "MOE E/A-Math" },
       MY: { grade: 10, code: "MY-KSSM-T4-AddM-2.3", chapter: "Form 4 Additional Math: Quadratic Functions Vertex", edition: "DSKP KSSM" },
       JP: { grade: 10, code: "JP-MEXT-845030I2", chapter: "高1（数学I）二次関数とグラフ・最大最小", edition: "高校学習指導要領" },
-      KR: { grade: 9, code: "KR-2022:[9수03-05]", chapter: "중3 이차함수와 그 그래프 / 고1 최대·최소", edition: "2022 개정 교육과정" },
+      KR: { grade: 9, code: "KR-2022:[9수02-17]", chapter: "중3 이차함수와 그 그래프 / 고1 최대·최소", edition: "2022 개정 교육과정" },
       UK: { grade: 10, code: "UK-GCSE-Higher-A11", chapter: "GCSE Higher: Turning Points of Quadratic Graphs", edition: "Edexcel / AQA GCSE" },
       US: { grade: 9, code: "CCSS.MATH.HSF.IF.C.8a", chapter: "Algebra 1 Extreme Values & Symmetry of Quadratics", edition: "Common Core" },
     },
@@ -1105,7 +1105,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "角度一旦固定，直角三角形无论放大缩小多少倍都是相似三角形，所以“对边/斜边（sin）”等比值永远恒定！",
         en: "All right triangles sharing an acute angle θ are similar, keeping side ratios (SOH-CAH-TOA) invariant across scales.",
       },
-      coreFormula: "sin θ = Opp/Hyp,  cos θ = Adj/Hyp,  tan θ = Opp/Adj",
+      coreFormula: "$\\sin\\theta = \\frac{\\text{Opp}}{\\text{Hyp}}, \\quad \\cos\\theta = \\frac{\\text{Adj}}{\\text{Hyp}}, \\quad \\tan\\theta = \\frac{\\text{Opp}}{\\text{Adj}}$",
       visualType: "right_triangle",
       steps: [
         {
@@ -1126,14 +1126,14 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     },
     generatorKey: "math_trig_right",
     regionalCodeOverrides: {
-      CN: { grade: 9, code: "cms-2022:4.GG.22", chapter: "九下 第三十二章 锐角三角函数", edition: "人教版 2024 审定" },
+      CN: { grade: 9, code: "cms-2022:4.GG.22", chapter: "九下 锐角三角函数与解直角三角形", edition: "人教版 2024 审定" },
       HK: { grade: 8, code: "HK-EDB-KS3-MG5", chapter: "S2–S3 Trigonometric Ratios (三角比)", edition: "EDB 初中數學" },
       TW: { grade: 9, code: "108-Math:S-9-4", chapter: "國中九上 直角三角形的邊角關係 / 高一三角比", edition: "108課綱" },
       SG: { grade: 8, code: "SG-MOE-S2-G3.1", chapter: "Sec 2–3 Trigonometric Ratios of Acute Angles", edition: "MOE G3 Math" },
       MY: { grade: 9, code: "MY-KSSM-T3-5.1", chapter: "Form 3 Nisbah Trigonometri", edition: "DSKP KSSM" },
       JP: { grade: 10, code: "JP-MEXT-845030I3", chapter: "高1（数学I）図形と計量（三角比）", edition: "高校学習指導要領" },
       KR: { grade: 9, code: "KR-2022:[9수03-09]", chapter: "중3 삼각비", edition: "2022 개정 교육과정" },
-      UK: { grade: 9, code: "UK-NC-KS4-G20", chapter: "Year 9 / GCSE Right-Angled Trigonometry (SOHCAHTOA)", edition: "England NC / GCSE" },
+      UK: { grade: 9, code: "UK-NC-KS3-G20", chapter: "Year 9 (KS3) Right-Angled Trigonometry (SOHCAHTOA)", edition: "England NC KS3" },
       US: { grade: 10, code: "CCSS.MATH.HSG.SRT.C.8", chapter: "Geometry Trigonometric Ratios & Right Triangles", edition: "Common Core" },
     },
   },
@@ -1170,7 +1170,7 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
         "zh-CN": "一次函数的斜率处处相同；弯曲曲线每一点陡峭度都在变，把两点间距 Δx 缩到无穷小，割线斜率就变成了该点的切线斜率 f'(x)！",
         en: "Zooming in on any smooth curve makes it look locally straight; the derivative f'(x) measures that local slope.",
       },
-      coreFormula: "(xⁿ)' = n·xⁿ⁻¹,   Tangent slope at x₀: k = f'(x₀)",
+      coreFormula: "$(x^n)' = n x^{n-1}, \\quad k_{\\text{tan}} = f'(x_0)$",
       steps: [
         {
           title: { "zh-CN": "指数搬下来乘系数，原指数减 1，常数归 0", en: "Bring Power Down, Subtract 1, Constants Vanish" },
@@ -1192,12 +1192,12 @@ export const MATH_TOPICS: TopicSeedDefinition[] = [
     regionalCodeOverrides: {
       CN: { grade: 11, code: "cms-2017:H.FUN.20", chapter: "选必二 第五章 一元函数的导数及其应用", edition: "人教 A 版 2019" },
       HK: { grade: 11, code: "HK-DSE-M1M2-C2", chapter: "S5 HKDSE M1/M2 Differentiation & Applications", edition: "HKDSE Extended M1/M2" },
-      TW: { grade: 12, code: "108-Math:C-12A-2", chapter: "高三數甲 微分與導函數應用", edition: "108課綱" },
+      TW: { grade: 12, code: "108-Math:F-12甲-2", chapter: "高三選修數學甲 微分與導函數應用", edition: "108課綱" },
       SG: { grade: 10, code: "SG-MOE-S4-AM-C1", chapter: "Sec 4 Additional Math: Differentiation & Stationary Points (O-Level 4049)", edition: "MOE A-Math" },
       MY: { grade: 11, code: "MY-KSSM-T5-AddM-2.2", chapter: "Form 5 Add Math: Pembezaan (Differentiation)", edition: "DSKP KSSM SPM" },
       JP: { grade: 11, code: "JP-MEXT-845030II5", chapter: "高2（数学II）微分法の考え（導関数と極値）", edition: "高校学習指導要領" },
       KR: { grade: 11, code: "KR-2022:[12미적I-02]", chapter: "고2 미적분I 미분계수와 도함수", edition: "2022 개정 교육과정" },
-      UK: { grade: 11, code: "UK-GCSE-Higher-Gradients / AS-Pure", chapter: "IGCSE Add Math / Year 12 AS Differentiation", edition: "Cambridge / Edexcel" },
+      UK: { grade: 12, code: "UK-ALevel-Math-Pure-Y12", chapter: "A-Level Maths Pure Year 12: Differentiation & Stationary Points", edition: "Edexcel / AQA A-Level Maths" },
       US: { grade: 12, code: "AP-CALC-CHA-2.2", chapter: "AP Calculus AB Defining & Applying Derivatives", edition: "College Board AP" },
     },
   },

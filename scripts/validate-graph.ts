@@ -23,6 +23,14 @@ function validateGraph(): void {
     if (!topic.title["zh-CN"] || !topic.title.en) {
       errors.push(`Topic ${topic.id} missing bilingual zh-CN/en title`);
     }
+    const cf = topic.microLesson.coreFormula ?? "";
+    if (cf && !cf.includes("$") && /\\[a-zA-Z]+|\^\{|_\{/.test(cf)) {
+      errors.push(`Topic ${topic.id} has raw LaTeX in coreFormula without $...$ delimiters: ${cf}`);
+    }
+    const step0 = topic.microLesson.steps[0];
+    if (!step0?.checkQuestion?.["zh-CN"] || !step0?.checkQuestion?.en || !step0?.checkAnswer) {
+      errors.push(`Topic ${topic.id} missing interactive microLesson steps[0].checkQuestion or checkAnswer`);
+    }
     topicById.set(topic.id, topic);
   }
 

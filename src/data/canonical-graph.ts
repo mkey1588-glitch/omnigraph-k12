@@ -54,7 +54,7 @@ export interface EdgeSeedDefinition {
 }
 
 /**
- * Directed Acyclic Graph (DAG) Edges (81 Prerequisite & Cross-Subject Edges)
+ * Directed Acyclic Graph (DAG) Edges (78 Prerequisite & Cross-Subject Edges)
  * Convention: `topicId` depends on `prerequisiteId`
  */
 const CANONICAL_EDGE_SEEDS: EdgeSeedDefinition[] = [
@@ -785,6 +785,12 @@ export const CANONICAL_EDGES: EdgeSeedDefinition[] = applyEdgeReasonOverlay(
   EDGE_REASON_I18N
 );
 
+const EXTENSION_TOPICS = new Set([
+  "mt_math_calc_derivative_tangent",
+  "mt_math_func_exp_log",
+  "mt_cs_algo_complexity",
+]);
+
 /**
  * Expand all 9-region curriculum alignments (50 topics × 9 regions = 450 records)
  */
@@ -804,7 +810,12 @@ export const ALL_REGIONAL_ALIGNMENTS: RegionalAlignmentRecord[] = ALL_CANONICAL_
         textbookEdition: override?.edition ?? region.curriculumName,
         localChapterTitle: override?.chapter ?? topic.title["zh-CN"],
         examWeight:
-          clampedGrade >= 11 && (region.code === "HK" || region.code === "SG")
+          EXTENSION_TOPICS.has(topic.id) &&
+          (clampedGrade >= 12 ||
+            region.code === "HK" ||
+            region.code === "SG" ||
+            region.code === "UK" ||
+            region.code === "MY")
             ? "extension"
             : "core",
         regionalNote: override?.note,
