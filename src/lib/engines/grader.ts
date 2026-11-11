@@ -315,6 +315,15 @@ const SAMPLE_ASSIGNMENTS: Array<Record<string, number>> = [
   { x: 4.2, y: -0.8, a: -2.5, b: -3.2, m: 3.6, n: 1.4, t: 0.45 },
 ];
 
+export function evaluateAlgebraicExpression(
+  expr: string,
+  env: Record<string, number>
+): number | null {
+  const tok = tokenizeExpression(expr);
+  if (!tok || tok.length === 0) return null;
+  return evaluateTokens(tok, env);
+}
+
 export function areAlgebraicExpressionsEquivalent(exprA: string, exprB: string): boolean {
   const tokA = tokenizeExpression(exprA);
   const tokB = tokenizeExpression(exprB);

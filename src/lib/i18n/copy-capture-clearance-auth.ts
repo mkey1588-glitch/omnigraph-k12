@@ -720,6 +720,67 @@ export const CAPTURE_COPY = {
     "Pratonton lembaran kerja yang dimuat naik",
     "上傳的試卷預覽圖"
   ),
+  privacyBrushHint: c(
+    "🛡️ 端侧隐私涂抹画板：在图片上按住拖动即可涂黑姓名、学号或班级栏，随后执行多模态 Vision OCR",
+    "🛡️ Client Privacy Mask Brush: Drag across student names, IDs, or class headers to redact locally before Vision OCR",
+    "🛡️ 端末側プライバシー黒塗りブラシ：画像上をドラッグして氏名・番号・クラス欄を隠してから Vision OCR を実行できます",
+    "🛡️ 클라이언트 개인정보 마스킹 브러시: 이미지 위를 드래그해 실명·학번·학반을 가린 뒤 Vision OCR을 실행하세요",
+    "🛡️ Berus Privasi Klien: Seret pada imej untuk menutup nama, ID atau kelas secara tempatan sebelum OCR Visi",
+    "🛡️ 端側隱私塗抹畫板：在圖片上按住拖曳即可塗黑姓名、學號或班級欄，隨後執行多模態 Vision OCR"
+  ),
+  clearMaskBtn: c(
+    "清除涂抹",
+    "Clear Mask",
+    "黒塗りを消去",
+    "마스킹 초기화",
+    "Padam Topeng",
+    "清除塗抹"
+  ),
+  runVisionOcrBtn: c(
+    "执行多模态 Vision OCR 识题",
+    "Extract via Vision OCR",
+    "Vision OCR で問題を抽出",
+    "Vision OCR로 지문 추출",
+    "Ekstrak melalui OCR Visi",
+    "執行多模態 Vision OCR 識題"
+  ),
+  runningVisionOcrBtn: c(
+    "正在多模态识别公式与笔迹…",
+    "Extracting formulas & handwriting…",
+    "数式と手書き解答をマルチモーダル認識中…",
+    "수식 및 손글씨 답안을 멀티모달 인식 중…",
+    "Mengekstrak formula & tulisan tangan…",
+    "正在多模態辨識公式與筆跡…"
+  ),
+  ocrProviderBadge: (provider: string, locale: LocaleCode) => {
+    const labelMap: Record<string, UiCopy> = {
+      gemini_vision: c(
+        "Gemini Vision 多模态已提取",
+        "Extracted via Gemini Vision",
+        "Gemini Vision マルチモーダル抽出済",
+        "Gemini Vision 멀티모달 추출됨",
+        "Diekstrak melalui Gemini Vision",
+        "Gemini Vision 多模態已擷取"
+      ),
+      openai_vision: c(
+        "OpenAI Vision 多模态已提取",
+        "Extracted via OpenAI Vision",
+        "OpenAI Vision マルチモーダル抽出済",
+        "OpenAI Vision 멀티모달 추출됨",
+        "Diekstrak melalui OpenAI Vision",
+        "OpenAI Vision 多模態已擷取"
+      ),
+      local_demo_ocr: c(
+        "离线沙盒 OCR 演示提取（配置 API Key 自动启用真实多模态）",
+        "Sandbox Demo OCR (set GEMINI/OPENAI key for live Vision)",
+        "サンドボックス OCR 抽出（APIキー設定で実画像 Vision 認識に自動切替）",
+        "샌드박스 데모 OCR 추출 (API 키 설정 시 실시간 비전 인식으로 자동 전환)",
+        "OCR Demo Kotak Pasir (tetapkan kunci API untuk OCR Visi sebenar)",
+        "離線沙盒 OCR 演示擷取（設定 API Key 自動啟用真實多模態）"
+      ),
+    };
+    return uiPick(locale, labelMap[provider] ?? labelMap.local_demo_ocr);
+  },
   ocrSimulatedStem: (fileName: string, locale: LocaleCode) =>
     uiPick(
       locale,

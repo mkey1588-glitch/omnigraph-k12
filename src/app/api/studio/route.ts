@@ -7,10 +7,18 @@ import type { LocaleCode } from "@/types/taxonomy";
 import { CANONICAL_EDGES } from "@/data/canonical-graph";
 import { c, uiPick } from "@/lib/i18n";
 import { validateCustomEdgeAcyclic } from "@/lib/engines/irt-engine";
+import { authorizeEducatorMutation } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   try {
     await ensureSeeded(false);
+    const access = authorizeEducatorMutation(req);
+    if (!access.allowed) {
+      return NextResponse.json(
+        { ok: false, error: access.reason },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
     const action = String(body.action ?? "");
     const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";

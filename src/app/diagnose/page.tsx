@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -13,11 +13,14 @@ import {
   RotateCcw,
   ArrowRight,
   Bot,
+  ListChecks,
+  Layers,
 } from "lucide-react";
 import { usePlatform } from "@/components/PlatformProvider";
 import { MathText } from "@/components/MathText";
 import { InteractiveWidget } from "@/components/InteractiveWidget";
 import {
+  localizeAssignmentTitle,
   localizeChoice,
   localizeExplanation,
   localizePrompt,
@@ -58,6 +61,7 @@ interface SummaryPayload {
 function DiagnoseStudioContent() {
   const searchParams = useSearchParams();
   const queryTopic = searchParams.get("topic");
+  const queryTopics = searchParams.get("topics");
 
   const {
     data,
@@ -93,6 +97,7 @@ function DiagnoseStudioContent() {
     detectedMisconception?: string;
     prunedCount: number;
     pushedCount: number;
+    autoCompletedAssignment: boolean;
     pendingNextPrompt: PromptPayload | null;
     pendingSummary: SummaryPayload | null;
   } | null>(null);
@@ -100,16 +105,20 @@ function DiagnoseStudioContent() {
   // Scaffolds reveal count
   const [revealedScaffolds, setRevealedScaffolds] = useState<number>(0);
 
-  // Socratic AI Tutor chat state
+  // Socratic AI Tutor chat + Step-by-Step Working Checker state
   const [tutorMessages, setTutorMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
   const [tutorInput, setTutorInput] = useState("");
+  const [stepCheckOpen, setStepCheckOpen] = useState(false);
+  const [stepsDraft, setStepsDraft] = useState("");
   const [tutorLoading, setTutorLoading] = useState(false);
   const [tutorMeta, setTutorMeta] = useState<{
     provider?: string;
     code?: string;
   }>({});
+
+  const autoLaunchedQueryRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (queryTopic) {
@@ -117,47 +126,65 @@ function DiagnoseStudioContent() {
     }
   }, [queryTopic]);
 
-  const startDiagnosis = async (
-    overrideTopicIds?: string[],
-    mode: "target" | "grade_screen" = "target"
-  ) => {
-    if (!data) return;
-    const targets = overrideTopicIds ?? [selectedTargetId];
-    const firstTopic = data.topics.find((t) => t.id === targets[0]);
-    const subjectId: SubjectId = firstTopic?.subjectId ?? "math";
+  const startDiagnosis = useCallback(
+    async (
+      overrideTopicIds?: string[],
+      mode: "target" | "grade_screen" = "target"
+    ) => {
+      if (!data) return;
+      const targets = overrideTopicIds ?? [selectedTargetId];
+      const firstTopic = data.topics.find((t) => t.id === targets[0]);
+      const subjectId: SubjectId = firstTopic?.subjectId ?? "math";
 
-    setSubmitting(true);
-    setSummary(null);
-    setStepFeedback(null);
-    setTutorMessages([]);
-    setRevealedScaffolds(0);
-    setUserAnswer("");
+      setSubmitting(true);
+      setSummary(null);
+      setStepFeedback(null);
+      setTutorMessages([]);
+      setRevealedScaffolds(0);
+      setUserAnswer("");
 
-    try {
-      const res = await fetch("/api/diagnose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "start",
-          studentId: activeStudentId,
-          subjectId,
-          regionCode,
-          locale,
-          mode,
-          targetTopicIds: targets,
-          confirmRequired: 2,
-          maxQuestions: 12,
-        }),
-      });
-      const json = await res.json();
-      if (json.ok) {
-        setSession(json.session as DiagnosticSessionState);
-        setCurrentPrompt(json.nextPrompt as PromptPayload);
+      try {
+        const res = await fetch("/api/diagnose", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "start",
+            studentId: activeStudentId,
+            subjectId,
+            regionCode,
+            locale,
+            mode,
+            targetTopicIds: targets,
+            confirmRequired: 2,
+            maxQuestions: 12,
+          }),
+        });
+        const json = await res.json();
+        if (json.ok) {
+          setSession(json.session as DiagnosticSessionState);
+          setCurrentPrompt(json.nextPrompt as PromptPayload);
+        }
+      } finally {
+        setSubmitting(false);
       }
-    } finally {
-      setSubmitting(false);
+    },
+    [data, selectedTargetId, activeStudentId, regionCode, locale]
+  );
+
+  // Auto-launch multi-node assignment pack when arriving via `?topics=id1,id2`
+  useEffect(() => {
+    if (!data || !queryTopics || session) return;
+    if (autoLaunchedQueryRef.current === queryTopics) return;
+    const parsed = queryTopics
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parsed.length > 0) {
+      autoLaunchedQueryRef.current = queryTopics;
+      setSelectedTargetId(parsed[0]);
+      void startDiagnosis(parsed, "target");
     }
-  };
+  }, [data, queryTopics, session, startDiagnosis]);
 
   const submitAnswer = async (overrideChoice?: string) => {
     if (!session || !currentPrompt || submitting) return;
@@ -190,6 +217,8 @@ function DiagnoseStudioContent() {
           detectedMisconception: json.outcome.detectedMisconception,
           prunedCount: json.outcome.prunedAncestors?.length ?? 0,
           pushedCount: json.outcome.pushedPrerequisites?.length ?? 0,
+          autoCompletedAssignment:
+            (json.syncResult?.autoCompletedAssignmentIds?.length ?? 0) > 0,
           pendingNextPrompt: json.nextPrompt ?? null,
           pendingSummary: json.summary ?? null,
         });
@@ -212,16 +241,26 @@ function DiagnoseStudioContent() {
     setUserAnswer("");
     setRevealedScaffolds(0);
     setTutorMessages([]);
+    setStepsDraft("");
   };
 
-  const askSocraticTutor = async (customPrompt?: string) => {
+  const askSocraticTutor = async (
+    customPrompt?: string,
+    checkStepsMode = false
+  ) => {
     if (!currentPrompt || tutorLoading) return;
-    const content = (customPrompt ?? tutorInput).trim();
+    const content = (
+      customPrompt ?? (checkStepsMode ? stepsDraft : tutorInput)
+    ).trim();
     if (!content) return;
 
     const nextMsgs = [...tutorMessages, { role: "user" as const, content }];
     setTutorMessages(nextMsgs);
-    setTutorInput("");
+    if (checkStepsMode) {
+      setStepsDraft("");
+    } else if (!customPrompt) {
+      setTutorInput("");
+    }
     setTutorLoading(true);
 
     try {
@@ -238,19 +277,72 @@ function DiagnoseStudioContent() {
             stepFeedback && !stepFeedback.isCorrect ? userAnswer : undefined,
           detectedMisconceptionTag: stepFeedback?.detectedMisconception,
           studentId: activeStudentId,
+          checkStepsMode,
+          stream: true,
           messages: nextMsgs,
         }),
       });
-      const json = await res.json();
-      if (json.ok) {
-        setTutorMessages([
-          ...nextMsgs,
-          { role: "assistant", content: json.reply as string },
-        ]);
-        setTutorMeta({
-          provider: json.provider,
-          code: json.groundedStandardCode,
-        });
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (contentType.includes("text/event-stream") && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let streamedText = "";
+
+        setTutorMessages([...nextMsgs, { role: "assistant", content: "" }]);
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split("\n\n");
+          buffer = frames.pop() ?? "";
+
+          for (const frame of frames) {
+            const lines = frame.split("\n");
+            let eventType = "message";
+            let dataLine = "";
+            for (const ln of lines) {
+              if (ln.startsWith("event:")) {
+                eventType = ln.slice(6).trim();
+              } else if (ln.startsWith("data:")) {
+                dataLine = ln.slice(5).trim();
+              }
+            }
+            if (!dataLine) continue;
+            try {
+              const payload = JSON.parse(dataLine) as Record<string, unknown>;
+              if (eventType === "meta") {
+                setTutorMeta({
+                  provider: String(payload.provider ?? ""),
+                  code: String(payload.groundedStandardCode ?? ""),
+                });
+              } else if (eventType === "delta") {
+                streamedText += String(payload.text ?? "");
+                const snapshot = streamedText;
+                setTutorMessages([
+                  ...nextMsgs,
+                  { role: "assistant", content: snapshot },
+                ]);
+              }
+            } catch {
+              // Ignore malformed SSE frame
+            }
+          }
+        }
+      } else {
+        const json = await res.json();
+        if (json.ok) {
+          setTutorMessages([
+            ...nextMsgs,
+            { role: "assistant", content: json.reply as string },
+          ]);
+          setTutorMeta({
+            provider: json.provider,
+            code: json.groundedStandardCode,
+          });
+        }
       }
     } finally {
       setTutorLoading(false);
@@ -275,6 +367,12 @@ function DiagnoseStudioContent() {
   const localizedSvg = currentPrompt
     ? localizeSvgDiagram(currentPrompt.instance.svgDiagram, locale)
     : undefined;
+
+  const pendingAssignments = data.assignments.filter(
+    (a) =>
+      a.assignedStudentIdsJson.includes(activeStudentId) &&
+      !a.completedStudentIdsJson.includes(activeStudentId)
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
@@ -350,6 +448,34 @@ function DiagnoseStudioContent() {
               <span>{pick(DIAGNOSE_COPY.startDiagnoseBtn)}</span>
             </button>
 
+            {pendingAssignments.length > 0 && (
+              <div className="border-t border-slate-800 pt-4 space-y-2.5">
+                <div className="text-xs font-semibold text-indigo-300 flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>{pick(DIAGNOSE_COPY.pendingAssignmentsTitle)}</span>
+                </div>
+                <div className="space-y-2">
+                  {pendingAssignments.map((asg) => (
+                    <button
+                      key={asg.id}
+                      type="button"
+                      onClick={() =>
+                        void startDiagnosis(asg.targetTopicIdsJson, "target")
+                      }
+                      className="w-full flex items-center justify-between gap-3 rounded-xl border border-indigo-500/30 bg-indigo-950/20 px-3.5 py-2.5 text-left hover:border-indigo-400 transition"
+                    >
+                      <span className="text-xs font-semibold text-slate-100">
+                        {localizeAssignmentTitle(asg, locale)}
+                      </span>
+                      <span className="shrink-0 rounded bg-indigo-500/20 px-2 py-0.5 text-[10px] font-mono text-indigo-200">
+                        {asg.targetTopicIdsJson.length}× DAG →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="border-t border-slate-800 pt-4 space-y-2.5">
               <div className="text-xs font-semibold text-slate-400">
                 {pick(DIAGNOSE_COPY.demoScriptsLabel)}
@@ -421,7 +547,7 @@ function DiagnoseStudioContent() {
           {/* Left 7 Cols: Question Card & Scaffolds */}
           <div className="lg:col-span-7 space-y-4">
             {/* Causal Backtracking Transparency Banner */}
-            <div className="rounded-xl border border-indigo-500/40 bg-indigo-950/35 px-4 py-3 space-y-1">
+            <div className="rounded-xl border border-indigo-500/40 bg-indigo-950/35 px-4 py-3 space-y-1.5">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-indigo-300">
                   {DIAGNOSE_COPY.engineLiveBanner(
@@ -431,10 +557,25 @@ function DiagnoseStudioContent() {
                     locale
                   )}
                 </span>
-                <span className="font-mono text-[11px] text-slate-300">
-                  {currentAln?.standardCode} · {currentAln?.localStageLabel}
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {typeof session.studentTheta === "number" && (
+                    <span className="rounded bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 font-mono text-[10px] text-indigo-200">
+                      {DIAGNOSE_COPY.mfiThetaBadge(session.studentTheta, locale)}
+                    </span>
+                  )}
+                  <span className="font-mono text-[11px] text-slate-300">
+                    {currentAln?.standardCode} · {currentAln?.localStageLabel}
+                  </span>
+                </div>
               </div>
+              {(session.warmStartSkippedCount ?? 0) > 0 && (
+                <div className="rounded-lg bg-emerald-500/15 border border-emerald-500/25 px-2.5 py-1 text-[11px] font-medium text-emerald-300">
+                  {DIAGNOSE_COPY.warmStartBadge(
+                    session.warmStartSkippedCount ?? 0,
+                    locale
+                  )}
+                </div>
+              )}
               <p className="text-xs text-slate-200">
                 {localizeWhyAsked(currentPrompt, locale)}
               </p>
@@ -678,6 +819,12 @@ function DiagnoseStudioContent() {
                     </div>
                   )}
 
+                  {stepFeedback.autoCompletedAssignment && (
+                    <div className="rounded-lg bg-indigo-500/20 border border-indigo-400/40 px-3 py-2 text-xs font-semibold text-indigo-200">
+                      {pick(DIAGNOSE_COPY.syncAssignmentBanner)}
+                    </div>
+                  )}
+
                   <p className="text-xs leading-relaxed text-slate-200 whitespace-pre-line">
                     <strong>{pick(DIAGNOSE_COPY.explanationPrefix)}</strong>
                     <MathText
@@ -795,24 +942,68 @@ function DiagnoseStudioContent() {
                 )}
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-slate-800">
-                <input
-                  type="text"
-                  value={tutorInput}
-                  onChange={(e) => setTutorInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") void askSocraticTutor();
-                  }}
-                  placeholder={pick(DIAGNOSE_COPY.tutorInputPlaceholder)}
-                  className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
-                />
-                <button
-                  onClick={() => void askSocraticTutor()}
-                  disabled={tutorLoading || !tutorInput.trim()}
-                  className="rounded-xl bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500 disabled:opacity-50"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                </button>
+              <div className="pt-2 border-t border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStepCheckOpen((v) => !v)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
+                      stepCheckOpen
+                        ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-200"
+                        : "border-slate-700 bg-slate-950 text-indigo-300 hover:border-indigo-400"
+                    }`}
+                  >
+                    <ListChecks className="h-3.5 w-3.5" />
+                    <span>
+                      {stepCheckOpen
+                        ? pick(DIAGNOSE_COPY.stepCheckerCloseBtn)
+                        : pick(DIAGNOSE_COPY.stepCheckerToggleBtn)}
+                    </span>
+                  </button>
+                </div>
+
+                {stepCheckOpen ? (
+                  <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/90 p-2.5">
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {pick(DIAGNOSE_COPY.stepCheckerHint)}
+                    </p>
+                    <textarea
+                      rows={3}
+                      value={stepsDraft}
+                      onChange={(e) => setStepsDraft(e.target.value)}
+                      placeholder={pick(DIAGNOSE_COPY.stepCheckerPlaceholder)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2 font-mono text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void askSocraticTutor(undefined, true)}
+                      disabled={tutorLoading || !stepsDraft.trim()}
+                      className="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      {pick(DIAGNOSE_COPY.stepCheckerSubmitBtn)}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tutorInput}
+                      onChange={(e) => setTutorInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void askSocraticTutor();
+                      }}
+                      placeholder={pick(DIAGNOSE_COPY.tutorInputPlaceholder)}
+                      className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => void askSocraticTutor()}
+                      disabled={tutorLoading || !tutorInput.trim()}
+                      className="rounded-xl bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-500 disabled:opacity-50"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

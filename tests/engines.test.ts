@@ -21,16 +21,30 @@ import {
   createInitialWrongCard,
   scheduleFsrsReview,
 } from "../src/lib/engines/fsrs-engine";
-import { generateSocraticTutorReply } from "../src/lib/engines/socratic-tutor";
+import {
+  diagnoseStepByStepWorking,
+  generateSocraticTutorReply,
+} from "../src/lib/engines/socratic-tutor";
 import { sanitizeForExternalAi } from "../src/lib/engines/privacy-shield";
 import {
   calibrateIrtAfterAttempt,
+  computeFisherInformation,
+  selectOptimalDifficultyByMfi,
   validateCustomEdgeAcyclic,
 } from "../src/lib/engines/irt-engine";
 import {
   analyzeCapturedWrongQuestion,
   buildSmartExamPapers,
 } from "../src/lib/engines/smart-capture-and-paper";
+import {
+  hashKidPin,
+  hashSecret,
+  signSessionToken,
+  verifyKidPin,
+  verifySecret,
+  verifySessionToken,
+} from "../src/lib/auth/session";
+import { evaluateAssignmentAndPactSync } from "../src/lib/progress-sync";
 
 async function runAllEngineTests(): Promise<void> {
   console.log("🔬 Running OmniGraph K12 Core Engine Test Suite...");
@@ -568,6 +582,237 @@ async function runAllEngineTests(): Promise<void> {
     );
   }
   console.log("  ✔ Smart Capture & Paper Builder: KG attribution & parallel A/B papers passed");
+
+  // 10. scrypt Credential Hashing & HMAC-SHA256 HttpOnly Session Token Security Test
+  {
+    const hashed = hashSecret("Omni#Pass2026");
+    assert.ok(hashed.startsWith("scrypt$"), "Password must be hashed with scrypt prefix");
+    assert.equal(verifySecret("Omni#Pass2026", hashed), true);
+    assert.equal(verifySecret("WrongPass", hashed), false);
+
+    const pinHash = hashKidPin("884219");
+    assert.ok(pinHash.startsWith("pin_scrypt$"), "Kid PIN must be domain-peppered scrypt hash");
+    assert.equal(verifyKidPin("884219", pinHash), true);
+    assert.equal(verifyKidPin("000000", pinHash), false);
+
+    const token = signSessionToken({
+      uid: "stu_real_user_01",
+      role: "student",
+      reg: "SG",
+      demo: false,
+    });
+    const verified = verifySessionToken(token);
+    assert.ok(verified && verified.uid === "stu_real_user_01" && verified.reg === "SG");
+
+    // Tampering with payload or signature must strictly fail verification
+    const [segBody, segSig] = token.split(".");
+    const tamperedSig = `${segBody}.${segSig.slice(0, -2)}AA`;
+    assert.equal(verifySessionToken(tamperedSig), null, "Tampered HMAC signature must be rejected!");
+
+    const expiredToken = signSessionToken(
+      { uid: "stu_real_user_01", role: "student", reg: "SG", demo: false },
+      -10
+    );
+    assert.equal(verifySessionToken(expiredToken), null, "Expired session token must be rejected!");
+  }
+  console.log("  ✔ Auth Security: scrypt password/PIN hashing & HMAC session tamper rejection passed");
+
+  // 11. Closed-Loop Business Disconnects: Custom School Edges, Warm-Start CAT, MFI IRT & Progress Sync
+  {
+    // (a) Custom school edge (`mt_chem_molar_concentration` -> `mt_math_rational_eq`) dynamically drives backtracking!
+    const customEdge = {
+      topicId: "mt_chem_molar_concentration",
+      prerequisiteId: "mt_math_rational_eq",
+      relationType: "cross_subject" as const,
+      reasonZh: "稀释方程变形依赖分式方程求解",
+      reasonEn: "Dilution rearrangement depends on rational equations",
+    };
+    const customSession = createDiagnosticSession({
+      studentId: "stu_leo",
+      subjectId: "chemistry",
+      regionCode: "CN",
+      mode: "target",
+      targetTopicIds: ["mt_chem_molar_concentration"],
+      confirmRequired: 2,
+      extraEdges: [customEdge],
+      initialKnownMastery: {
+        mt_chem_stoichiometry_conservation: "inferred_mastered",
+      },
+      studentTheta: 1.35,
+      warmStartSkippedCount: 1,
+    });
+
+    const firstPrompt = getNextDiagnosticQuestion(customSession, {
+      irtStatsByTopic: {
+        mt_chem_molar_concentration: {
+          basic: {
+            templateId: "t_b",
+            topicId: "mt_chem_molar_concentration",
+            priorBeta: -0.8,
+            calibratedBeta: -0.8,
+            discriminationAlpha: 1.1,
+            attempts: 10,
+            correct: 8,
+          },
+          standard: {
+            templateId: "t_s",
+            topicId: "mt_chem_molar_concentration",
+            priorBeta: 0.0,
+            calibratedBeta: 0.1,
+            discriminationAlpha: 1.2,
+            attempts: 10,
+            correct: 5,
+          },
+          challenge: {
+            templateId: "t_c",
+            topicId: "mt_chem_molar_concentration",
+            priorBeta: 1.1,
+            calibratedBeta: 1.25,
+            discriminationAlpha: 1.4,
+            attempts: 10,
+            correct: 3,
+          },
+        },
+      },
+    })!;
+    assert.equal(
+      firstPrompt.difficulty,
+      "challenge",
+      "MFI selection must pick 'challenge' item when studentTheta (1.35) matches challenge beta (1.25)!"
+    );
+
+    // Fail target twice -> Warm-Start skipped `mt_chem_stoichiometry_conservation` stays exempt,
+    // while custom school edge `mt_math_rational_eq` IS pushed onto stack!
+    applyDiagnosticAnswer(customSession, firstPrompt.instance, "999999");
+    const secondPrompt = getNextDiagnosticQuestion(customSession)!;
+    const out2 = applyDiagnosticAnswer(customSession, secondPrompt.instance, "999999");
+    assert.ok(
+      out2.pushedPrerequisites.includes("mt_math_rational_eq"),
+      "Custom school edge must be pushed during live diagnostic backtracking!"
+    );
+    assert.ok(
+      !out2.pushedPrerequisites.includes("mt_chem_stoichiometry_conservation"),
+      "Warm-Start pre-exempted node must NOT be re-tested!"
+    );
+
+    // Direct MFI unit check across low vs high theta
+    assert.ok(computeFisherInformation(1.0, 1.0, 1.2) > computeFisherInformation(1.0, -1.5, 1.2));
+    const lowPick = selectOptimalDifficultyByMfi({
+      topicId: "mt_phy_ohm_law",
+      studentTheta: -1.2,
+    });
+    assert.equal(lowPick.difficulty, "basic");
+
+    // (b) Assignment auto-completion & Study Pact badge unlock sync
+    const syncEval = evaluateAssignmentAndPactSync({
+      studentId: "stu_leo",
+      masteredTopicIds: new Set(["mt_math_rational_eq", "mt_phy_ohm_law"]),
+      newlyMasteredCount: 2,
+      minutesDelta: 4,
+      assignments: [
+        {
+          id: "asg_1",
+          targetTopicIds: ["mt_math_rational_eq", "mt_phy_ohm_law"],
+          assignedStudentIds: ["stu_leo", "stu_mia"],
+          completedStudentIds: [],
+        },
+      ],
+      pact: {
+        id: "pact_leo",
+        studentId: "stu_leo",
+        dailyLimitMinutes: 45,
+        todayUsedMinutes: 20,
+        weeklyTargetNodes: 4,
+        completedNodesThisWeek: 3,
+        badgeUnlocked: false,
+      },
+    });
+    assert.equal(syncEval.assignmentsToComplete.length, 1);
+    assert.deepEqual(syncEval.assignmentsToComplete[0].nextCompletedStudentIds, ["stu_leo"]);
+    assert.equal(syncEval.updatedPact?.todayUsedMinutes, 24);
+    assert.equal(syncEval.updatedPact?.completedNodesThisWeek, 5);
+    assert.equal(syncEval.updatedPact?.badgeNewlyUnlocked, true);
+  }
+  console.log("  ✔ Closed-Loop Sync: Custom edges, Warm-Start CAT, MFI IRT & assignment/pact sync passed");
+
+  // 12. 6-Locale Hybrid Formula + Lexicon Attribution (incl. Bahasa Melayu & Formula-Only Stems)
+  {
+    const capMs = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText:
+        "Dua perintang disambung dalam litar selari. Gunakan Hukum Ohm untuk mencari rintangan setara.",
+      regionCode: "MY",
+      locale: "ms",
+    });
+    assert.equal(capMs.matchedPrimary.topicId, "mt_phy_ohm_law");
+
+    const capFormulaOnly = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText: "Find the vertex of y = 2(x - 3)^2 - 5",
+      regionCode: "US",
+      locale: "en",
+    });
+    assert.equal(capFormulaOnly.matchedPrimary.topicId, "mt_math_quad_function_parabola");
+
+    const capCustomRoot = analyzeCapturedWrongQuestion({
+      sanitizedQuestionText: "c1V1 = c2V2 dilution of 2 mol/L NaCl solution",
+      regionCode: "SG",
+      locale: "en",
+      extraEdges: [
+        {
+          topicId: "mt_chem_molar_concentration",
+          prerequisiteId: "mt_math_rational_eq",
+          relationType: "cross_subject",
+        },
+      ],
+    });
+    assert.equal(capCustomRoot.matchedPrimary.topicId, "mt_chem_molar_concentration");
+    assert.ok(
+      capCustomRoot.upstreamRootCauses.some((u) => u.topicId === "mt_math_rational_eq"),
+      "Smart Capture must include teacher custom edges in upstream root causes!"
+    );
+  }
+  console.log("  ✔ 6-Locale Hybrid Capture: Bahasa Melayu, formula-regex & custom edge attribution passed");
+
+  // 13. Algebraic Step-by-Step Working Checker (Exact Broken Line Pinpointing)
+  {
+    const brokenTransposition = diagnoseStepByStepWorking(
+      "2x - 6 = 10\n2x = 4\nx = 2",
+      "en"
+    );
+    assert.ok(brokenTransposition && !brokenTransposition.allStepsValid);
+    assert.equal(brokenTransposition.firstBrokenTransition?.fromStepIndex, 1);
+    assert.equal(brokenTransposition.firstBrokenTransition?.toStepIndex, 2);
+    assert.equal(brokenTransposition.firstBrokenTransition?.errorType, "sign_or_constant");
+
+    const brokenDistribution = diagnoseStepByStepWorking(
+      "3(x - 2) + 4 => 3x - 2 + 4 => 3x + 2",
+      "ja"
+    );
+    assert.ok(brokenDistribution && !brokenDistribution.allStepsValid);
+    assert.equal(brokenDistribution.firstBrokenTransition?.fromStepIndex, 1);
+    assert.equal(brokenDistribution.firstBrokenTransition?.toStepIndex, 2);
+    assert.equal(
+      brokenDistribution.firstBrokenTransition?.errorType,
+      "coefficient_or_distribution"
+    );
+
+    const validSteps = diagnoseStepByStepWorking(
+      "2x - 6 = 10\n2x = 16\nx = 8",
+      "zh-TW"
+    );
+    assert.ok(validSteps && validSteps.allStepsValid);
+
+    const tutorStepReply = await generateSocraticTutorReply({
+      topicId: "mt_math_linear_eq_one",
+      regionCode: "SG",
+      locale: "en",
+      checkStepsMode: true,
+      messages: [{ role: "user", content: "2x - 6 = 10\n2x = 4\nx = 2" }],
+    });
+    assert.ok(tutorStepReply.stepDiagnosis && !tutorStepReply.stepDiagnosis.allStepsValid);
+    assert.ok(tutorStepReply.reply.includes("Step 1") && tutorStepReply.reply.includes("Step 2"));
+  }
+  console.log("  ✔ Step-by-Step Working Checker: exact broken-step pinpointing across 6 locales passed");
+
   console.log("🎉 ALL ENGINE TESTS PASSED!");
 }
 

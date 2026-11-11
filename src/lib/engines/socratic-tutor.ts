@@ -13,10 +13,32 @@ import {
   uiPick,
 } from "@/lib/i18n";
 import { getDirectPrerequisites, getTopicById } from "./dag-engine";
+import {
+  areAlgebraicExpressionsEquivalent,
+  evaluateAlgebraicExpression,
+  normalizeAnswerText,
+} from "./grader";
 
 export interface TutorChatMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+export interface WorkingStepTransitionIssue {
+  fromStepIndex: number; // 1-based
+  toStepIndex: number; // 1-based
+  fromStepText: string;
+  toStepText: string;
+  errorType: "sign_or_constant" | "coefficient_or_distribution" | "non_equivalent";
+}
+
+export interface WorkingStepDiagnosis {
+  totalSteps: number;
+  steps: string[];
+  allStepsValid: boolean;
+  firstBrokenTransition?: WorkingStepTransitionIssue;
+  localizedSummary: string;
+  englishSummary: string;
 }
 
 export interface SocraticTutorRequest {
@@ -27,6 +49,7 @@ export interface SocraticTutorRequest {
   question?: GeneratedQuestionInstance;
   studentWrongAnswer?: string;
   detectedMisconceptionTag?: string;
+  checkStepsMode?: boolean;
   messages: TutorChatMessage[];
 }
 
@@ -35,6 +58,278 @@ export interface SocraticTutorResponse {
   provider: "gemini" | "openai" | "socratic_kg_engine";
   groundedStandardCode: string;
   referencedPrerequisites: string[];
+  stepDiagnosis?: WorkingStepDiagnosis | null;
+}
+
+const STEP_EVAL_ENVS: Array<Record<string, number>> = [
+  { x: 1.7, y: -2.3, a: 3.1, b: -1.4, m: 2.2, n: 0.9, t: 1.5, r: 2.4 },
+  { x: -2.9, y: 1.6, a: -1.8, b: 2.7, m: -0.7, n: 3.3, t: 2.8, r: 1.3 },
+  { x: 0.65, y: 3.4, a: 1.25, b: 4.1, m: 1.9, n: -2.1, t: -1.3, r: 3.7 },
+  { x: 4.2, y: -0.8, a: -2.5, b: -3.2, m: 3.6, n: 1.4, t: 0.45, r: 0.8 },
+];
+
+function cleanSingleWorkingLine(line: string): string {
+  return line
+    .trim()
+    .replace(/^(?:step\s*\d+|第\s*\d+\s*步|ステップ\s*\d+|\d+\s*단계|langkah\s*\d+)\s*[:：.)）-]?\s*/i, "")
+    .replace(/^(?:\(\d+\)|\d+[.)）]|[①②③④⑤⑥⑦⑧⑨•\-*])\s*/, "")
+    .trim();
+}
+
+function splitWorkingSteps(raw: string): string[] {
+  const normalizedArrows = raw
+    .replace(/\\implies|\\Rightarrow|⟹|⇒|->|=>|→/g, "\n")
+    .replace(/[;；]/g, "\n");
+  const rawLines = normalizedArrows
+    .split(/\r?\n/)
+    .map(cleanSingleWorkingLine)
+    .filter(Boolean);
+
+  // Also support single-line chained expression simplifications like `(x+3)^2 = x^2 + 9 = ...`
+  if (rawLines.length === 1) {
+    const eqParts = rawLines[0]
+      .split("=")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (eqParts.length >= 3) {
+      return eqParts;
+    }
+  }
+
+  return rawLines;
+}
+
+function checkEquationTransition(
+  lhsA: string,
+  rhsA: string,
+  lhsB: string,
+  rhsB: string
+): { valid: boolean; errorType?: WorkingStepTransitionIssue["errorType"] } | null {
+  const resA = `(${lhsA}) - (${rhsA})`;
+  const resB = `(${lhsB}) - (${rhsB})`;
+
+  const ratios: number[] = [];
+  const diffs: number[] = [];
+  let validPairs = 0;
+
+  for (const env of STEP_EVAL_ENVS) {
+    const dA = evaluateAlgebraicExpression(resA, env);
+    const dB = evaluateAlgebraicExpression(resB, env);
+    if (dA === null || dB === null) continue;
+    validPairs += 1;
+    diffs.push(dB - dA);
+    if (Math.abs(dA) > 1e-8) {
+      ratios.push(dB / dA);
+    }
+  }
+
+  if (validPairs < 3) return null;
+
+  // 1. Non-zero constant scalar multiple: D_B(x) === c * D_A(x), c != 0
+  if (ratios.length >= 3) {
+    const c0 = ratios[0];
+    const allSameRatio =
+      Math.abs(c0) > 1e-7 &&
+      ratios.every((r) => Math.abs(r - c0) < 1e-5 * Math.max(1, Math.abs(c0)));
+    if (allSameRatio) {
+      return { valid: true };
+    }
+  }
+
+  // 2. Root-implication check for valid square-root / factor branch steps
+  // e.g. `(x - 3)^2 = 16 => x - 3 = 4` where x* = 7 satisfies D_A(7) = 0
+  const varMatches = [
+    ...new Set(
+      [...`${lhsA} ${rhsA} ${lhsB} ${rhsB}`.matchAll(/[a-zA-Z]/g)].map((m) =>
+        m[0].toLowerCase()
+      )
+    ),
+  ];
+  if (varMatches.length === 1) {
+    const v = varMatches[0];
+    const b0 = evaluateAlgebraicExpression(resB, { [v]: 0 });
+    const b1 = evaluateAlgebraicExpression(resB, { [v]: 1 });
+    const b2 = evaluateAlgebraicExpression(resB, { [v]: 2 });
+    if (b0 !== null && b1 !== null && b2 !== null) {
+      const slope1 = b1 - b0;
+      const slope2 = b2 - b1;
+      // Linear in `v` with non-zero slope
+      if (Math.abs(slope1 - slope2) < 1e-6 && Math.abs(slope1) > 1e-7) {
+        const root = -b0 / slope1;
+        const aAtRoot = evaluateAlgebraicExpression(resA, { [v]: root });
+        if (aAtRoot !== null && Math.abs(aAtRoot) < 1e-5) {
+          return { valid: true };
+        }
+      }
+    }
+  }
+
+  // Classify why equivalence broke:
+  // If parentheses/brackets were expanded across this step, a constant-only discrepancy happens when
+  // the outer factor multiplied the variable term but missed the constant inside the brackets
+  // (e.g. `2(x - 3) = 8 => 2x - 3 = 8`), which is a classic distributive error.
+  const expandedBrackets =
+    /[()[\]]/.test(`${lhsA} ${rhsA}`) && !/[()[\]]/.test(`${lhsB} ${rhsB}`);
+  const diff0 = diffs[0];
+  const isConstantShift =
+    Math.abs(diff0) > 1e-6 && diffs.every((d) => Math.abs(d - diff0) < 1e-5);
+
+  return {
+    valid: false,
+    errorType:
+      isConstantShift && !expandedBrackets
+        ? "sign_or_constant"
+        : "coefficient_or_distribution",
+  };
+}
+
+/**
+ * Deterministic Algebraic Step-by-Step Working Checker:
+ * Evaluates multi-line student derivations (`2x - 6 = 10 => 2x = 4 => x = 2` or `(x+3)^2 => x^2 + 9`)
+ * and pinpoints the exact first line transition (`Step k -> Step k+1`) where equivalence broke!
+ */
+export function diagnoseStepByStepWorking(
+  rawStepsText: string,
+  locale: LocaleCode = "zh-CN"
+): WorkingStepDiagnosis | null {
+  const steps = splitWorkingSteps(rawStepsText);
+  if (steps.length < 2) return null;
+
+  let checkedTransitions = 0;
+  let brokenIssue: WorkingStepTransitionIssue | undefined;
+
+  for (let i = 0; i < steps.length - 1; i++) {
+    const rawA = steps[i];
+    const rawB = steps[i + 1];
+
+    const normA = normalizeAnswerText(rawA);
+    const normB = normalizeAnswerText(rawB);
+
+    const eqSplitA = normA.replace(/^=\s*/, "").split("=");
+    const eqSplitB = normB.replace(/^=\s*/, "").split("=");
+
+    if (
+      !normA.startsWith("=") &&
+      !normB.startsWith("=") &&
+      eqSplitA.length === 2 &&
+      eqSplitB.length === 2
+    ) {
+      const check = checkEquationTransition(
+        eqSplitA[0],
+        eqSplitA[1],
+        eqSplitB[0],
+        eqSplitB[1]
+      );
+      if (check) {
+        checkedTransitions += 1;
+        if (!check.valid) {
+          brokenIssue = {
+            fromStepIndex: i + 1,
+            toStepIndex: i + 2,
+            fromStepText: rawA,
+            toStepText: rawB,
+            errorType: check.errorType ?? "non_equivalent",
+          };
+          break;
+        }
+      }
+      continue;
+    }
+
+    // Expression simplification chain (e.g. `3(x - 2) + 4` -> `= 3x - 2 + 4`)
+    const exprA = normA.replace(/^=\s*/, "").trim();
+    const exprB = normB.replace(/^=\s*/, "").trim();
+    const probeA = evaluateAlgebraicExpression(exprA, STEP_EVAL_ENVS[0]);
+    const probeB = evaluateAlgebraicExpression(exprB, STEP_EVAL_ENVS[0]);
+    if (probeA !== null && probeB !== null) {
+      checkedTransitions += 1;
+      if (!areAlgebraicExpressionsEquivalent(exprA, exprB)) {
+        const expandedBrackets =
+          /[()[\]]/.test(exprA) && !/[()[\]]/.test(exprB);
+        const d0 =
+          (evaluateAlgebraicExpression(exprB, STEP_EVAL_ENVS[0]) ?? 0) -
+          (evaluateAlgebraicExpression(exprA, STEP_EVAL_ENVS[0]) ?? 0);
+        const d1 =
+          (evaluateAlgebraicExpression(exprB, STEP_EVAL_ENVS[1]) ?? 0) -
+          (evaluateAlgebraicExpression(exprA, STEP_EVAL_ENVS[1]) ?? 0);
+        const isConstShift = Math.abs(d0 - d1) < 1e-5;
+        brokenIssue = {
+          fromStepIndex: i + 1,
+          toStepIndex: i + 2,
+          fromStepText: rawA,
+          toStepText: rawB,
+          errorType:
+            isConstShift && !expandedBrackets
+              ? "sign_or_constant"
+              : "coefficient_or_distribution",
+        };
+        break;
+      }
+    }
+  }
+
+  if (checkedTransitions === 0) return null;
+
+  if (!brokenIssue) {
+    const localizedSummary = uiPick(
+      locale,
+      c(
+        `✅ **逐行步骤等价校验通过（共 ${steps.length} 步）**！\n你的每一步代数变形都保持了严格的等式/代数等价性。请检查是否已化到最简形式，直接填入左侧答案框提交吧！`,
+        `✅ **Step-by-Step Equivalence Verified (${steps.length} steps)**!\nEvery algebraic transition in your working preserves equivalence. Double-check simplest form and submit your final value!`,
+        `✅ **途中式の行ごと等値チェック完了（全 ${steps.length} ステップ合格）**！\nすべての式変形が数学的に正しく保たれています。最も簡単な形になっているか確認して解答欄から提出しましょう！`,
+        `✅ **단계별 풀이 동치 검증 통과 (총 ${steps.length}단계)**!\n모든 대수 변형 단계가 등식 동치성을 정확히 유지하고 있습니다. 기약 형태인지 확인한 뒤 답안란에 제출해 보세요!`,
+        `✅ **Semakan Kesetaraan Langkah demi Langkah Lulus (${steps.length} langkah)**!\nSetiap langkah transformasi algebra anda adalah setara. Pastikan bentuk termudah dan hantar jawapan anda!`
+      )
+    );
+    return {
+      totalSteps: steps.length,
+      steps,
+      allStepsValid: true,
+      localizedSummary,
+      englishSummary: `✅ Step-by-Step Equivalence Verified (${steps.length} steps)! Every algebraic transition preserves equivalence.`,
+    };
+  }
+
+  const { fromStepIndex, toStepIndex, fromStepText, toStepText, errorType } =
+    brokenIssue;
+
+  const hintByType =
+    errorType === "sign_or_constant"
+      ? c(
+          "常数项或移项符号在跨过等号时出现了偏差（移项变号或正负数加减失误）。试着在原第 " +
+            `${fromStepIndex} 步等号两边同时做相同的加减运算，重新写出第 ${toStepIndex} 步会是什么？`,
+          `The constant term shifted inconsistently (likely a transposition sign flip or signed arithmetic slip). Try applying the exact same inverse operation to BOTH sides of Step ${fromStepIndex} — what should Step ${toStepIndex} become?`,
+          `定数項または移項時の符号にずれが生じています（移項の符号反転ミスまたは正負の計算ミス）。ステップ ${fromStepIndex} の両辺に同じ逆演算を行うと、ステップ ${toStepIndex} はどうなりますか？`,
+          `상수항 또는 이항 부호에서 오차가 발생했습니다(이항 시 부호 반전 누락 또는 부호 계산 실수). ${fromStepIndex}단계 양변에 똑같은 역연산을 적용하면 ${toStepIndex}단계는 어떻게 바뀌나요?`,
+          `Sebutan pemalar berubah secara tidak konsisten (kemungkinan kesilapan tanda semasa pemindahan sebutan). Cuba lakukan operasi songsang yang sama pada KEDUA-DUA belah Langkah ${fromStepIndex} — apakah Langkah ${toStepIndex} yang betul?`
+        )
+      : c(
+          `系数分配或乘除变形不等价（请检查去括号分配律是否乘到了每一项，或两边同除以系数时是否遗漏某一项）。重新核对第 ${fromStepIndex} 步到第 ${toStepIndex} 步的系数变化吧！`,
+          `Coefficient scaling or bracket expansion broke equivalence (check whether every term inside parentheses or across both sides was multiplied/divided equally). Re-check the coefficients from Step ${fromStepIndex} to Step ${toStepIndex}!`,
+          `係数の処理またはカッコの展開で等値性が崩れています（分配法則ですべての項に掛けたか、両辺を同じ係数で割ったか確認しましょう）。ステップ ${fromStepIndex} からステップ ${toStepIndex} の係数を見直してみてください！`,
+          `계수 처리 또는 괄호 전개에서 동치성이 깨졌습니다(분배법칙이 모든 항에 적용되었는지, 양변을 같은 계수로 나누었는지 확인하세요). ${fromStepIndex}단계에서 ${toStepIndex}단계로 갈 때의 계수를 다시 점검해 볼까요?`,
+          `Pengembangan kurungan atau pembahagian pekali tidak setara (semak sama ada setiap sebutan didarab/dibahagi secara sekata). Semak semula pekali dari Langkah ${fromStepIndex} ke Langkah ${toStepIndex}!`
+        );
+
+  const localizedSummary = uiPick(
+    locale,
+    c(
+      `🔍 **逐行步骤诊断结果：第 ${fromStepIndex} 步 → 第 ${toStepIndex} 步开始不等价！**\n• 第 ${fromStepIndex} 步：\`${fromStepText}\`\n• 第 ${toStepIndex} 步：\`${toStepText}\` ⚠️\n\n💡 **苏格拉底纠偏提问**：${hintByType.zh}`,
+      `🔍 **Step-by-Step Check: Equivalence broke between Step ${fromStepIndex} → Step ${toStepIndex}!**\n• Step ${fromStepIndex}: \`${fromStepText}\`\n• Step ${toStepIndex}: \`${toStepText}\` ⚠️\n\n💡 **Socratic Check**: ${hintByType.en}`,
+      `🔍 **途中式ステップ診断：ステップ ${fromStepIndex} → ステップ ${toStepIndex} で等値性が崩れています！**\n• ステップ ${fromStepIndex}：\`${fromStepText}\`\n• ステップ ${toStepIndex}：\`${toStepText}\` ⚠️\n\n💡 **ソクラテス式チェック**：${hintByType.ja ?? hintByType.en}`,
+      `🔍 **단계별 풀이 진단: ${fromStepIndex}단계 → ${toStepIndex}단계에서 등치성이 깨졌습니다!**\n• ${fromStepIndex}단계: \`${fromStepText}\`\n• ${toStepIndex}단계: \`${toStepText}\` ⚠️\n\n💡 **소크라테스 점검 질문**: ${hintByType.ko ?? hintByType.en}`,
+      `🔍 **Semakan Langkah: Kesetaraan terputus antara Langkah ${fromStepIndex} → Langkah ${toStepIndex}!**\n• Langkah ${fromStepIndex}: \`${fromStepText}\`\n• Langkah ${toStepIndex}: \`${toStepText}\` ⚠️\n\n💡 **Soalan Sokratik**: ${hintByType.ms ?? hintByType.en}`
+    )
+  );
+
+  return {
+    totalSteps: steps.length,
+    steps,
+    allStepsValid: false,
+    firstBrokenTransition: brokenIssue,
+    localizedSummary,
+    englishSummary: `🔍 Step-by-Step Check: Equivalence broke at Step ${fromStepIndex} (\`${fromStepText}\`) → Step ${toStepIndex} (\`${toStepText}\`). ${hintByType.en}`,
+  };
 }
 
 const LOCALE_LANGUAGE_NAME: Record<LocaleCode, string> = {
@@ -86,6 +381,18 @@ export async function generateSocraticTutorReply(
     ? localizeText(misconceptionObj.remediationTip, locale, false)
     : "";
 
+  const userTurns = req.messages.filter((m) => m.role === "user");
+  const lastUserMsg = (userTurns[userTurns.length - 1]?.content ?? "").trim();
+
+  // Deterministic Algebraic Step-by-Step Working Checker (triggers explicitly or on multi-step equations)
+  const looksLikeMultiStepWorking =
+    Boolean(req.checkStepsMode) ||
+    (/(?:\r?\n|=>|->|⇒|⟹|→)/.test(lastUserMsg) &&
+      /[=+\-*/^]/.test(lastUserMsg));
+  const stepDiagnosis = looksLikeMultiStepWorking
+    ? diagnoseStepByStepWorking(lastUserMsg, locale)
+    : null;
+
   const systemInstruction = [
     `You are the OmniGraph K12 Socratic Tutor strictly grounded in the Knowledge Graph.`,
     `Active Region & Standard: ${req.regionCode} (${groundedStandardCode})`,
@@ -96,6 +403,9 @@ export async function generateSocraticTutorReply(
       ? `Active Problem: ${localizePrompt(req.question, locale, false)} (Internal answer key — DO NOT reveal directly on Turn 1: ${req.question.answer})`
       : "",
     req.studentWrongAnswer ? `Student's recent attempt: ${req.studentWrongAnswer}` : "",
+    stepDiagnosis
+      ? `Verified Algebraic Step Check: ${stepDiagnosis.englishSummary}`
+      : "",
     misconceptionObj
       ? `Watch for misconception [${misconceptionObj.tag}]: ${miscLabelLoc} — Remediation: ${miscTipLoc}`
       : "",
@@ -137,6 +447,7 @@ export async function generateSocraticTutorReply(
             provider: "gemini",
             groundedStandardCode,
             referencedPrerequisites: prereqNames,
+            stepDiagnosis,
           };
         }
       }
@@ -145,10 +456,13 @@ export async function generateSocraticTutorReply(
     }
   }
 
-  // 2. Optional Live OpenAI-compatible API integration
-  const openaiKey = process.env.OPENAI_API_KEY;
+  // 2. Optional Live OpenAI-compatible / AI Gateway API integration
+  const openaiKey = process.env.OPENAI_API_KEY || process.env.AI_GATEWAY_API_KEY;
   if (openaiKey) {
-    const baseUrl = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(
+    const defaultBase = process.env.OPENAI_API_KEY
+      ? "https://api.openai.com/v1"
+      : "https://ai-gateway.vercel.sh/v1";
+    const baseUrl = (process.env.OPENAI_BASE_URL || defaultBase).replace(
       /\/$/,
       ""
     );
@@ -160,7 +474,9 @@ export async function generateSocraticTutorReply(
           Authorization: `Bearer ${openaiKey}`,
         },
         body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          model:
+            process.env.OPENAI_MODEL ||
+            (process.env.OPENAI_API_KEY ? "gpt-4o-mini" : "openai/gpt-4o-mini"),
           temperature: 0.4,
           max_tokens: 350,
           messages: [
@@ -180,6 +496,7 @@ export async function generateSocraticTutorReply(
             provider: "openai",
             groundedStandardCode,
             referencedPrerequisites: prereqNames,
+            stepDiagnosis,
           };
         }
       }
@@ -188,9 +505,21 @@ export async function generateSocraticTutorReply(
     }
   }
 
-  // 3. Built-in Multi-Turn KG-Grounded Socratic Heuristic Coach (6-Locale Native!)
-  const userTurns = req.messages.filter((m) => m.role === "user");
-  const lastUserMsg = (userTurns[userTurns.length - 1]?.content ?? "").trim();
+  // 3. Built-in Multi-Turn KG-Grounded Socratic Heuristic Coach + Step Checker (6-Locale Native!)
+  if (stepDiagnosis) {
+    const finalStepReply =
+      req.bilingual && locale !== "en"
+        ? `${stepDiagnosis.localizedSummary}\n\n---\n${stepDiagnosis.englishSummary}`
+        : stepDiagnosis.localizedSummary;
+    return {
+      reply: finalStepReply,
+      provider: "socratic_kg_engine",
+      groundedStandardCode,
+      referencedPrerequisites: prereqNames,
+      stepDiagnosis,
+    };
+  }
+
   const scaffolds = req.question?.scaffolds ?? [];
   const turnIdx = Math.max(0, userTurns.length - 1);
 

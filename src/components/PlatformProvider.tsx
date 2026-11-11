@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type {
@@ -246,6 +247,24 @@ const PlatformContext = createContext<PlatformContextValue | null>(null);
 
 const VALID_LOCALES = new Set<LocaleCode>(["zh-CN", "zh-TW", "en", "ja", "ko", "ms"]);
 
+interface StaticCatalogPayload {
+  regions: RegionMetadata[];
+  subjects: SubjectSeed[];
+  topics: TopicSeedDefinition[];
+  canonicalEdges: EdgeSeedDefinition[];
+  alignments: RegionalAlignmentRecord[];
+}
+
+const DEMO_STUDENT_IDS = new Set([
+  "stu_leo",
+  "stu_mia",
+  "stu_chloe",
+  "stu_mei",
+  "stu_kenta",
+  "stu_minjun",
+  "stu_aryan",
+]);
+
 export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -255,6 +274,9 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const [activeRole, setActiveRole] = useState<UserRole>("student");
   const [activeStudentId, setActiveStudentIdState] = useState<string>("stu_leo");
   const [loggedInUserId, setLoggedInUserId] = useState<string>("stu_leo");
+
+  const catalogRef = useRef<StaticCatalogPayload | null>(null);
+  const hydratedSessionRef = useRef<boolean>(false);
 
   // Restore saved UI locale preference on client mount
   useEffect(() => {
@@ -287,13 +309,75 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
 
   const refreshData = useCallback(async () => {
     try {
-      const res = await fetch("/api/bootstrap", { cache: "no-store" });
-      const json = await res.json();
-      if (json.ok) {
-        setData(json as BootstrapPayload);
+      // 1. Fetch Edge-cacheable static curriculum catalog only once per browser session
+      if (!catalogRef.current) {
+        const catRes = await fetch("/api/catalog");
+        const catJson = await catRes.json();
+        if (catJson.ok) {
+          catalogRef.current = {
+            regions: catJson.regions,
+            subjects: catJson.subjects,
+            topics: catJson.topics,
+            canonicalEdges: catJson.canonicalEdges,
+            alignments: catJson.alignments,
+          };
+        }
+      }
+
+      // 2. Fetch tenant-scoped dynamic workspace state
+      const wsRes = await fetch("/api/me/workspace", { cache: "no-store" });
+      const wsJson = await wsRes.json();
+      if (wsJson.ok && catalogRef.current) {
+        const merged: BootstrapPayload = {
+          regions: catalogRef.current.regions,
+          subjects: catalogRef.current.subjects,
+          topics: catalogRef.current.topics,
+          alignments: catalogRef.current.alignments,
+          edges: wsJson.edges ?? catalogRef.current.canonicalEdges,
+          users: wsJson.users ?? [],
+          classrooms: wsJson.classrooms ?? [],
+          classMemberships: wsJson.classMemberships ?? [],
+          parentChildLinks: wsJson.parentChildLinks ?? [],
+          studentStates: wsJson.studentStates ?? [],
+          wrongQuestions: wsJson.wrongQuestions ?? [],
+          assignments: wsJson.assignments ?? [],
+          authProfiles: wsJson.authProfiles,
+          studyPacts: wsJson.studyPacts,
+          customEdges: wsJson.customEdges,
+          customQuestions: wsJson.customQuestions,
+          irtStats: wsJson.irtStats,
+          attemptLogs: wsJson.attemptLogs,
+          privacyAuditLogs: wsJson.privacyAuditLogs,
+        };
+        setData(merged);
+
+        // Hydrate server-verified HttpOnly session identity on first load
+        if (!hydratedSessionRef.current && wsJson.sessionActor) {
+          hydratedSessionRef.current = true;
+          const actor = wsJson.sessionActor as {
+            userId: string;
+            role: UserRole;
+            regionCode: RegionCode;
+            isDemo: boolean;
+          };
+          setLoggedInUserId(actor.userId);
+          setActiveRole(actor.role);
+          setRegionCodeState(actor.regionCode);
+          if (actor.role === "student") {
+            setActiveStudentIdState(actor.userId);
+          } else if (actor.role === "parent") {
+            const firstChild = (wsJson.parentChildLinks ?? []).find(
+              (l: { parentId: string; studentId: string }) =>
+                l.parentId === actor.userId
+            );
+            if (firstChild) {
+              setActiveStudentIdState(firstChild.studentId);
+            }
+          }
+        }
       }
     } catch (e) {
-      console.error("Failed to load bootstrap payload:", e);
+      console.error("Failed to load split catalog/workspace payload:", e);
     } finally {
       setLoading(false);
     }
@@ -325,8 +409,17 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
           setLocale(reg.primaryLocale);
         }
       }
+      // If currently browsing in demo mode and switching demo persona, sync demo cookie
+      if (DEMO_STUDENT_IDS.has(id) && DEMO_STUDENT_IDS.has(loggedInUserId)) {
+        setLoggedInUserId(id);
+        void fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "switch_demo_persona", userId: id }),
+        }).catch(() => undefined);
+      }
     },
-    [data, setLocale]
+    [data, loggedInUserId, setLocale]
   );
 
   const resetDemoData = useCallback(async () => {

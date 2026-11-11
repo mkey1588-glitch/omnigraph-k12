@@ -361,6 +361,14 @@ export default function StudentDashboardPage() {
                 {myAssignments.map((asg) => {
                   const done =
                     asg.completedStudentIdsJson.includes(activeStudentId);
+                  const masteredInPack = asg.targetTopicIdsJson.filter((tid) => {
+                    const st = getStudentTopicState(tid)?.status;
+                    return st === "mastered" || st === "inferred_mastered";
+                  }).length;
+                  const packHref =
+                    asg.targetTopicIdsJson.length > 1
+                      ? `/diagnose?topics=${encodeURIComponent(asg.targetTopicIdsJson.join(","))}`
+                      : `/diagnose?topic=${asg.targetTopicIdsJson[0] ?? "mt_math_rational_eq"}`;
                   const tierBadge =
                     asg.tier === "foundational"
                       ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
@@ -402,6 +410,15 @@ export default function StudentDashboardPage() {
                             >
                               {localizeAssignmentTitle(asg, locale)}
                             </span>
+                            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-emerald-300">
+                              {done
+                                ? pick(STUDENT_DASHBOARD_COPY.assignmentCompletedBadge)
+                                : STUDENT_DASHBOARD_COPY.assignmentMasteryProgress(
+                                    masteredInPack,
+                                    asg.targetTopicIdsJson.length,
+                                    locale
+                                  )}
+                            </span>
                           </div>
                           <div className="mt-1 text-xs text-slate-400">
                             {STUDENT_DASHBOARD_COPY.assignmentMeta(
@@ -413,7 +430,7 @@ export default function StudentDashboardPage() {
                         </div>
                       </div>
                       <Link
-                        href={`/diagnose?topic=${asg.targetTopicIdsJson[0] ?? "mt_math_rational_eq"}`}
+                        href={packHref}
                         className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-indigo-300 hover:border-indigo-500"
                       >
                         {pick(STUDENT_DASHBOARD_COPY.assignmentStartBtn)}

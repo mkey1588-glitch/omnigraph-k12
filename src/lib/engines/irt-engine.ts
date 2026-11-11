@@ -40,6 +40,72 @@ export function irt2PLProbability(
 }
 
 /**
+ * Fisher Information I_i(theta) = alpha^2 * P(theta) * (1 - P(theta))
+ * Quantifies how much diagnostic precision item `i` yields at student ability `theta`.
+ */
+export function computeFisherInformation(
+  theta: number,
+  beta: number,
+  alpha = 1.1
+): number {
+  const p = irt2PLProbability(theta, beta, alpha);
+  return Math.round(alpha * alpha * p * (1 - p) * 10000) / 10000;
+}
+
+export interface MfiSelectionResult {
+  difficulty: DifficultyTier;
+  fisherInfo: number;
+  calibratedBeta: number;
+  discriminationAlpha: number;
+}
+
+/**
+ * Closed-Loop IRT Item Selection via Maximum Fisher Information (MFI):
+ * Evaluates the `basic`, `standard`, and `challenge` templates of `topicId` against
+ * empirically calibrated `(alpha, beta)` records and chooses the tier maximizing I_i(theta).
+ */
+export function selectOptimalDifficultyByMfi(params: {
+  topicId: string;
+  studentTheta: number;
+  irtStatsByTopicAndTier?: Partial<Record<DifficultyTier, IrtItemRecord>>;
+  baselineGrade?: number;
+}): MfiSelectionResult {
+  const tiers: DifficultyTier[] = ["basic", "standard", "challenge"];
+  let best: MfiSelectionResult | null = null;
+
+  for (const tier of tiers) {
+    const stat = params.irtStatsByTopicAndTier?.[tier];
+    const beta =
+      stat?.calibratedBeta ??
+      priorBetaForDifficulty(tier, params.baselineGrade ?? 8);
+    const alpha = stat?.discriminationAlpha ?? 1.1;
+    const info = computeFisherInformation(params.studentTheta, beta, alpha);
+
+    if (
+      !best ||
+      info > best.fisherInfo ||
+      (info === best.fisherInfo && tier === "standard")
+    ) {
+      best = {
+        difficulty: tier,
+        fisherInfo: info,
+        calibratedBeta: beta,
+        discriminationAlpha: alpha,
+      };
+    }
+  }
+
+  return (
+    best ?? {
+      difficulty: "standard",
+      fisherInfo: 0.3,
+      calibratedBeta: 0,
+      discriminationAlpha: 1.1,
+    }
+  );
+}
+
+/**
  * Online Elo-IRT calibration step (Data Flywheel):
  * - When students fail an item that their theta predicted they'd pass (S < E),
  *   calibratedBeta increases (item is empirically harder than prior).

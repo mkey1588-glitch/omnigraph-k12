@@ -131,6 +131,7 @@ export default function AuthAndPrivacyPage() {
     });
     const json = await res.json();
     if (json.ok && json.user) {
+      await refreshData();
       setLoggedInUserId(json.user.id);
       setActiveRole(json.user.role);
       setRegionCode(json.user.regionCode);
@@ -163,6 +164,7 @@ export default function AuthAndPrivacyPage() {
     });
     const json = await res.json();
     if (json.ok && json.user) {
+      await refreshData();
       setLoggedInUserId(json.user.id);
       setActiveRole("student");
       setActiveStudentId(json.user.id);

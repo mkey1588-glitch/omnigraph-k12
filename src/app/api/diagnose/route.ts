@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/db/seed";
 import {
+  customSchoolEdges,
   diagnosticSessions,
   studentTopicStates,
   wrongQuestions,
@@ -10,8 +11,10 @@ import {
 import type {
   DiagnosticSessionState,
   DifficultyTier,
+  EdgeRelationType,
   GeneratedQuestionInstance,
   LocaleCode,
+  MasteryStatus,
   RegionCode,
   SubjectId,
 } from "@/types/taxonomy";
@@ -19,14 +22,27 @@ import { c, localizeText, uiPick } from "@/lib/i18n";
 import {
   applyDiagnosticAnswer,
   createDiagnosticSession,
+  getAncestors,
   getNextDiagnosticQuestion,
   getTopicById,
   summarizeDiagnosis,
+  topologicalSort,
   updateBktMastery,
+  type CustomEdgeRef,
 } from "@/lib/engines/dag-engine";
 import { generateQuestion } from "@/lib/engines/item-generator";
-import { createInitialWrongCard } from "@/lib/engines/fsrs-engine";
+import {
+  computeRetrievability,
+  createInitialWrongCard,
+  getElapsedDays,
+} from "@/lib/engines/fsrs-engine";
+import { masteryToTheta } from "@/lib/engines/irt-engine";
 import { recordStudentAttemptAndCalibrateIrt } from "@/lib/record-irt-attempt";
+import { authorizeStudentAccess } from "@/lib/auth/session";
+import {
+  loadIrtStatsByTopic,
+  syncStudentProgressSideEffects,
+} from "@/lib/progress-sync";
 
 export async function POST(req: Request) {
   try {
@@ -49,6 +65,14 @@ export async function POST(req: Request) {
     // 2. Start a new Adaptive Prerequisite Diagnostic Session
     if (action === "start") {
       const studentId = (body.studentId as string) || "stu_leo";
+      const access = await authorizeStudentAccess(req, studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason ?? "Forbidden" },
+          { status: 403 }
+        );
+      }
+
       const subjectId = (body.subjectId as SubjectId) || "math";
       const regionCode = (body.regionCode as RegionCode) || "CN";
       const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
@@ -58,6 +82,92 @@ export async function POST(req: Request) {
       ];
       const confirmRequired = Number(body.confirmRequired ?? 2);
       const maxQuestions = Number(body.maxQuestions ?? 12);
+      const coldStart = Boolean(body.coldStart);
+
+      const [schoolEdgeRows, studentStates, irtStatsByTopic] = await Promise.all([
+        db.select().from(customSchoolEdges),
+        db
+          .select()
+          .from(studentTopicStates)
+          .where(eq(studentTopicStates.studentId, studentId)),
+        loadIrtStatsByTopic(),
+      ]);
+
+      const extraEdges: CustomEdgeRef[] = schoolEdgeRows.map((e) => ({
+        topicId: e.topicId,
+        prerequisiteId: e.prerequisiteId,
+        relationType: (e.relationType as EdgeRelationType) || "hard",
+        reasonZh: e.reasonZh,
+        reasonEn: e.reasonEn,
+      }));
+
+      const now = new Date();
+      const nowIso = now.toISOString();
+
+      const studentTheta =
+        studentStates.length > 0
+          ? masteryToTheta(
+              studentStates.reduce((acc, s) => acc + s.pMastery, 0) /
+                studentStates.length
+            )
+          : 0;
+
+      // Warm-Start CAT: pre-verify high-retrievability (R >= 0.85) upstream prerequisites
+      // from FSRS memory state so students never re-take trivial mastered prerequisites.
+      const initialKnownMastery: Record<string, MasteryStatus> = {};
+      let warmStartSkippedCount = 0;
+
+      if (!coldStart && studentStates.length > 0) {
+        const ancestors = getAncestors(targetTopicIds, true, extraEdges);
+        const scopeIds = topologicalSort(
+          [...new Set([...targetTopicIds, ...ancestors])],
+          regionCode,
+          extraEdges
+        );
+        const targetSet = new Set(targetTopicIds);
+        const stateByTopic = new Map(studentStates.map((s) => [s.topicId, s]));
+
+        for (const tid of scopeIds) {
+          // Single-target diagnostic always verifies the explicitly requested target node
+          if (targetTopicIds.length === 1 && targetSet.has(tid)) {
+            continue;
+          }
+          const st = stateByTopic.get(tid);
+          if (!st) continue;
+          if (st.status !== "mastered" && st.status !== "inferred_mastered") {
+            continue;
+          }
+          const elapsedDays = st.lastPracticedAt
+            ? getElapsedDays(st.lastPracticedAt, now)
+            : 0;
+          const retrievability = computeRetrievability(
+            Math.max(st.fsrsStability, 3),
+            elapsedDays
+          );
+          if (retrievability >= 0.85) {
+            initialKnownMastery[tid] = "inferred_mastered";
+            warmStartSkippedCount += 1;
+          }
+        }
+
+        // If a multi-topic pack had EVERY target already mastered, keep the highest target untested
+        // so starting a diagnostic session never terminates with 0 questions.
+        if (targetTopicIds.length > 1) {
+          const orderedTargets = topologicalSort(
+            targetTopicIds,
+            regionCode,
+            extraEdges
+          );
+          const allTargetsSkipped = orderedTargets.every(
+            (tid) => initialKnownMastery[tid] === "inferred_mastered"
+          );
+          if (allTargetsSkipped && orderedTargets.length > 0) {
+            const topTarget = orderedTargets[orderedTargets.length - 1];
+            delete initialKnownMastery[topTarget];
+            warmStartSkippedCount = Math.max(0, warmStartSkippedCount - 1);
+          }
+        }
+      }
 
       const session = createDiagnosticSession({
         studentId,
@@ -67,10 +177,13 @@ export async function POST(req: Request) {
         targetTopicIds,
         confirmRequired,
         maxQuestions,
+        extraEdges,
+        initialKnownMastery,
+        studentTheta,
+        warmStartSkippedCount,
       });
 
-      const nextPrompt = getNextDiagnosticQuestion(session);
-      const nowIso = new Date().toISOString();
+      const nextPrompt = getNextDiagnosticQuestion(session, { irtStatsByTopic });
 
       await db.insert(diagnosticSessions).values({
         id: session.sessionId,
@@ -123,6 +236,14 @@ export async function POST(req: Request) {
         return NextResponse.json(
           { ok: false, error: "Diagnostic session not found" },
           { status: 404 }
+        );
+      }
+
+      const access = await authorizeStudentAccess(req, session.studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason ?? "Forbidden" },
+          { status: 403 }
         );
       }
 
@@ -210,6 +331,15 @@ export async function POST(req: Request) {
         pMasteryAfter: nextPMastery,
       });
 
+      const newlyMasteredTopicIds: string[] = [];
+      if (
+        resolvedStatus === "mastered" &&
+        prevState?.status !== "mastered" &&
+        prevState?.status !== "inferred_mastered"
+      ) {
+        newlyMasteredTopicIds.push(instance.topicId);
+      }
+
       // Persist Ancestor Mastery Closure Pruning (`inferred_mastered`)!
       for (const ancId of outcome.prunedAncestors) {
         const ancRows = await db
@@ -230,21 +360,32 @@ export async function POST(req: Request) {
             attemptsCount: 0,
             correctCount: 0,
             isRootCause: false,
+            fsrsStability: 6.0,
             lastPracticedAt: nowIso,
             nextReviewAt: nowIso,
           });
+          newlyMasteredTopicIds.push(ancId);
         } else if (ancRows[0].status === "untested") {
           await db
             .update(studentTopicStates)
-            .set({ status: "inferred_mastered", pMastery: 0.85 })
+            .set({
+              status: "inferred_mastered",
+              pMastery: 0.85,
+              fsrsStability: Math.max(ancRows[0].fsrsStability, 6.0),
+              lastPracticedAt: nowIso,
+            })
             .where(
               and(
                 eq(studentTopicStates.studentId, session.studentId),
                 eq(studentTopicStates.topicId, ancId)
               )
             );
+          newlyMasteredTopicIds.push(ancId);
         }
       }
+
+      // Update live latent trait ability theta for closed-loop MFI item selection
+      session.studentTheta = masteryToTheta(nextPMastery);
 
       // Auto-capture wrong answers into the FSRS Wrong-Question Book!
       if (!outcome.isCorrect) {
@@ -317,9 +458,18 @@ export async function POST(req: Request) {
         }
       }
 
+      const [irtStatsByTopic, syncResult] = await Promise.all([
+        session.finished ? Promise.resolve(undefined) : loadIrtStatsByTopic(),
+        syncStudentProgressSideEffects({
+          studentId: session.studentId,
+          newlyMasteredTopicIds,
+          minutesDelta: 2,
+        }),
+      ]);
+
       const nextPrompt = session.finished
         ? null
-        : getNextDiagnosticQuestion(session);
+        : getNextDiagnosticQuestion(session, { irtStatsByTopic });
       const summary = session.finished ? summarizeDiagnosis(session) : null;
 
       if (summary) {
@@ -353,6 +503,7 @@ export async function POST(req: Request) {
         outcome,
         nextPrompt,
         summary,
+        syncResult,
       });
     }
 

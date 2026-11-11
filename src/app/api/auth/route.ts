@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/db/seed";
 import {
@@ -19,6 +19,17 @@ import {
   PRIVACY_REGIMES,
   sanitizeForExternalAi,
 } from "@/lib/engines/privacy-shield";
+import {
+  attachSessionCookie,
+  authorizeParentMutation,
+  authorizeStudentAccess,
+  clearSessionCookie,
+  hashKidPin,
+  hashSecret,
+  isDemoUserId,
+  verifyKidPin,
+  verifySecret,
+} from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   try {
@@ -27,18 +38,18 @@ export async function POST(req: Request) {
     const action = String(body.action ?? "");
     const locale: LocaleCode = (body.locale as LocaleCode) || "zh-CN";
 
-    // 1. Standard Handle + Secret Code Login
+    // 1. Standard Handle + Secret Code Login (O(1) Unique Index Lookup + scrypt Verification + HttpOnly Session)
     if (action === "login_credentials") {
       const handle = String(body.loginHandle ?? "").trim().toLowerCase();
       const secretCode = String(body.secretCode ?? "").trim();
 
-      const allAuth = await db.select().from(userAuthProfiles);
-      const matched = allAuth.find(
-        (p) =>
-          p.loginHandle.toLowerCase() === handle && p.secretCode === secretCode
-      );
+      const authRows = await db
+        .select()
+        .from(userAuthProfiles)
+        .where(eq(userAuthProfiles.loginHandle, handle));
 
-      if (!matched) {
+      const matched = authRows[0];
+      if (!matched || !verifySecret(secretCode, matched.secretCode)) {
         return NextResponse.json(
           {
             ok: false,
@@ -61,9 +72,17 @@ export async function POST(req: Request) {
         .select()
         .from(users)
         .where(eq(users.id, matched.userId));
-      return NextResponse.json({
+      const user = userRows[0];
+      if (!user) {
+        return NextResponse.json(
+          { ok: false, error: "User record missing" },
+          { status: 404 }
+        );
+      }
+
+      const res = NextResponse.json({
         ok: true,
-        user: userRows[0],
+        user,
         authProfile: {
           userId: matched.userId,
           loginHandle: matched.loginHandle,
@@ -72,17 +91,33 @@ export async function POST(req: Request) {
           parentConsentVerified: matched.parentConsentVerified,
         },
       });
+      attachSessionCookie(res, {
+        uid: user.id,
+        role: user.role as UserRole,
+        reg: user.regionCode as RegionCode,
+        demo: isDemoUserId(user.id),
+      });
+      return res;
     }
 
-    // 2. Family 6-Digit Kid PIN Login (Passwordless Low-Age Student Entry)
+    // 2. Family 6-Digit Kid PIN Login (Peppered scrypt Index Lookup + HttpOnly Session)
     if (action === "login_kid_pin") {
       const kidPin = String(body.kidPin ?? "").trim();
-      const matchedRows = await db
+      const hashedPin = hashKidPin(kidPin);
+
+      const candidateRows = await db
         .select()
         .from(userAuthProfiles)
-        .where(eq(userAuthProfiles.kidPin, kidPin));
+        .where(
+          or(
+            eq(userAuthProfiles.kidPin, hashedPin),
+            eq(userAuthProfiles.kidPin, kidPin)
+          )
+        );
 
-      if (!matchedRows[0]) {
+      const matched = candidateRows.find((r) => verifyKidPin(kidPin, r.kidPin));
+
+      if (!matched) {
         return NextResponse.json(
           {
             ok: false,
@@ -101,15 +136,21 @@ export async function POST(req: Request) {
         );
       }
 
-      const matched = matchedRows[0];
       const userRows = await db
         .select()
         .from(users)
         .where(eq(users.id, matched.userId));
+      const user = userRows[0];
+      if (!user) {
+        return NextResponse.json(
+          { ok: false, error: "User record missing" },
+          { status: 404 }
+        );
+      }
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         ok: true,
-        user: userRows[0],
+        user,
         authProfile: {
           userId: matched.userId,
           loginHandle: matched.loginHandle,
@@ -117,9 +158,56 @@ export async function POST(req: Request) {
           privacyRegime: matched.privacyRegime,
         },
       });
+      attachSessionCookie(res, {
+        uid: user.id,
+        role: user.role as UserRole,
+        reg: user.regionCode as RegionCode,
+        demo: isDemoUserId(user.id),
+      });
+      return res;
     }
 
-    // 3. Register a New Adult/Teen Account (Student / Teacher / Parent)
+    // 3. Switch Sandbox Demo Persona (Strictly gated to DEMO_SEED_USER_IDS!)
+    if (action === "switch_demo_persona") {
+      const targetUserId = String(body.userId ?? "").trim();
+      if (!isDemoUserId(targetUserId)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Forbidden: switch_demo_persona is restricted to sandbox demo accounts.",
+          },
+          { status: 403 }
+        );
+      }
+      const userRows = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, targetUserId));
+      const user = userRows[0];
+      if (!user) {
+        return NextResponse.json(
+          { ok: false, error: "Demo user not found" },
+          { status: 404 }
+        );
+      }
+      const res = NextResponse.json({ ok: true, user });
+      attachSessionCookie(res, {
+        uid: user.id,
+        role: user.role as UserRole,
+        reg: user.regionCode as RegionCode,
+        demo: true,
+      });
+      return res;
+    }
+
+    // 4. Logout / Clear HttpOnly Session Cookie
+    if (action === "logout") {
+      const res = NextResponse.json({ ok: true });
+      clearSessionCookie(res);
+      return res;
+    }
+
+    // 5. Register a New Adult/Teen Account (Student / Teacher / Parent)
     if (action === "register_user") {
       const role = (body.role as UserRole) || "student";
       const displayName = String(body.displayName ?? "").trim();
@@ -148,8 +236,12 @@ export async function POST(req: Request) {
         );
       }
 
-      const existing = await db.select().from(userAuthProfiles);
-      if (existing.some((e) => e.loginHandle.toLowerCase() === loginHandle)) {
+      const existing = await db
+        .select({ userId: userAuthProfiles.userId })
+        .from(userAuthProfiles)
+        .where(eq(userAuthProfiles.loginHandle, loginHandle));
+
+      if (existing.length > 0) {
         return NextResponse.json(
           {
             ok: false,
@@ -169,7 +261,9 @@ export async function POST(req: Request) {
       }
 
       const nowIso = new Date().toISOString();
-      const newId = `${role.slice(0, 3)}_${Date.now().toString(36)}`;
+      const newId = `${role.slice(0, 3)}_${Date.now().toString(36)}_${Math.random()
+        .toString(36)
+        .slice(2, 5)}`;
       const emoji =
         role === "teacher" ? "👩‍🏫" : role === "parent" ? "👨‍👩‍👧" : "🧑‍🎓";
 
@@ -194,7 +288,7 @@ export async function POST(req: Request) {
         createdAt: nowIso,
       });
 
-      const kidPin =
+      const plainKidPin =
         role === "student"
           ? String(Math.floor(100000 + Math.random() * 900000))
           : null;
@@ -202,8 +296,8 @@ export async function POST(req: Request) {
       await db.insert(userAuthProfiles).values({
         userId: newId,
         loginHandle,
-        secretCode,
-        kidPin,
+        secretCode: hashSecret(secretCode),
+        kidPin: plainKidPin ? hashKidPin(plainKidPin) : null,
         anonymousToken: computeAnonToken(newId, regionCode),
         ageGroup: role === "student" ? "u16" : "adult",
         parentConsentVerified: parentalConsent,
@@ -214,16 +308,31 @@ export async function POST(req: Request) {
         await db.select().from(users).where(eq(users.id, newId))
       )[0];
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         ok: true,
         user: createdUser,
-        kidPin,
+        kidPin: plainKidPin,
       });
+      attachSessionCookie(res, {
+        uid: createdUser.id,
+        role: createdUser.role as UserRole,
+        reg: createdUser.regionCode as RegionCode,
+        demo: false,
+      });
+      return res;
     }
 
-    // 4. Parent Creates Low-Age Child Sub-Account (with 9-Region COPPA/PIPL Consent + PIN + Pact)
+    // 6. Parent Creates Low-Age Child Sub-Account (with 9-Region COPPA/PIPL Consent + PIN + Pact)
     if (action === "create_child_subaccount") {
       const parentId = String(body.parentId || "par_lin");
+      const access = authorizeParentMutation(req, parentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
+
       const childName = String(body.childName ?? "").trim();
       const regionCode = ((body.regionCode as RegionCode) || "CN") as RegionCode;
       const grade = Math.max(1, Math.min(12, Number(body.grade ?? 6)));
@@ -240,7 +349,10 @@ export async function POST(req: Request) {
           )
         );
       const customPin = String(body.kidPin ?? "").trim();
-      const dailyLimitMinutes = Math.max(15, Math.min(180, Number(body.dailyLimitMinutes ?? 40)));
+      const dailyLimitMinutes = Math.max(
+        15,
+        Math.min(180, Number(body.dailyLimitMinutes ?? 40))
+      );
 
       if (!childName) {
         return NextResponse.json(
@@ -280,13 +392,14 @@ export async function POST(req: Request) {
         );
       }
 
-      const kidPin =
-        /^\d{6}$/.test(customPin)
-          ? customPin
-          : String(Math.floor(100000 + Math.random() * 900000));
+      const plainKidPin = /^\d{6}$/.test(customPin)
+        ? customPin
+        : String(Math.floor(100000 + Math.random() * 900000));
 
       const nowIso = new Date().toISOString();
-      const childId = `stu_${Date.now().toString(36)}`;
+      const childId = `stu_${Date.now().toString(36)}_${Math.random()
+        .toString(36)
+        .slice(2, 5)}`;
 
       await db.insert(users).values({
         id: childId,
@@ -312,8 +425,8 @@ export async function POST(req: Request) {
       await db.insert(userAuthProfiles).values({
         userId: childId,
         loginHandle: `${childId}@family.omnigraph.org`,
-        secretCode: kidPin,
-        kidPin,
+        secretCode: hashSecret(plainKidPin),
+        kidPin: hashKidPin(plainKidPin),
         anonymousToken: computeAnonToken(childId, regionCode),
         ageGroup: grade <= 6 ? "u13" : "u16",
         parentConsentVerified: true,
@@ -354,19 +467,27 @@ export async function POST(req: Request) {
       return NextResponse.json({
         ok: true,
         childId,
-        kidPin,
+        kidPin: plainKidPin,
         privacyRegime: PRIVACY_REGIMES[regionCode].regulationName,
       });
     }
 
-    // 5. Student Joins Classroom via Invite Code (e.g. OMNI-9A)
+    // 7. Student Joins Classroom via Invite Code (e.g. OMNI-9A)
     if (action === "join_class_by_code") {
       const studentId = String(body.studentId || "stu_mia");
+      const access = await authorizeStudentAccess(req, studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
+
       const inviteCode = String(body.inviteCode ?? "").trim().toUpperCase();
 
       const allClasses = await db.select().from(classrooms);
       const targetClass = allClasses.find(
-        (c) => c.inviteCode.toUpperCase() === inviteCode
+        (cl) => cl.inviteCode.toUpperCase() === inviteCode
       );
 
       if (!targetClass) {
@@ -402,12 +523,26 @@ export async function POST(req: Request) {
       });
     }
 
-    // 6. Parent Updates Screen-Time & Positive Reward Pact (P4)
+    // 8. Parent Updates Screen-Time & Positive Reward Pact (P4)
     if (action === "update_study_pact") {
       const studentId = String(body.studentId || "stu_leo");
       const parentId = String(body.parentId || "par_lin");
-      const dailyLimitMinutes = Math.max(15, Math.min(180, Number(body.dailyLimitMinutes ?? 45)));
-      const weeklyTargetNodes = Math.max(1, Math.min(20, Number(body.weeklyTargetNodes ?? 4)));
+      const access = authorizeParentMutation(req, parentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
+
+      const dailyLimitMinutes = Math.max(
+        15,
+        Math.min(180, Number(body.dailyLimitMinutes ?? 45))
+      );
+      const weeklyTargetNodes = Math.max(
+        1,
+        Math.min(20, Number(body.weeklyTargetNodes ?? 4))
+      );
       const rewardTitle = String(
         body.rewardTitle ??
           uiPick(
@@ -463,11 +598,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    // 7. Live 9-Region PII De-Identification Sandbox + Compliance Log
+    // 9. Live 9-Region PII De-Identification Sandbox + Compliance Log
     if (action === "test_privacy_shield") {
       const rawText = String(body.rawText ?? "");
       const studentId = String(body.studentId || "stu_leo");
       const regionCode = ((body.regionCode as RegionCode) || "CN") as RegionCode;
+
+      const access = await authorizeStudentAccess(req, studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
 
       const userRows = await db
         .select()

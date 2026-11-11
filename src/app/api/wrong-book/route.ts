@@ -12,6 +12,8 @@ import {
   type WrongQuestionStatus,
 } from "@/lib/engines/fsrs-engine";
 import { recordStudentAttemptAndCalibrateIrt } from "@/lib/record-irt-attempt";
+import { authorizeStudentAccess } from "@/lib/auth/session";
+import { syncStudentProgressSideEffects } from "@/lib/progress-sync";
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +40,14 @@ export async function POST(req: Request) {
       }
 
       const wq = rows[0];
+      const access = await authorizeStudentAccess(req, wq.studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason ?? "Forbidden" },
+          { status: 403 }
+        );
+      }
+
       const twinInstance = generateQuestion({
         templateId: wq.templateId,
         topicId: wq.topicId,
@@ -73,6 +83,14 @@ export async function POST(req: Request) {
       }
 
       const wq = rows[0];
+      const access = await authorizeStudentAccess(req, wq.studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason ?? "Forbidden" },
+          { status: 403 }
+        );
+      }
+
       const grade = gradeQuestionResponse(twinInstance, userAnswer);
       const effectiveRating: FsrsRating = grade.isCorrect
         ? (Math.max(2, Math.min(4, requestedRating)) as FsrsRating)
@@ -106,6 +124,8 @@ export async function POST(req: Request) {
         })
         .where(eq(wrongQuestions.id, wrongQuestionId));
 
+      const newlyMasteredTopicIds: string[] = [];
+
       // Also sync upward into Student Topic State!
       if (grade.isCorrect) {
         const stRows = await db
@@ -124,6 +144,13 @@ export async function POST(req: Request) {
               : stRows[0].status === "weak"
                 ? "shaky"
                 : stRows[0].status;
+          if (
+            upgradedStatus === "mastered" &&
+            stRows[0].status !== "mastered" &&
+            stRows[0].status !== "inferred_mastered"
+          ) {
+            newlyMasteredTopicIds.push(wq.topicId);
+          }
           const upgradedPMastery =
             scheduled.status === "cleared"
               ? Math.max(0.88, stRows[0].pMastery)
@@ -145,23 +172,46 @@ export async function POST(req: Request) {
                 eq(studentTopicStates.topicId, wq.topicId)
               )
             );
+        } else if (scheduled.status === "cleared") {
+          await db.insert(studentTopicStates).values({
+            studentId: wq.studentId,
+            topicId: wq.topicId,
+            status: "mastered",
+            pMastery: 0.9,
+            attemptsCount: 3,
+            correctCount: 3,
+            isRootCause: false,
+            fsrsDifficulty: scheduled.difficulty,
+            fsrsStability: scheduled.stability,
+            lastPracticedAt: scheduled.lastReviewedAt,
+            nextReviewAt: scheduled.nextReviewAt,
+          });
+          newlyMasteredTopicIds.push(wq.topicId);
         }
       }
 
-      await recordStudentAttemptAndCalibrateIrt({
-        studentId: wq.studentId,
-        regionCode: (body.regionCode as RegionCode) ?? "CN",
-        topicId: wq.topicId,
-        templateId: twinInstance.templateId,
-        difficulty: twinInstance.difficulty,
-        isCorrect: grade.isCorrect,
-        pMasteryAfter: grade.isCorrect ? 0.78 : 0.3,
-      });
+      const [, syncResult] = await Promise.all([
+        recordStudentAttemptAndCalibrateIrt({
+          studentId: wq.studentId,
+          regionCode: (body.regionCode as RegionCode) ?? "CN",
+          topicId: wq.topicId,
+          templateId: twinInstance.templateId,
+          difficulty: twinInstance.difficulty,
+          isCorrect: grade.isCorrect,
+          pMasteryAfter: grade.isCorrect ? 0.78 : 0.3,
+        }),
+        syncStudentProgressSideEffects({
+          studentId: wq.studentId,
+          newlyMasteredTopicIds,
+          minutesDelta: 2,
+        }),
+      ]);
 
       return NextResponse.json({
         ok: true,
         grade,
         scheduled,
+        syncResult,
       });
     }
 

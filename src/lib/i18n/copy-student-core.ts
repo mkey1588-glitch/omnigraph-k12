@@ -371,6 +371,28 @@ export const STUDENT_DASHBOARD_COPY = {
     "도전 시작 →",
     "Mula Cabaran →"
   ),
+  assignmentMasteryProgress: (
+    mastered: number,
+    total: number,
+    locale: LocaleCode
+  ): string =>
+    uiPick(
+      locale,
+      c(
+        `已攻克 ${mastered}/${total} 节点`,
+        `${mastered}/${total} mastered`,
+        `${mastered}/${total} 習得済`,
+        `${mastered}/${total} 마스터`,
+        `${mastered}/${total} dikuasai`
+      )
+    ),
+  assignmentCompletedBadge: c(
+    "✅ 已达标完成",
+    "✅ Quest Completed",
+    "✅ 達成済み",
+    "✅ 달성 완료",
+    "✅ Selesai"
+  ),
   fsrsQueueTitle: c(
     "今日 FSRS 遗忘曲线待复习队列",
     "Today's FSRS Spaced-Repetition Queue",
@@ -1236,5 +1258,76 @@ export const DIAGNOSE_COPY = {
     "（まずこの根本原因を補強）",
     " (이 근본 원인부터 보강)",
     " (Baiki punca ini dahulu)"
+  ),
+  pendingAssignmentsTitle: c(
+    "📋 待闯关班级分层任务包（一键多节点自适应诊断）：",
+    "📋 Pending Class Assignment Quests (One-Click Multi-Node Pack):",
+    "📋 未完了のクラス階層別課題パック（ワンクリック複数ノード診断）：",
+    "📋 진행 중인 학급 수준별 과제 팩 (원클릭 다중 노드 진단):",
+    "📋 Tugasan Kelas Belum Selesai (Diagnosis Pek Pelbagai Nod):"
+  ),
+  warmStartBadge: (skippedCount: number, locale: LocaleCode): string =>
+    uiPick(
+      locale,
+      c(
+        `⚡ FSRS 温启动已预豁免 ${skippedCount} 个高保留率已掌握先修节点（R ≥ 85%）`,
+        `⚡ FSRS Warm-Start pre-exempted ${skippedCount} high-retrievability mastered prerequisite(s) (R ≥ 85%)`,
+        `⚡ FSRS ウォームスタート適用：記憶保持率 R ≥ 85% の習得済み前提 ${skippedCount} 件を事前免除`,
+        `⚡ FSRS 웜스타트 적용: 기억 보존율 R ≥ 85% 기습득 선수 노드 ${skippedCount}개 사전 면제`,
+        `⚡ Warm-Start FSRS mengecualikan ${skippedCount} prasyarat dikuasai (R ≥ 85%)`
+      )
+    ),
+  mfiThetaBadge: (theta: number, locale: LocaleCode): string =>
+    uiPick(
+      locale,
+      c(
+        `IRT θ=${theta} · MFI 最优信息量选题`,
+        `IRT θ=${theta} · MFI Optimal Item`,
+        `IRT θ=${theta} ・ MFI 最適情報量出題`,
+        `IRT θ=${theta} · MFI 최대정보량 문항`,
+        `IRT θ=${theta} · Pemilihan MFI Optimum`
+      )
+    ),
+  stepCheckerToggleBtn: c(
+    "🧮 逐行检查草稿步骤",
+    "🧮 Check Working Steps",
+    "🧮 途中式の行ごと診断",
+    "🧮 단계별 풀이식 검산",
+    "🧮 Semak Jalan Kerja"
+  ),
+  stepCheckerCloseBtn: c(
+    "返回普通提问",
+    "Standard Chat",
+    "通常チャットへ",
+    "일반 질문 모드",
+    "Sembang Biasa"
+  ),
+  stepCheckerHint: c(
+    "每行输入一步等式或用 => 连接推导（代数等价引擎将精确定位第几步开始不等价）：",
+    "Enter one equation/expression step per line or connect with => (the algebraic engine pinpoints the exact broken transition):",
+    "1行に1ステップずつ式を入力するか => で接続してください（代数エンジンが何ステップ目で等値性が崩れたか特定します）：",
+    "한 줄에 한 단계씩 등식을 입력하거나 => 로 연결하세요(대수 동치 엔진이 몇 단계에서 오류가 시작되었는지 정밀 탐지합니다):",
+    "Masukkan satu langkah setiap baris atau sambungkan dengan => (enjin algebra mengenal pasti langkah tepat yang tidak setara):"
+  ),
+  stepCheckerPlaceholder: c(
+    "2x - 6 = 10\n2x = 4\nx = 2",
+    "2x - 6 = 10\n2x = 4\nx = 2",
+    "2x - 6 = 10\n2x = 4\nx = 2",
+    "2x - 6 = 10\n2x = 4\nx = 2",
+    "2x - 6 = 10\n2x = 4\nx = 2"
+  ),
+  stepCheckerSubmitBtn: c(
+    "诊断步骤等价性",
+    "Verify Steps",
+    "途中式を検証",
+    "풀이 단계 검증",
+    "Sahkan Langkah"
+  ),
+  syncAssignmentBanner: c(
+    "🎉 恭喜！本轮掌握已自动完成班级分层作业并同步成长约定进度！",
+    "🎉 Awesome! Your newly mastered node(s) automatically completed a class assignment & updated your Study Pact!",
+    "🎉 おめでとうございます！今回の習得でクラス課題が自動完了し、学習約束の進捗も更新されました！",
+    "🎉 축하합니다! 이번 마스터 달성으로 학급 과제가 자동 완료되고 학습 약속 진행률도 갱신되었습니다!",
+    "🎉 Syabas! Penguasaan baharu anda telah melengkapkan tugasan kelas & mengemas kini Janji Pembelajaran secara automatik!"
   ),
 };

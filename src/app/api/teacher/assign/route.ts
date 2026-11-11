@@ -3,6 +3,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/db/seed";
 import { differentiatedAssignments } from "@/db/schema";
+import {
+  authorizeEducatorMutation,
+  authorizeStudentAccess,
+} from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +24,15 @@ export async function POST(req: Request) {
         assignedStudentIds: string[];
         dueDate?: string;
       }>;
+
+      const claimedTeacherId = packs?.[0]?.teacherId;
+      const access = authorizeEducatorMutation(req, claimedTeacherId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
 
       const nowIso = new Date().toISOString();
       const defaultDue = new Date(Date.now() + 5 * 24 * 3600 * 1000)
@@ -52,6 +65,14 @@ export async function POST(req: Request) {
     if (action === "toggle_complete") {
       const assignmentId = body.assignmentId as string;
       const studentId = body.studentId as string;
+
+      const access = await authorizeStudentAccess(req, studentId);
+      if (!access.allowed) {
+        return NextResponse.json(
+          { ok: false, error: access.reason },
+          { status: 403 }
+        );
+      }
 
       const rows = await db
         .select()

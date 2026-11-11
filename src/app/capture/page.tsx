@@ -12,12 +12,15 @@ import {
   CheckCircle2,
   Upload,
   ArrowRight,
+  Eraser,
+  ScanText,
 } from "lucide-react";
 import { usePlatform } from "@/components/PlatformProvider";
 import { MathText } from "@/components/MathText";
 import type { LocaleCode, SubjectId } from "@/types/taxonomy";
 import type { SmartCaptureAnalysisResult } from "@/lib/engines/smart-capture-and-paper";
 import { getLocalizedPrivacyRegime } from "@/lib/engines/privacy-shield";
+import { gradeQuestionResponse } from "@/lib/engines/grader";
 import {
   localizeChoice,
   localizeExplanation,
@@ -61,6 +64,13 @@ export default function SmartCapturePage() {
   );
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string>("");
+  const [ocrLoading, setOcrLoading] = useState<boolean>(false);
+  const [ocrProvider, setOcrProvider] = useState<string | null>(null);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const loadedImgRef = useRef<HTMLImageElement | null>(null);
+  const isDrawingRef = useRef<boolean>(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<SmartCaptureAnalysisResult | null>(null);
@@ -164,20 +174,135 @@ export default function SmartCapturePage() {
     executeAnalyze,
   ]);
 
+  const drawImageOntoCanvas = useCallback((dataUrl: string) => {
+    const img = new Image();
+    img.onload = () => {
+      loadedImgRef.current = img;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const maxWidth = 640;
+      const scale = img.naturalWidth > maxWidth ? maxWidth / img.naturalWidth : 1;
+      canvas.width = Math.max(120, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(90, Math.round(img.naturalHeight * scale));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = dataUrl;
+  }, []);
+
+  useEffect(() => {
+    if (imagePreviewUrl) {
+      drawImageOntoCanvas(imagePreviewUrl);
+    }
+  }, [imagePreviewUrl, drawImageOntoCanvas]);
+
+  const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / Math.max(1, rect.width);
+    const scaleY = canvas.height / Math.max(1, rect.height);
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleCanvasPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDrawingRef.current = true;
+    const pt = getCanvasPoint(e);
+    lastPointRef.current = pt;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(pt.x - 12, pt.y - 10, 24, 20);
+    }
+  };
+
+  const handleCanvasPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const pt = getCanvasPoint(e);
+    const prev = lastPointRef.current ?? pt;
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineWidth = Math.max(18, Math.round(canvas.height * 0.06));
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(pt.x, pt.y);
+    ctx.stroke();
+    lastPointRef.current = pt;
+  };
+
+  const handleCanvasPointerUp = () => {
+    isDrawingRef.current = false;
+    lastPointRef.current = null;
+  };
+
+  const clearPrivacyMask = () => {
+    if (imagePreviewUrl) {
+      drawImageOntoCanvas(imagePreviewUrl);
+    }
+  };
+
+  const runVisionOcr = async (overrideDataUrl?: string, overrideName?: string) => {
+    const canvas = canvasRef.current;
+    const maskedDataUrl =
+      overrideDataUrl ??
+      (canvas ? canvas.toDataURL("image/jpeg", 0.88) : imagePreviewUrl);
+    if (!maskedDataUrl) return;
+
+    setOcrLoading(true);
+    try {
+      const res = await fetch("/api/capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ocr_image",
+          imageDataUrl: maskedDataUrl,
+          fileName: overrideName ?? imageFileName,
+          studentId: activeStudentId,
+          regionCode,
+          locale,
+          preferredSubjectId: subjectHint,
+        }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setRawQuestionText(String(json.stemText ?? ""));
+        if (json.wrongAnswer) {
+          setStudentWrongAnswer(String(json.wrongAnswer));
+        }
+        if (json.detectedSubjectId) {
+          setSubjectHint(json.detectedSubjectId as SubjectId);
+        }
+        setOcrProvider(String(json.provider ?? "local_demo_ocr"));
+        setShieldInfo(json.privacyShield ?? null);
+        setSelectedPresetIdx(null);
+        setIsOcrGenerated(json.provider === "local_demo_ocr");
+        setUserEditedStem(json.provider !== "local_demo_ocr");
+      }
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImageFileName(file.name);
+    setOcrProvider(null);
     const reader = new FileReader();
     reader.onload = () => {
-      setImagePreviewUrl(String(reader.result));
+      const dataUrl = String(reader.result);
+      setImagePreviewUrl(dataUrl);
       if (!rawQuestionText.trim() || !userEditedStem) {
-        setRawQuestionText(CAPTURE_COPY.ocrSimulatedStem(file.name, locale));
-        setStudentWrongAnswer("");
-        setSubjectHint("math");
-        setSelectedPresetIdx(null);
-        setIsOcrGenerated(true);
-        setUserEditedStem(false);
+        void runVisionOcr(dataUrl, file.name);
       }
     };
     reader.readAsDataURL(file);
@@ -333,13 +458,49 @@ export default function SmartCapturePage() {
           </label>
 
           {imagePreviewUrl && (
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imagePreviewUrl}
-                alt={pick(CAPTURE_COPY.previewAlt)}
-                className="max-h-36 mx-auto rounded-lg object-contain"
-              />
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2.5">
+              <p className="text-[11px] text-emerald-300/90 leading-relaxed">
+                {pick(CAPTURE_COPY.privacyBrushHint)}
+              </p>
+              <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/80 flex justify-center">
+                <canvas
+                  ref={canvasRef}
+                  aria-label={pick(CAPTURE_COPY.previewAlt)}
+                  onPointerDown={handleCanvasPointerDown}
+                  onPointerMove={handleCanvasPointerMove}
+                  onPointerUp={handleCanvasPointerUp}
+                  onPointerCancel={handleCanvasPointerUp}
+                  className="max-h-48 w-auto cursor-crosshair touch-none object-contain"
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={clearPrivacyMask}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:border-slate-500"
+                >
+                  <Eraser className="h-3.5 w-3.5" />
+                  <span>{pick(CAPTURE_COPY.clearMaskBtn)}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void runVisionOcr()}
+                  disabled={ocrLoading}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600/90 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-indigo-500 disabled:opacity-50"
+                >
+                  <ScanText className="h-3.5 w-3.5" />
+                  <span>
+                    {ocrLoading
+                      ? pick(CAPTURE_COPY.runningVisionOcrBtn)
+                      : pick(CAPTURE_COPY.runVisionOcrBtn)}
+                  </span>
+                </button>
+              </div>
+              {ocrProvider && (
+                <div className="text-[10px] font-mono text-indigo-300">
+                  ✨ {CAPTURE_COPY.ocrProviderBadge(ocrProvider, locale)}
+                </div>
+              )}
             </div>
           )}
 
@@ -637,11 +798,11 @@ export default function SmartCapturePage() {
                       onChange={(e) => setTwinTryInput(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          setTwinFeedback(
-                            twinTryInput.trim() === result.twinVariant.answer
-                              ? "right"
-                              : "wrong"
-                          );
+                          const ok = gradeQuestionResponse(
+                            result.twinVariant,
+                            twinTryInput
+                          ).isCorrect;
+                          setTwinFeedback(ok ? "right" : "wrong");
                         }
                       }}
                       placeholder={pick(CAPTURE_COPY.instantTwinPlaceholder)}
@@ -649,13 +810,13 @@ export default function SmartCapturePage() {
                     />
                     <button
                       type="button"
-                      onClick={() =>
-                        setTwinFeedback(
-                          twinTryInput.trim() === result.twinVariant.answer
-                            ? "right"
-                            : "wrong"
-                        )
-                      }
+                      onClick={() => {
+                        const ok = gradeQuestionResponse(
+                          result.twinVariant,
+                          twinTryInput
+                        ).isCorrect;
+                        setTwinFeedback(ok ? "right" : "wrong");
+                      }}
                       className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500"
                     >
                       {pick(CAPTURE_COPY.checkTwinBtn)}

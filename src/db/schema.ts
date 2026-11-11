@@ -1,4 +1,12 @@
-import { sqliteTable, text, integer, real, primaryKey } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  primaryKey,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import type {
   LocalizedText,
   MicroLessonPayload,
@@ -198,37 +206,44 @@ export const studentTopicStates = sqliteTable(
     lastPracticedAt: text("last_practiced_at"),
     nextReviewAt: text("next_review_at"),
   },
-  (t) => [primaryKey({ columns: [t.studentId, t.topicId] })]
+  (t) => [
+    primaryKey({ columns: [t.studentId, t.topicId] }),
+    index("idx_sts_student").on(t.studentId),
+  ]
 );
 
 /**
  * 9. FSRS Wrong-Question Book (错题本 + 迷思标签 + 孪生变式清零记录)
  */
-export const wrongQuestions = sqliteTable("wrong_questions", {
-  id: text("id").primaryKey(),
-  studentId: text("student_id")
-    .notNull()
-    .references(() => users.id),
-  topicId: text("topic_id")
-    .notNull()
-    .references(() => canonicalTopics.id),
-  templateId: text("template_id").notNull(),
-  questionSnapshotJson: text("question_snapshot_json", { mode: "json" })
-    .$type<GeneratedQuestionInstance>()
-    .notNull(),
-  wrongUserAnswer: text("wrong_user_answer").notNull(),
-  misconceptionTag: text("misconception_tag"),
-  misconceptionLabel: text("misconception_label"),
-  status: text("status").notNull().default("active"), // 'active' | 'reviewing' | 'cleared'
-  fsrsDifficulty: real("fsrs_difficulty").notNull().default(6.2),
-  fsrsStability: real("fsrs_stability").notNull().default(0.5), // Days
-  reps: integer("reps").notNull().default(0),
-  lapses: integer("lapses").notNull().default(1),
-  twinClearStreak: integer("twin_clear_streak").notNull().default(0), // Needs >= 3 Good/Easy twin variants to mark 'cleared'
-  createdAt: text("created_at").notNull(),
-  lastReviewedAt: text("last_reviewed_at").notNull(),
-  nextReviewAt: text("next_review_at").notNull(),
-});
+export const wrongQuestions = sqliteTable(
+  "wrong_questions",
+  {
+    id: text("id").primaryKey(),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => users.id),
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => canonicalTopics.id),
+    templateId: text("template_id").notNull(),
+    questionSnapshotJson: text("question_snapshot_json", { mode: "json" })
+      .$type<GeneratedQuestionInstance>()
+      .notNull(),
+    wrongUserAnswer: text("wrong_user_answer").notNull(),
+    misconceptionTag: text("misconception_tag"),
+    misconceptionLabel: text("misconception_label"),
+    status: text("status").notNull().default("active"), // 'active' | 'reviewing' | 'cleared'
+    fsrsDifficulty: real("fsrs_difficulty").notNull().default(6.2),
+    fsrsStability: real("fsrs_stability").notNull().default(0.5), // Days
+    reps: integer("reps").notNull().default(0),
+    lapses: integer("lapses").notNull().default(1),
+    twinClearStreak: integer("twin_clear_streak").notNull().default(0), // Needs >= 3 Good/Easy twin variants to mark 'cleared'
+    createdAt: text("created_at").notNull(),
+    lastReviewedAt: text("last_reviewed_at").notNull(),
+    nextReviewAt: text("next_review_at").notNull(),
+  },
+  (t) => [index("idx_wq_student_status").on(t.studentId, t.status)]
+);
 
 /**
  * 10. Diagnostic Sessions Persistence
@@ -270,20 +285,27 @@ export const differentiatedAssignments = sqliteTable("differentiated_assignments
 /**
  * 12. Real Auth Credentials, Family Kid-PIN & 9-Region Privacy Consent Profiles
  */
-export const userAuthProfiles = sqliteTable("user_auth_profiles", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => users.id),
-  loginHandle: text("login_handle").notNull(),
-  secretCode: text("secret_code").notNull(),
-  kidPin: text("kid_pin"),
-  anonymousToken: text("anonymous_token").notNull(),
-  ageGroup: text("age_group").notNull().default("u14"), // 'u13' | 'u16' | 'adult'
-  parentConsentVerified: integer("parent_consent_verified", { mode: "boolean" })
-    .notNull()
-    .default(true),
-  privacyRegime: text("privacy_regime").notNull(),
-});
+export const userAuthProfiles = sqliteTable(
+  "user_auth_profiles",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => users.id),
+    loginHandle: text("login_handle").notNull(),
+    secretCode: text("secret_code").notNull(),
+    kidPin: text("kid_pin"),
+    anonymousToken: text("anonymous_token").notNull(),
+    ageGroup: text("age_group").notNull().default("u14"), // 'u13' | 'u16' | 'adult'
+    parentConsentVerified: integer("parent_consent_verified", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    privacyRegime: text("privacy_regime").notNull(),
+  },
+  (t) => [
+    uniqueIndex("idx_auth_login_handle").on(t.loginHandle),
+    index("idx_auth_kid_pin").on(t.kidPin),
+  ]
+);
 
 /**
  * 13. Parent-Student Screen-Time & Positive Incentive Pact (P4 防沉迷与激励约定)
@@ -377,18 +399,22 @@ export const irtItemStats = sqliteTable("irt_item_stats", {
 /**
  * 18. Longitudinal Student Attempt Logs (Anonymized Token + Mastery Growth Curve)
  */
-export const attemptLogs = sqliteTable("attempt_logs", {
-  id: text("id").primaryKey(),
-  studentAnonToken: text("student_anon_token").notNull(),
-  studentId: text("student_id")
-    .notNull()
-    .references(() => users.id),
-  topicId: text("topic_id")
-    .notNull()
-    .references(() => canonicalTopics.id),
-  templateId: text("template_id").notNull(),
-  isCorrect: integer("is_correct", { mode: "boolean" }).notNull(),
-  pMasteryAfter: real("p_mastery_after").notNull(),
-  thetaEstimate: real("theta_estimate").notNull(),
-  createdAt: text("created_at").notNull(),
-});
+export const attemptLogs = sqliteTable(
+  "attempt_logs",
+  {
+    id: text("id").primaryKey(),
+    studentAnonToken: text("student_anon_token").notNull(),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => users.id),
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => canonicalTopics.id),
+    templateId: text("template_id").notNull(),
+    isCorrect: integer("is_correct", { mode: "boolean" }).notNull(),
+    pMasteryAfter: real("p_mastery_after").notNull(),
+    thetaEstimate: real("theta_estimate").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [index("idx_attempts_student_created").on(t.studentId, t.createdAt)]
+);

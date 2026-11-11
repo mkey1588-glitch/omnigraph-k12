@@ -212,4 +212,13 @@ export interface DiagnosticSessionState {
   backtrackOriginByTopic: Record<string, string>; // Maps prerequisiteId -> downstream failed topicId
   history: DiagnosticAnswerEntry[];
   finished: boolean;
+  customEdges?: Array<{
+    topicId: string;
+    prerequisiteId: string;
+    relationType: EdgeRelationType;
+    reasonZh?: string;
+    reasonEn?: string;
+  }>;
+  studentTheta?: number;
+  warmStartSkippedCount?: number;
 }

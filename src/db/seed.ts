@@ -1,4 +1,4 @@
-import { count } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import { db, ensureSchema, libsqlClient } from "./index";
 import {
   attemptLogs,
@@ -7,6 +7,7 @@ import {
   classrooms,
   customSchoolEdges,
   customSchoolQuestions,
+  diagnosticSessions,
   differentiatedAssignments,
   irtItemStats,
   parentChildLinks,
@@ -32,9 +33,37 @@ import {
 import { generateQuestion } from "@/lib/engines/item-generator";
 import { computeAnonToken, PRIVACY_REGIMES } from "@/lib/engines/privacy-shield";
 import { priorBetaForDifficulty } from "@/lib/engines/irt-engine";
+import {
+  DEMO_SEED_USER_IDS,
+  hashKidPin,
+  hashSecret,
+  isHashedKidPin,
+  isHashedSecret,
+} from "@/lib/auth/session";
 import type { MasteryStatus } from "@/types/taxonomy";
 
 let seedPromise: Promise<void> | null = null;
+let credentialsUpgraded = false;
+
+async function upgradeLegacyPlaintextCredentials(): Promise<void> {
+  if (credentialsUpgraded) return;
+  const rows = await db.select().from(userAuthProfiles);
+  for (const row of rows) {
+    const needsSecretHash = !isHashedSecret(row.secretCode);
+    const needsPinHash = Boolean(row.kidPin && !isHashedKidPin(row.kidPin));
+    if (needsSecretHash || needsPinHash) {
+      await db
+        .update(userAuthProfiles)
+        .set({
+          secretCode: needsSecretHash ? hashSecret(row.secretCode) : row.secretCode,
+          kidPin:
+            row.kidPin && needsPinHash ? hashKidPin(row.kidPin) : row.kidPin,
+        })
+        .where(eq(userAuthProfiles.userId, row.userId));
+    }
+  }
+  credentialsUpgraded = true;
+}
 
 export async function ensureSeeded(forceReset = false): Promise<void> {
   await ensureSchema();
@@ -48,6 +77,7 @@ export async function ensureSeeded(forceReset = false): Promise<void> {
     const existing = await db.select({ value: count() }).from(canonicalTopics);
     const existingCount = existing[0]?.value ?? 0;
     if (existingCount >= ALL_CANONICAL_TOPICS.length) {
+      await upgradeLegacyPlaintextCredentials();
       return;
     }
     if (existingCount > 0) {
@@ -58,9 +88,54 @@ export async function ensureSeeded(forceReset = false): Promise<void> {
   seedPromise = runFullSeed(shouldReset);
   try {
     await seedPromise;
+    credentialsUpgraded = true;
   } finally {
     seedPromise = null;
   }
+}
+
+/**
+ * Sandbox-safe Demo Reset:
+ * Resets ONLY the 9 built-in demo personas (`DEMO_SEED_USER_IDS`) and demo seed artifacts,
+ * strictly preserving all real registered accounts, child subaccounts, and teacher custom items.
+ */
+export async function resetDemoSandboxOnly(): Promise<void> {
+  await ensureSchema();
+  const demoUsers = [...DEMO_SEED_USER_IDS];
+  const demoAssignmentIds = [
+    "asg_foundational_bridge",
+    "asg_standard_parabola",
+    "asg_challenge_calc",
+  ];
+
+  await db.delete(attemptLogs).where(inArray(attemptLogs.studentId, demoUsers));
+  await db.delete(studyPacts).where(inArray(studyPacts.studentId, demoUsers));
+  await db
+    .delete(userAuthProfiles)
+    .where(inArray(userAuthProfiles.userId, demoUsers));
+  await db
+    .delete(diagnosticSessions)
+    .where(inArray(diagnosticSessions.studentId, demoUsers));
+  await db
+    .delete(wrongQuestions)
+    .where(inArray(wrongQuestions.studentId, demoUsers));
+  await db
+    .delete(studentTopicStates)
+    .where(inArray(studentTopicStates.studentId, demoUsers));
+  await db
+    .delete(differentiatedAssignments)
+    .where(inArray(differentiatedAssignments.id, demoAssignmentIds));
+  await db
+    .delete(customSchoolEdges)
+    .where(eq(customSchoolEdges.id, "cse_chem_molar_rational"));
+  await db
+    .delete(customSchoolQuestions)
+    .where(eq(customSchoolQuestions.id, "csq_ohm_bridge_1"));
+  await db
+    .delete(privacyAuditLogs)
+    .where(inArray(privacyAuditLogs.id, ["pal_seed_1", "pal_seed_2"]));
+
+  await runFullSeed(false);
 }
 
 async function runFullSeed(forceReset: boolean): Promise<void> {
@@ -734,8 +809,8 @@ async function runFullSeed(forceReset: boolean): Promise<void> {
       authSeedRows.map((row) => ({
         userId: row.userId,
         loginHandle: row.loginHandle,
-        secretCode: row.secretCode,
-        kidPin: row.kidPin,
+        secretCode: hashSecret(row.secretCode),
+        kidPin: row.kidPin ? hashKidPin(row.kidPin) : null,
         anonymousToken: computeAnonToken(row.userId, row.region),
         ageGroup: row.ageGroup,
         parentConsentVerified: true,

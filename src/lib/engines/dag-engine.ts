@@ -2,6 +2,7 @@ import type {
   DiagnosticAnswerEntry,
   DiagnosticSessionState,
   DifficultyTier,
+  EdgeRelationType,
   GeneratedQuestionInstance,
   MasteryStatus,
   RegionCode,
@@ -17,10 +18,49 @@ import {
 import type { TopicSeedDefinition } from "@/data/canonical-topics-math";
 import { generateQuestion } from "./item-generator";
 import { gradeQuestionResponse } from "./grader";
+import {
+  selectOptimalDifficultyByMfi,
+  type IrtItemRecord,
+} from "./irt-engine";
 
 const TOPIC_MAP = new Map<string, TopicSeedDefinition>(
   ALL_CANONICAL_TOPICS.map((t) => [t.id, t])
 );
+
+export interface CustomEdgeRef {
+  topicId: string;
+  prerequisiteId: string;
+  relationType: EdgeRelationType;
+  reasonZh?: string;
+  reasonEn?: string;
+}
+
+function getEffectiveEdges(extraEdges?: CustomEdgeRef[]): EdgeSeedDefinition[] {
+  if (!extraEdges || extraEdges.length === 0) {
+    return CANONICAL_EDGES;
+  }
+  const seen = new Set(
+    CANONICAL_EDGES.map((e) => `${e.topicId}::${e.prerequisiteId}`)
+  );
+  const appended: EdgeSeedDefinition[] = [];
+  for (const ce of extraEdges) {
+    const key = `${ce.topicId}::${ce.prerequisiteId}`;
+    if (seen.has(key) || !TOPIC_MAP.has(ce.topicId) || !TOPIC_MAP.has(ce.prerequisiteId)) {
+      continue;
+    }
+    seen.add(key);
+    appended.push({
+      topicId: ce.topicId,
+      prerequisiteId: ce.prerequisiteId,
+      relationType: ce.relationType || "hard",
+      reason: {
+        "zh-CN": ce.reasonZh ?? "校本自定义先修依赖",
+        en: ce.reasonEn ?? "School custom prerequisite",
+      },
+    });
+  }
+  return appended.length > 0 ? [...CANONICAL_EDGES, ...appended] : CANONICAL_EDGES;
+}
 
 export function getTopicById(topicId: string): TopicSeedDefinition | undefined {
   return TOPIC_MAP.get(topicId);
@@ -31,9 +71,10 @@ export function getTopicById(topicId: string): TopicSeedDefinition | undefined {
  */
 export function getDirectPrerequisites(
   topicId: string,
-  includeCrossSubject = true
+  includeCrossSubject = true,
+  extraEdges?: CustomEdgeRef[]
 ): EdgeSeedDefinition[] {
-  return CANONICAL_EDGES.filter(
+  return getEffectiveEdges(extraEdges).filter(
     (e) =>
       e.topicId === topicId &&
       (includeCrossSubject || e.relationType !== "cross_subject")
@@ -45,9 +86,10 @@ export function getDirectPrerequisites(
  */
 export function getDirectDependents(
   topicId: string,
-  includeCrossSubject = true
+  includeCrossSubject = true,
+  extraEdges?: CustomEdgeRef[]
 ): EdgeSeedDefinition[] {
-  return CANONICAL_EDGES.filter(
+  return getEffectiveEdges(extraEdges).filter(
     (e) =>
       e.prerequisiteId === topicId &&
       (includeCrossSubject || e.relationType !== "cross_subject")
@@ -59,7 +101,8 @@ export function getDirectDependents(
  */
 export function getAncestors(
   targetIds: string[],
-  includeCrossSubject = true
+  includeCrossSubject = true,
+  extraEdges?: CustomEdgeRef[]
 ): string[] {
   const visited = new Set<string>();
   const queue = [...targetIds];
@@ -67,7 +110,7 @@ export function getAncestors(
 
   while (queue.length > 0) {
     const curr = queue.shift()!;
-    for (const edge of getDirectPrerequisites(curr, includeCrossSubject)) {
+    for (const edge of getDirectPrerequisites(curr, includeCrossSubject, extraEdges)) {
       if (!visited.has(edge.prerequisiteId) && !seedSet.has(edge.prerequisiteId)) {
         visited.add(edge.prerequisiteId);
         queue.push(edge.prerequisiteId);
@@ -82,7 +125,8 @@ export function getAncestors(
  */
 export function getDescendants(
   sourceIds: string[],
-  includeCrossSubject = true
+  includeCrossSubject = true,
+  extraEdges?: CustomEdgeRef[]
 ): string[] {
   const visited = new Set<string>();
   const queue = [...sourceIds];
@@ -90,7 +134,7 @@ export function getDescendants(
 
   while (queue.length > 0) {
     const curr = queue.shift()!;
-    for (const edge of getDirectDependents(curr, includeCrossSubject)) {
+    for (const edge of getDirectDependents(curr, includeCrossSubject, extraEdges)) {
       if (!visited.has(edge.topicId) && !seedSet.has(edge.topicId)) {
         visited.add(edge.topicId);
         queue.push(edge.topicId);
@@ -106,7 +150,8 @@ export function getDescendants(
  */
 export function topologicalSort(
   topicIds: string[],
-  regionCode: RegionCode = "CN"
+  regionCode: RegionCode = "CN",
+  extraEdges?: CustomEdgeRef[]
 ): string[] {
   const scope = new Set(topicIds);
   const inDegree = new Map<string, number>();
@@ -117,7 +162,7 @@ export function topologicalSort(
     adj.set(id, []);
   }
 
-  for (const edge of CANONICAL_EDGES) {
+  for (const edge of getEffectiveEdges(extraEdges)) {
     if (scope.has(edge.topicId) && scope.has(edge.prerequisiteId)) {
       adj.get(edge.prerequisiteId)!.push(edge.topicId);
       inDegree.set(edge.topicId, (inDegree.get(edge.topicId) ?? 0) + 1);
@@ -203,6 +248,9 @@ export interface CreateSessionOptions {
   maxQuestions?: number;
   seed?: string;
   initialKnownMastery?: Record<string, MasteryStatus>;
+  extraEdges?: CustomEdgeRef[];
+  studentTheta?: number;
+  warmStartSkippedCount?: number;
 }
 
 /**
@@ -222,10 +270,11 @@ export function createDiagnosticSession(
       ? validTargets
       : ["mt_math_quad_complete_sq"];
 
-  const ancestors = getAncestors(fallbackTargets, true);
+  const ancestors = getAncestors(fallbackTargets, true, opts.extraEdges);
   const scopeTopicIds = topologicalSort(
     [...new Set([...fallbackTargets, ...ancestors])],
-    opts.regionCode
+    opts.regionCode,
+    opts.extraEdges
   );
 
   const statusByTopic: Record<string, MasteryStatus> = {};
@@ -234,7 +283,11 @@ export function createDiagnosticSession(
   }
 
   // Order initial stack so highest/target nodes are tested first (enabling ancestor closure pruning!)
-  const orderedTargets = topologicalSort(fallbackTargets, opts.regionCode);
+  const orderedTargets = topologicalSort(
+    fallbackTargets,
+    opts.regionCode,
+    opts.extraEdges
+  );
   // Top of stack is last element -> orderedTargets[orderedTargets.length - 1] tested first
   const stack = orderedTargets.filter((id) => statusByTopic[id] === "untested");
 
@@ -255,6 +308,9 @@ export function createDiagnosticSession(
     backtrackOriginByTopic: {},
     history: [],
     finished: stack.length === 0,
+    customEdges: opts.extraEdges,
+    studentTheta: opts.studentTheta,
+    warmStartSkippedCount: opts.warmStartSkippedCount ?? 0,
   };
 }
 
@@ -264,14 +320,20 @@ export interface NextDiagnosticPrompt {
   whyAskedZh: string;
   whyAskedEn: string;
   whyAskedI18n?: TriLocaleText;
+  fisherInfo?: number;
   instance: GeneratedQuestionInstance;
+}
+
+export interface NextQuestionSelectionContext {
+  irtStatsByTopic?: Record<string, Partial<Record<DifficultyTier, IrtItemRecord>>>;
 }
 
 /**
  * Select and parameterize the next adaptive question for an active session
  */
 export function getNextDiagnosticQuestion(
-  session: DiagnosticSessionState
+  session: DiagnosticSessionState,
+  selectionCtx?: NextQuestionSelectionContext
 ): NextDiagnosticPrompt | null {
   if (session.finished || session.history.length >= session.maxQuestions) {
     session.finished = true;
@@ -308,6 +370,7 @@ export function getNextDiagnosticQuestion(
   const originTopic = originId ? TOPIC_MAP.get(originId) : undefined;
 
   let difficulty: DifficultyTier = "standard";
+  let fisherInfo: number | undefined;
   let whyAskedZh = "";
   let whyAskedEn = "";
   let whyAskedI18n: TriLocaleText = {};
@@ -316,7 +379,21 @@ export function getNextDiagnosticQuestion(
   const tm = (tp: TopicSeedDefinition) => tp.title.ms ?? tp.title.en;
 
   if (attempts.length === 0) {
-    difficulty = "standard";
+    if (
+      selectionCtx?.irtStatsByTopic &&
+      typeof session.studentTheta === "number"
+    ) {
+      const mfi = selectOptimalDifficultyByMfi({
+        topicId,
+        studentTheta: session.studentTheta,
+        irtStatsByTopicAndTier: selectionCtx.irtStatsByTopic[topicId],
+        baselineGrade: topic.baselineGrade,
+      });
+      difficulty = mfi.difficulty;
+      fisherInfo = mfi.fisherInfo;
+    } else {
+      difficulty = "standard";
+    }
     if (originTopic) {
       const isCross = originTopic.subjectId !== topic.subjectId;
       whyAskedZh = isCross
@@ -388,6 +465,7 @@ export function getNextDiagnosticQuestion(
     whyAskedZh,
     whyAskedEn,
     whyAskedI18n,
+    fisherInfo,
     instance,
   };
 }
@@ -452,7 +530,7 @@ export function applyDiagnosticAnswer(
   if (consecutiveCorrect >= session.confirmRequired) {
     // 1. Confirmed MASTERED -> Ancestor Mastery Closure Pruning!
     session.statusByTopic[topicId] = "mastered";
-    const ancestors = getAncestors([topicId], true);
+    const ancestors = getAncestors([topicId], true, session.customEdges);
     for (const ancId of ancestors) {
       if (
         session.statusByTopic[ancId] === "untested" ||
@@ -468,7 +546,7 @@ export function applyDiagnosticAnswer(
   } else if (attempts.length === 2 && !attempts[0].isCorrect && !attempts[1].isCorrect) {
     // 3. Missed standard AND missed basic confirmation -> WEAK! Trigger DFS Prerequisite Backtracking!
     session.statusByTopic[topicId] = "weak";
-    const prereqEdges = getDirectPrerequisites(topicId, true);
+    const prereqEdges = getDirectPrerequisites(topicId, true, session.customEdges);
 
     // Priority order to test FIRST: 'hard' -> 'cross_subject' -> 'soft'
     // Since stack is LIFO, push in reverse priority ('soft', then 'cross_subject', then 'hard')!
@@ -495,7 +573,7 @@ export function applyDiagnosticAnswer(
     const correctTotal = attempts.filter((a) => a.isCorrect).length;
     if (correctTotal >= 2 && grade.isCorrect) {
       session.statusByTopic[topicId] = "mastered";
-      for (const ancId of getAncestors([topicId], true)) {
+      for (const ancId of getAncestors([topicId], true, session.customEdges)) {
         if ((session.statusByTopic[ancId] ?? "untested") === "untested") {
           session.statusByTopic[ancId] = "inferred_mastered";
           prunedAncestors.push(ancId);
@@ -573,13 +651,14 @@ export function summarizeDiagnosis(
 
   // A weak topic is a ROOT CAUSE if none of its upstream prerequisites are also weak!
   const weakRootIds = weakIds.filter((id) => {
-    const anc = getAncestors([id], true);
+    const anc = getAncestors([id], true, session.customEdges);
     return !anc.some((a) => weakSet.has(a));
   });
 
   const remedialPathIds = topologicalSort(
     [...weakIds, ...shakyIds],
-    session.regionCode
+    session.regionCode,
+    session.customEdges
   );
 
   const correctCount = session.history.filter((h) => h.isCorrect).length;
